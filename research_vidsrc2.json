@@ -1,0 +1,92 @@
+[
+  {
+    "url": "https://www.reddit.com/r/webdev/comments/1hyzq0l/i_made_a_streaming_web_app",
+    "name": "I made a streaming web app : r/webdev - Reddit",
+    "snippet": "The video providers are VidSrc , VidSrc Pro and Embed.su. All pictures, descriptions, search results, etc. come from TMDB using their public API ...",
+    "host_name": "www.reddit.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/topics/vidsrc?o=desc&s=updated",
+    "name": "vidsrc · GitHub Topics",
+    "snippet": "An api to get embed sources using tmdb id. tmdb m3u8 showbox vidsrc embed-reslover url-resolver vixsrc 4khdhub moviesmod mp4hydra vidzee xprime. Updated Jun 21, ...",
+    "host_name": "github.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://dev.to/debrone/i-built-a-movie-streaming-site-in-48-hours-heres-how-it-went-42g8",
+    "name": "I Built a Movie Streaming Site in 48 Hours - Here's How It Went",
+    "snippet": "It was simple enough: I'd use TMDB to fetch movie titles, posters, and details, and then pull the actual streaming links from vidsrc. But here's ...\nThey were using APIs like TMDB to pull movie data and vidsrc.dev to stream the actual videos. That got me thinking: \"Why not try this out myself ...",
+    "host_name": "dev.to",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.scribd.com/document/944190747/Video-Providers",
+    "name": "Movie and TV Embed Guide | PDF | Software | Computing - Scribd",
+    "snippet": "To generate an embed URL for a movie on the VidSrc platform using the IMDb ID, you need to follow the URL format https://vidsrc.to/embed/movie/{id}, where {id} ...",
+    "host_name": "www.scribd.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://routinehub.co/shortcut/19616",
+    "name": "Vidsrc - RoutineHub",
+    "snippet": "The embed URL templates can be modified in the Settings > Embed Settings page. Update them as needed to customize the embed URLs. Use the ...",
+    "host_name": "routinehub.co",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.wjunction.com/threads/vidsrc-me-movie-streaming-api-discussion-thread.261605",
+    "name": "Vidsrc.me Movie Streaming API - Discussion Thread - WJunction",
+    "snippet": "I am using mtdb (not wordpress) .. can auto embed be implemented? Think there is a bug in the iframe code ... the tag is tmdb but the ID belongs ...\nHow do I add vidsrc servers to existing movies on my website? I added movies before I discovered Vidsrc. Is there any way I could add Vidsrc ...",
+    "host_name": "www.wjunction.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://news.ycombinator.com/item?id=42632850",
+    "name": "I Built a Movie Streaming Site in 2 Days - Hacker News",
+    "snippet": "Using vidsrc.dev API, the site gives you access to real, working movie streams (no fake links here). I also use TMDB for movie data, so you ...",
+    "host_name": "news.ycombinator.com",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/heyitswit/vidsrc-bypass",
+    "name": "heyitswit/vidsrc-bypass - GitHub",
+    "snippet": "vidsrc-bypass is a TypeScript utility library for interacting with vidsrc and embed.su APIs. It provides functions to fetch video details, stream URLs, and ...",
+    "host_name": "github.com",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=LgVk7rks-40",
+    "name": "Building a Free Movie Streaming Site with NextJS 15, and TMDb API",
+    "snippet": "Learn how to build a fully functional movie streaming website from scratch using Next.js, TMDb API for movie data, and VidSrc for streaming.",
+    "host_name": "www.youtube.com",
+    "rank": 8,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.similarweb.com/website/vidsrc.to/competitors",
+    "name": "vidsrc.to Competitors - Top Sites Like vidsrc.to | Similarweb",
+    "snippet": "The Top 10 Sites Like vidsrc.to in May 2026 are ranked by their affinity to vidsrc.to in terms of keyword traffic, audience targeting, and market overlap.",
+    "host_name": "www.similarweb.com",
+    "rank": 9,
+    "date": "",
+    "favicon": ""
+  }
+]
