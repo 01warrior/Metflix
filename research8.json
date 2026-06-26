@@ -1,0 +1,92 @@
+[
+  {
+    "url": "https://www.reddit.com/r/webhosting/comments/jz9ord/cheap_cdn_for_live_video_streaming",
+    "name": "Cheap CDN for live video streaming? : r/webhosting - Reddit",
+    "snippet": "My estimate is that streaming at 4Mbps to 2500 people, 2 hours a week, would be about 35TB a month. The bandwidth costs alone on AWS Cloudfront would be $3000 ...",
+    "host_name": "www.reddit.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://swarmify.com/blog/best-video-cdn-providers",
+    "name": "Best Video CDN Providers (2026): 9 Options Compared - Swarmify",
+    "snippet": "Compare the best video CDN providers in 2026 by price, performance, WordPress fit, and streaming features so you can choose the right stack.",
+    "host_name": "swarmify.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://blazingcdn.com/pricing",
+    "name": "CDN Pricing: $5/TB Down to $2/TB - BlazingCDN",
+    "snippet": "Progressive CDN pricing: $5 down to $2 per TB, one price for US, EU and Asia. 100 TB = $415/mo. 14-day free trial, no credit card, $25 minimum.",
+    "host_name": "blazingcdn.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://serverspace.us/services/video-streaming-hosting",
+    "name": "CDN Live Streaming - Serverspace.us",
+    "snippet": "Stream live video without platform lock-in or surprise bills. CDN delivery keeps latency low and costs predictable — you own the broadcast, the player, ...",
+    "host_name": "serverspace.us",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://blog.cdnsun.com/best-video-cdn-platforms",
+    "name": "6 Best Video CDN Platforms: Streaming Solutions in 2026",
+    "snippet": "Compare top video CDN platforms: CDNsun's proven reliability vs Akamai, Fastly, CloudFront & more. Find the right streaming solution for ...",
+    "host_name": "blog.cdnsun.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://livepush.io/pricing/live-stream-hosting/index.html",
+    "name": "Live Stream Hosting Pricing | Reliable, Scalable & Fast - Livepush",
+    "snippet": "For small events: 1TB CDN traffic, 1080p, pre-recorded & live channels. $49. per month. Billed monthly. Supports 1080p. Featured.",
+    "host_name": "livepush.io",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.wowza.com/blog/best-cdn-service-live-streaming",
+    "name": "Best Video CDN Services for Live Streaming (Update) - Wowza",
+    "snippet": "In this article, we'll explore the best and most popular options on the market, as well as dive into CDN enabled video streaming platforms.",
+    "host_name": "www.wowza.com",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://spendark.com/blog/video-streaming-cloud-cost",
+    "name": "Video Streaming Costs: AWS, Azure & GCP Pricing (2026) - SpendArk",
+    "snippet": "Transcoding, CDN egress, storage, and origin servers drive video costs. Real pricing for AWS, Azure, and GCP at 100 to 100K concurrent ...",
+    "host_name": "spendark.com",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://elementor.com/blog/how-to-set-up-a-video-streaming-server",
+    "name": "How to Set Up a Video Streaming Server: The Complete 2026 Guide",
+    "snippet": "Video streaming requires specialized software (media servers) and protocols (like HLS or DASH) to deliver video in small, manageable pieces, ...",
+    "host_name": "elementor.com",
+    "rank": 8,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://codelabs.developers.google.com/mediacdn-ls-codelab",
+    "name": "Live Streaming on Google Cloud with Media CDN and  - Codelabs",
+    "snippet": "This lab will guide you through the steps to deploy a live streaming workflow demo with Media CDN (CDN) + Live Stream API + Cloud Storage + Media Player.",
+    "host_name": "codelabs.developers.google.com",
+    "rank": 9,
+    "date": "",
+    "favicon": ""
+  }
+]

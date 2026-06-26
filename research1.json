@@ -1,0 +1,92 @@
+[
+  {
+    "url": "https://www.youtube.com/watch?v=T42JTK5fLTg",
+    "name": "Understanding HLS Streaming and M3U8 Players: A Complete Guide",
+    "snippet": "In this video, we break down everything you need to know about HTTP Live Streaming (HLS) technology and how M3U8 files play a crucial role ...",
+    "host_name": "www.youtube.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/HTTP_Live_Streaming",
+    "name": "HTTP Live Streaming - Wikipedia",
+    "snippet": "HLS resembles MPEG-DASH in that it works by breaking the overall stream into a sequence of small HTTP-based file downloads, each downloading one short chunk",
+    "host_name": "en.wikipedia.org",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://developer.apple.com/documentation/http-live-streaming/deploying-a-basic-http-live-streaming-hls-stream",
+    "name": "Deploying a Basic HTTP Live Streaming (HLS) Stream",
+    "snippet": "The easiest way to distribute HLS media is to create a webpage that includes the HTML5 <video> tag, using an M3U8 playlist file as the video source.",
+    "host_name": "developer.apple.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.wowza.com/blog/hls",
+    "name": "Comprehensive Guide to HLS Streaming - Wowza",
+    "snippet": "The protocol works by breaking video. HLS stands for HTTP Live Streaming, delivers live and on-demand video over standard HTTP by breaking ...",
+    "host_name": "www.wowza.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.fastpix.com/blog/a-complete-guide-to-m3u8-files-in-hls-streaming",
+    "name": "Understanding M3U8 Files in HLS Streaming - FastPix",
+    "snippet": "Explore M3U8 files in HLS streaming, their structure, use cases, and how to create and manage them for live and on-demand video content.",
+    "host_name": "www.fastpix.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://uploadcare.com/blog/hls-guide",
+    "name": "A Guide to HTTP Live Streaming (HLS) - Uploadcare",
+    "snippet": "HLS is a media streaming protocol developed by Apple in 2009. It takes a video, chops it into smaller chunks (segments), and delivers them over HTTP.",
+    "host_name": "uploadcare.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.cloudflare.com/learning/video/what-is-http-live-streaming",
+    "name": "What is HTTP Live Streaming? | HLS streaming - Cloudflare",
+    "snippet": "HTTP live streaming (HLS) is a widely used video streaming protocol. Learn how HLS streaming works, from video encoding to CDN distribution to playback.",
+    "host_name": "www.cloudflare.com",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://gmujtaba.com/blog/configure-hls-server-on-windows",
+    "name": "Production HLS Streaming Server Architecture on Windows",
+    "snippet": "The protocol architecture segments video content into discrete downloadable chunks typically 6-10 seconds in duration with multiple quality ...",
+    "host_name": "gmujtaba.com",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://ottverse.com/free-hls-m3u8-test-urls",
+    "name": "Free HLS m3u8 URLs for Testing HLS Players [Updated for 2023]",
+    "snippet": "Here is a list of free HLS m3u8 test URLs for testing OTT HLS (m3u8) Video Players (including Big Buck Bunny, Sintel, Tears of Steel, and m3u8 URLs from Akamai ...",
+    "host_name": "ottverse.com",
+    "rank": 8,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=r6F39wuHm14",
+    "name": "How to Stream an HLS or M3U8 Link - YouTube",
+    "snippet": "how to set up and play HLS and M3U8 links quickly and easily. You will learn: ✓ What HLS and M3U8 links are and how they work ✓ How to stream an ...",
+    "host_name": "www.youtube.com",
+    "rank": 9,
+    "date": "",
+    "favicon": ""
+  }
+]
