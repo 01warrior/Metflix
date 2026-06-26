@@ -22,23 +22,39 @@ export interface ContentItem {
   featured: boolean;
 }
 
+export interface HostConfig {
+  label: string;
+  color: string;
+  icon: string;
+}
+
 export interface EmbedSource {
   id: string;
   serverName: string;
   serverType: string;
+  hostProvider: string;
   url: string;
   lang: string;
   quality: string | null;
   isActive: boolean;
   episode: number | null;
   season: number | null;
+  hostConfig?: HostConfig;
+}
+
+export interface EmbedGroup {
+  label: string;
+  season: number | null;
+  episode: number | null;
+  embeds: EmbedSource[];
 }
 
 export interface ContentDetail extends ContentItem {
   embeds: EmbedSource[];
+  embedGroups: EmbedGroup[];
+  hostProviders: HostConfig[];
   categories: { name: string; slug: string }[];
   related: ContentItem[];
-  embedGroups: { label: string; season: number | null; episode: number | null; embeds: EmbedSource[] }[];
 }
 
 // Load favorites from localStorage
@@ -52,7 +68,6 @@ function loadFavorites(): string[] {
   }
 }
 
-// Save favorites to localStorage
 function saveFavorites(favorites: string[]) {
   if (typeof window === "undefined") return;
   try {
@@ -63,10 +78,13 @@ function saveFavorites(favorites: string[]) {
 }
 
 interface AppState {
-  currentView: "home" | "browse" | "detail";
+  currentView: "home" | "browse" | "detail" | "favorites";
   selectedType: ContentType;
   selectedCategory: string | null;
   selectedSort: string;
+  selectedGenre: string | null;
+  selectedYearFrom: number | null;
+  selectedYearTo: number | null;
   searchQuery: string;
   selectedContentId: string | null;
   showSearch: boolean;
@@ -79,6 +97,7 @@ interface AppState {
   browseContent: ContentItem[];
   browseTotal: number;
   browsePage: number;
+  browseLoading: boolean;
   categories: { id: string; name: string; slug: string; type: string; contentCount: number }[];
   categoriesByType: Record<string, { id: string; name: string; slug: string; type: string; contentCount: number }[]>;
   contentDetail: ContentDetail | null;
@@ -86,10 +105,14 @@ interface AppState {
   currentEmbed: EmbedSource | null;
   favorites: string[];
 
-  setView: (view: "home" | "browse" | "detail") => void;
+  // Actions
+  setView: (view: "home" | "browse" | "detail" | "favorites") => void;
   setSelectedType: (type: ContentType) => void;
   setSelectedCategory: (category: string | null) => void;
   setSelectedSort: (sort: string) => void;
+  setSelectedGenre: (genre: string | null) => void;
+  setSelectedYearFrom: (year: number | null) => void;
+  setSelectedYearTo: (year: number | null) => void;
   setSearchQuery: (query: string) => void;
   setSelectedContentId: (id: string | null) => void;
   setShowSearch: (show: boolean) => void;
@@ -102,6 +125,7 @@ interface AppState {
   setBrowseContent: (items: ContentItem[]) => void;
   setBrowseTotal: (total: number) => void;
   setBrowsePage: (page: number) => void;
+  setBrowseLoading: (loading: boolean) => void;
   setCategories: (cats: any[]) => void;
   setContentDetail: (detail: ContentDetail | null) => void;
   setSearchResults: (results: ContentItem[]) => void;
@@ -117,6 +141,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   selectedType: "all",
   selectedCategory: null,
   selectedSort: "rating",
+  selectedGenre: null,
+  selectedYearFrom: null,
+  selectedYearTo: null,
   searchQuery: "",
   selectedContentId: null,
   showSearch: false,
@@ -129,6 +156,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   browseContent: [],
   browseTotal: 0,
   browsePage: 1,
+  browseLoading: false,
   categories: [],
   categoriesByType: {},
   contentDetail: null,
@@ -137,9 +165,12 @@ export const useAppStore = create<AppState>((set, get) => ({
   favorites: [],
 
   setView: (view) => set({ currentView: view }),
-  setSelectedType: (type) => set({ selectedType: type, browsePage: 1, selectedCategory: null }),
-  setSelectedCategory: (category) => set({ selectedCategory: category, browsePage: 1 }),
-  setSelectedSort: (sort) => set({ selectedSort: sort, browsePage: 1 }),
+  setSelectedType: (type) => set({ selectedType: type, browsePage: 1, selectedCategory: null, browseContent: [] }),
+  setSelectedCategory: (category) => set({ selectedCategory: category, browsePage: 1, browseContent: [] }),
+  setSelectedSort: (sort) => set({ selectedSort: sort, browsePage: 1, browseContent: [] }),
+  setSelectedGenre: (genre) => set({ selectedGenre: genre, browsePage: 1, browseContent: [] }),
+  setSelectedYearFrom: (year) => set({ selectedYearFrom: year, browsePage: 1, browseContent: [] }),
+  setSelectedYearTo: (year) => set({ selectedYearTo: year, browsePage: 1, browseContent: [] }),
   setSearchQuery: (query) => set({ searchQuery: query }),
   setSelectedContentId: (id) => set({ selectedContentId: id }),
   setShowSearch: (show) => set({ showSearch: show }),
@@ -152,6 +183,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   setBrowseContent: (items) => set({ browseContent: items }),
   setBrowseTotal: (total) => set({ browseTotal: total }),
   setBrowsePage: (page) => set({ browsePage: page }),
+  setBrowseLoading: (loading) => set({ browseLoading: loading }),
   setCategories: (cats) => {
     const byType: Record<string, any[]> = {};
     for (const c of cats) {
@@ -161,25 +193,17 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
     set({ categories: cats, categoriesByType: byType });
   },
-  setContentDetail: (detail) => set({ contentDetail: detail }),
+  setContentDetail: (detail) => set({ contentDetail: detail, currentEmbed: null }),
   setSearchResults: (results) => set({ searchResults: results }),
   setCurrentEmbed: (embed) => set({ currentEmbed: embed }),
   resetBrowse: () => set({ browseContent: [], browseTotal: 0, browsePage: 1 }),
 
-  initFavorites: () => {
-    set({ favorites: loadFavorites() });
-  },
-
+  initFavorites: () => set({ favorites: loadFavorites() }),
   toggleFavorite: (id) => {
     const current = get().favorites;
-    const next = current.includes(id)
-      ? current.filter((fid) => fid !== id)
-      : [...current, id];
+    const next = current.includes(id) ? current.filter((fid) => fid !== id) : [...current, id];
     set({ favorites: next });
     saveFavorites(next);
   },
-
-  isFavorite: (id) => {
-    return get().favorites.includes(id);
-  },
+  isFavorite: (id) => get().favorites.includes(id),
 }));

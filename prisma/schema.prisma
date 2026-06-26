@@ -35,18 +35,19 @@ model Content {
 }
 
 model EmbedSource {
-  id          String   @id @default(cuid())
-  contentId   String
-  content     Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
-  serverName  String   // "Serveur 1", "VOSTFR", "VF", etc.
-  serverType  String   @default("embed") // embed, iframe, m3u8
-  url         String   // the embed URL or m3u8 URL
-  lang        String   @default("vostfr") // vostfr, vf, fr
-  quality     String?  // 1080p, 720p, etc.
-  isActive    Boolean  @default(true)
-  episode     Int?     // for series - episode number
-  season      Int?     // for series - season number
-  createdAt   DateTime @default(now())
+  id            String   @id @default(cuid())
+  contentId     String
+  content       Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  serverName    String   // "VidSrc", "Doodstream", "UQLOAD", "VOE", etc.
+  serverType    String   @default("embed") // embed, iframe, m3u8
+  hostProvider  String   @default("vidsrc") // vidsrc, vidsrc_pro, embed_su, twoembed, autoembed, doodstream, uqload, voe, vidzy
+  url           String   // the embed URL or m3u8 URL
+  lang          String   @default("vostfr") // vostfr, vf, fr
+  quality       String?  // 1080p, 720p, 4K, etc.
+  isActive      Boolean  @default(true)
+  episode       Int?     // for series - episode number
+  season        Int?     // for series - season number
+  createdAt     DateTime @default(now())
 
   @@index([contentId])
 }

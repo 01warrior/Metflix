@@ -58,16 +58,16 @@ export async function GET(request: Request) {
     const type = searchParams.get("type");
     const categorySlug = searchParams.get("category");
     const search = searchParams.get("search");
+    const genre = searchParams.get("genre");
+    const yearFrom = searchParams.get("yearFrom");
+    const yearTo = searchParams.get("yearTo");
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "20", 10)));
     const sort = searchParams.get("sort") || "recent";
 
-    // Build where clause
     const where: Prisma.ContentWhereInput = { status: "published" };
 
-    if (type) {
-      where.type = type;
-    }
+    if (type) where.type = type;
 
     if (search) {
       where.OR = [
@@ -78,49 +78,36 @@ export async function GET(request: Request) {
 
     if (categorySlug) {
       where.categories = {
-        some: {
-          category: {
-            slug: categorySlug,
-          },
-        },
+        some: { category: { slug: categorySlug } },
       };
     }
 
-    // Build orderBy
+    if (genre) {
+      where.genres = { contains: genre };
+    }
+
+    if (yearFrom || yearTo) {
+      where.year = {};
+      if (yearFrom) where.year.gte = parseInt(yearFrom, 10);
+      if (yearTo) where.year.lte = parseInt(yearTo, 10);
+    }
+
     let orderBy: Prisma.ContentOrderByWithRelationInput;
     switch (sort) {
-      case "rating":
-        orderBy = { rating: "desc" };
-        break;
-      case "created":
-        orderBy = { createdAt: "desc" };
-        break;
-      case "title_asc":
-        orderBy = { title: "asc" };
-        break;
-      case "title_desc":
-        orderBy = { title: "desc" };
-        break;
-      case "recent":
-      default:
-        orderBy = { createdAt: "desc" };
-        break;
+      case "rating": orderBy = { rating: "desc" }; break;
+      case "created": orderBy = { createdAt: "desc" }; break;
+      case "title_asc": orderBy = { title: "asc" }; break;
+      case "title_desc": orderBy = { title: "desc" }; break;
+      case "recent": default: orderBy = { createdAt: "desc" }; break;
     }
 
     const [content, total] = await Promise.all([
-      db.content.findMany({
-        where,
-        orderBy,
-        skip: (page - 1) * limit,
-        take: limit,
-      }),
+      db.content.findMany({ where, orderBy, skip: (page - 1) * limit, take: limit }),
       db.content.count({ where }),
     ]);
 
-    const formattedData = content.map(formatContent);
-
     return NextResponse.json({
-      data: formattedData,
+      data: content.map(formatContent),
       total,
       page,
       limit,
@@ -128,9 +115,6 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("[API /content] Error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch content" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch content" }, { status: 500 });
   }
 }

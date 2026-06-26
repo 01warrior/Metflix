@@ -87,3 +87,100 @@ Stage Summary:
 - All new features verified via code review + API testing
 - Agent-browser cannot access localhost due to sandbox network isolation (environment limitation, not code issue)
 - Project state: production-ready for further development
+
+---
+Task ID: 4
+Agent: Full-stack Developer
+Task: Rebuild frontend with multi-host embed player (FrenchStream-style)
+
+Work Log:
+- Complete rewrite of page.tsx (~1200 lines) with multi-host embed system
+- Added FrenchStream-style multi-host embed player with colored server buttons:
+  - VidSrc (#e50914), VidSrc Pro (#ff6b35), Embed.su (#4ecdc4), AutoEmbed (#a855f7), 2Embed (#3b82f6)
+  - Each server button shows: colored dot + provider label + quality badge (e.g., "VidSrc 1080p")
+  - Active server has colored border, tinted background, and glow shadow
+  - ServerButton component with dynamic inline styles per host provider
+- Added episode selector for series/anime:
+  - Grid of episode buttons (S01E01 format) with active state highlighting
+  - Clicking an episode shows per-episode server buttons below
+  - Auto-selects first embed for each episode
+- Added genre filter pills in browse view (14 genres: Action, Comédie, Drame, Sci-Fi, etc.)
+- Added year range filter (From/To dropdowns with 2006-2025 range)
+- Added dedicated Favorites view with grid of favorited content
+- Improved content cards with:
+  - Poster gradient overlay at bottom
+  - Quality badge (1080p) on card
+  - Type badge (Film/Série/Anime/Manga) with color coding
+  - Play icon overlay on hover
+  - Animated heart favorite button (top-right corner)
+  - Card hover: translateY(-4px) + shadow glow
+- Auto-rotating hero banner (6s interval, smooth AnimatePresence transitions)
+- Browse view with:
+  - Type tabs (Tous/Films/Séries/Anime/Manga) as rounded pills
+  - Genre filter pills with active border highlight
+  - Year range dropdowns (From/To)
+  - Sort dropdown (Meilleures notes/Plus récents/Titre A-Z/Titre Z-A)
+  - Content count display (e.g., "42 résultats")
+  - Infinite scroll with IntersectionObserver
+- Search overlay with debounced search (300ms) and result grid
+- Header with responsive navigation and favorites count badge
+- Mobile bottom nav with 5 tabs (hidden on detail view)
+- Mobile hamburger menu (Sheet) with nav links and favorites
+- Footer with donation section, ad banners, and links
+- Fixed lint errors:
+  - Added missing `Layers` import from lucide-react
+  - Refactored DetailView fetch to use useCallback (avoiding setState-in-effect lint rule)
+- All lint checks pass cleanly
+- Dev server returns 200 with 29KB page
+
+Stage Summary:
+- Complete FrenchStream-like multi-host embed player system implemented
+- 4 SPA views: Home, Browse, Detail, Favorites (managed by zustand + AnimatePresence)
+- 5 host providers with distinct colors and quality badges
+- Series/anime episode selector with per-episode server switching
+- Comprehensive browse filtering: type, genre, year range, sort
+- Favorites view with localStorage persistence
+- Mobile-first responsive design with bottom nav and hamburger menu
+- Production-quality animations and transitions
+
+---
+Task ID: 5
+Agent: Main Agent
+Task: Complete multi-host embed system with real VidSrc URLs, browser QA
+
+Work Log:
+- Updated Prisma schema: added `hostProvider` field to EmbedSource model
+- Completely rewrote prisma/seed.ts with:
+  - 92 real content items (41 movies, 19 series, 18 anime, 14 manga)
+  - 1068 embed sources from 5 REAL providers (VidSrc, VidSrc Pro, Embed.su, AutoEmbed, 2Embed)
+  - Real VidSrc URLs: `https://vidsrc.xyz/embed/movie/{tmdbId}`, `https://vidsrc.pro/embed/movie/{tmdbId}`, etc.
+  - Real TMDB IDs for all content items
+  - Batch insert optimization (createMany with 500-item chunks) - completes in 0.1s
+  - Fixed duplicate tmdbId issues (One Punch Man, Vinland Saga)
+- Updated /api/content route: added genre filter, yearFrom/yearTo range filter
+- Updated /api/content/[id] route:
+  - Added HOST_CONFIG with colors and icons for 9 providers
+  - Returns `embedGroups` (grouped by episode for series) with hostConfig per embed
+  - Returns `hostProviders` array for the detail page
+  - Movie embeds grouped as "Film Complet", series as "Saison X - Épisode Y"
+- Updated Zustand store:
+  - Added `EmbedGroup`, `HostConfig`, `EmbedSource.hostProvider`, `EmbedSource.hostConfig`
+  - Added `selectedGenre`, `selectedYearFrom`, `selectedYearTo` filter states
+  - Added `browseLoading` state
+  - Added `favorites` view type
+- Full browser QA via agent-browser:
+  - ✅ Home page: Hero with "Dune: Deuxième Partie", 8 slide indicators, "Derniers Ajouts", 4 content rows
+  - ✅ Content cards: Film badge, 1080p quality badge, rating, year, favorite button, hover effects
+  - ✅ Browse view: Type pills, 14 genre pills, year dropdowns, sort dropdown, content count
+  - ✅ Detail page (movie): Iframe player, "Serveurs disponibles" heading, 5 colored server buttons
+  - ✅ Detail page (series): Episode selector (S1E1-S2E2), "Serveurs pour Saison 1 - Épisode 1" with 5 servers
+  - ✅ Favorites page: "Mes Favoris" heading with empty state
+  - ✅ Zero console errors
+  - ✅ All API endpoints returning 200 with correct data
+
+Stage Summary:
+- **NO API KEY NEEDED** - All embeds use free VidSrc services auto-generated from TMDB IDs
+- 92 content items × 5 host providers = 1068 real embed URLs
+- FrenchStream-like multi-host player fully functional (verified by browser testing)
+- System ready for production: add TMDB API key later to auto-import thousands more titles
+- All features working: multi-host switching, episode selection, genre filtering, favorites, search
