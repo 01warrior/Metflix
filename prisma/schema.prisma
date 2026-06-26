@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,20 +7,71 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Content {
+  id          String   @id @default(cuid())
+  tmdbId      Int?
+  title       String
+  titleFr     String?
+  overview    String?
+  overviewFr  String?
+  posterPath  String?
+  backdropPath String?
+  releaseDate String?
+  rating      Float    @default(0)
+  voteCount   Int      @default(0)
+  type        String   @default("movie") // movie, series, anime, manga
+  year        Int?
+  genres      String?  // comma-separated genre names
+  runtime     Int?     // minutes
+  seasons     Int?     // for series/anime
+  status      String   @default("published") // draft, published
+  featured    Boolean  @default(false)
+  featuredOrder Int?   @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  embeds   EmbedSource[]
+  categories ContentCategory[]
 }
 
-model Post {
+model EmbedSource {
+  id          String   @id @default(cuid())
+  contentId   String
+  content     Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  serverName  String   // "Serveur 1", "VOSTFR", "VF", etc.
+  serverType  String   @default("embed") // embed, iframe, m3u8
+  url         String   // the embed URL or m3u8 URL
+  lang        String   @default("vostfr") // vostfr, vf, fr
+  quality     String?  // 1080p, 720p, etc.
+  isActive    Boolean  @default(true)
+  episode     Int?     // for series - episode number
+  season      Int?     // for series - season number
+  createdAt   DateTime @default(now())
+
+  @@index([contentId])
+}
+
+model Category {
   id        String   @id @default(cuid())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String
+  name      String   @unique
+  slug      String   @unique
+  icon      String?
+  type      String   @default("all") // all, movie, series, anime, manga
+  order     Int      @default(0)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+
+  contents ContentCategory[]
+}
+
+model ContentCategory {
+  id         String   @id @default(cuid())
+  contentId  String
+  categoryId String
+  content    Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([contentId, categoryId])
+  @@index([contentId])
+  @@index([categoryId])
 }
