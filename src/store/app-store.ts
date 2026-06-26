@@ -41,10 +41,32 @@ export interface ContentDetail extends ContentItem {
   embedGroups: { label: string; season: number | null; episode: number | null; embeds: EmbedSource[] }[];
 }
 
+// Load favorites from localStorage
+function loadFavorites(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const stored = localStorage.getItem("streamvibe-favorites");
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+// Save favorites to localStorage
+function saveFavorites(favorites: string[]) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem("streamvibe-favorites", JSON.stringify(favorites));
+  } catch {
+    // ignore
+  }
+}
+
 interface AppState {
   currentView: "home" | "browse" | "detail";
   selectedType: ContentType;
   selectedCategory: string | null;
+  selectedSort: string;
   searchQuery: string;
   selectedContentId: string | null;
   showSearch: boolean;
@@ -53,6 +75,7 @@ interface AppState {
   trendingSeries: ContentItem[];
   trendingAnime: ContentItem[];
   trendingManga: ContentItem[];
+  latestContent: ContentItem[];
   browseContent: ContentItem[];
   browseTotal: number;
   browsePage: number;
@@ -61,10 +84,12 @@ interface AppState {
   contentDetail: ContentDetail | null;
   searchResults: ContentItem[];
   currentEmbed: EmbedSource | null;
+  favorites: string[];
 
   setView: (view: "home" | "browse" | "detail") => void;
   setSelectedType: (type: ContentType) => void;
   setSelectedCategory: (category: string | null) => void;
+  setSelectedSort: (sort: string) => void;
   setSearchQuery: (query: string) => void;
   setSelectedContentId: (id: string | null) => void;
   setShowSearch: (show: boolean) => void;
@@ -73,6 +98,7 @@ interface AppState {
   setTrendingSeries: (items: ContentItem[]) => void;
   setTrendingAnime: (items: ContentItem[]) => void;
   setTrendingManga: (items: ContentItem[]) => void;
+  setLatestContent: (items: ContentItem[]) => void;
   setBrowseContent: (items: ContentItem[]) => void;
   setBrowseTotal: (total: number) => void;
   setBrowsePage: (page: number) => void;
@@ -81,12 +107,16 @@ interface AppState {
   setSearchResults: (results: ContentItem[]) => void;
   setCurrentEmbed: (embed: EmbedSource | null) => void;
   resetBrowse: () => void;
+  toggleFavorite: (id: string) => void;
+  isFavorite: (id: string) => boolean;
+  initFavorites: () => void;
 }
 
-export const useAppStore = create<AppState>((set) => ({
+export const useAppStore = create<AppState>((set, get) => ({
   currentView: "home",
   selectedType: "all",
   selectedCategory: null,
+  selectedSort: "rating",
   searchQuery: "",
   selectedContentId: null,
   showSearch: false,
@@ -95,6 +125,7 @@ export const useAppStore = create<AppState>((set) => ({
   trendingSeries: [],
   trendingAnime: [],
   trendingManga: [],
+  latestContent: [],
   browseContent: [],
   browseTotal: 0,
   browsePage: 1,
@@ -103,10 +134,12 @@ export const useAppStore = create<AppState>((set) => ({
   contentDetail: null,
   searchResults: [],
   currentEmbed: null,
+  favorites: [],
 
   setView: (view) => set({ currentView: view }),
   setSelectedType: (type) => set({ selectedType: type, browsePage: 1, selectedCategory: null }),
   setSelectedCategory: (category) => set({ selectedCategory: category, browsePage: 1 }),
+  setSelectedSort: (sort) => set({ selectedSort: sort, browsePage: 1 }),
   setSearchQuery: (query) => set({ searchQuery: query }),
   setSelectedContentId: (id) => set({ selectedContentId: id }),
   setShowSearch: (show) => set({ showSearch: show }),
@@ -115,6 +148,7 @@ export const useAppStore = create<AppState>((set) => ({
   setTrendingSeries: (items) => set({ trendingSeries: items }),
   setTrendingAnime: (items) => set({ trendingAnime: items }),
   setTrendingManga: (items) => set({ trendingManga: items }),
+  setLatestContent: (items) => set({ latestContent: items }),
   setBrowseContent: (items) => set({ browseContent: items }),
   setBrowseTotal: (total) => set({ browseTotal: total }),
   setBrowsePage: (page) => set({ browsePage: page }),
@@ -131,4 +165,21 @@ export const useAppStore = create<AppState>((set) => ({
   setSearchResults: (results) => set({ searchResults: results }),
   setCurrentEmbed: (embed) => set({ currentEmbed: embed }),
   resetBrowse: () => set({ browseContent: [], browseTotal: 0, browsePage: 1 }),
+
+  initFavorites: () => {
+    set({ favorites: loadFavorites() });
+  },
+
+  toggleFavorite: (id) => {
+    const current = get().favorites;
+    const next = current.includes(id)
+      ? current.filter((fid) => fid !== id)
+      : [...current, id];
+    set({ favorites: next });
+    saveFavorites(next);
+  },
+
+  isFavorite: (id) => {
+    return get().favorites.includes(id);
+  },
 }));

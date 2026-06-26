@@ -95,6 +95,12 @@ export async function GET(request: Request) {
       case "created":
         orderBy = { createdAt: "desc" };
         break;
+      case "title_asc":
+        orderBy = { title: "asc" };
+        break;
+      case "title_desc":
+        orderBy = { title: "desc" };
+        break;
       case "recent":
       default:
         orderBy = { createdAt: "desc" };

@@ -6,9 +6,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 import {
   Search,
   Play,
@@ -32,6 +46,10 @@ import {
   Info,
   Layers,
   Grid3X3,
+  Menu,
+  RotateCcw,
+  Bookmark,
+  ArrowDownUp,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -52,15 +70,21 @@ function getTypeBadgeClass(type: string) {
   return TYPE_CONFIG[type]?.badgeClass || "bg-secondary text-secondary-foreground";
 }
 
+const SORT_OPTIONS = [
+  { value: "rating", label: "Note" },
+  { value: "created", label: "Plus récents" },
+  { value: "title_asc", label: "Titre A-Z" },
+  { value: "title_desc", label: "Titre Z-A" },
+] as const;
+
 // ==================== AD BANNER COMPONENT ====================
 
 function AdBanner({ slot = "top", className = "" }: { slot?: string; className?: string }) {
   return (
     <div className={`ad-banner flex items-center justify-center ${className}`}>
-      <div className="flex flex-col items-center gap-1 py-4 px-6 text-center">
-        <p className="text-xs text-muted-foreground">Publicité</p>
-        <p className="text-sm text-muted-foreground/70">Espace publicitaire disponible — <span className="text-muted-foreground">Contactez-nous</span></p>
-        <p className="text-[10px] text-muted-foreground/40">728 × 90</p>
+      <div className="flex flex-col items-center gap-0.5 py-2 px-4 text-center">
+        <p className="text-[10px] text-muted-foreground/50 font-medium tracking-wider uppercase">Pub</p>
+        <p className="text-[10px] text-muted-foreground/30">Espace disponible</p>
       </div>
     </div>
   );
@@ -85,7 +109,27 @@ function ContentSkeleton({ count = 6 }: { count?: number }) {
 // ==================== CONTENT CARD ====================
 
 function ContentCard({ item, onClick }: { item: ContentItem; onClick: () => void }) {
+  const { toggleFavorite, isFavorite } = useAppStore();
+  const { toast } = useToast();
   const config = TYPE_CONFIG[item.type] || TYPE_CONFIG.movie;
+  const fav = isFavorite(item.id);
+
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleFavorite(item.id);
+    if (!fav) {
+      toast({
+        title: "Ajouté aux favoris",
+        description: `${item.titleFr || item.title} a été ajouté à vos favoris.`,
+      });
+    } else {
+      toast({
+        title: "Retiré des favoris",
+        description: `${item.titleFr || item.title} a été retiré de vos favoris.`,
+      });
+    }
+  };
+
   return (
     <motion.div
       className="content-card cursor-pointer group"
@@ -117,8 +161,16 @@ function ContentCard({ item, onClick }: { item: ContentItem; onClick: () => void
         {/* Rating badge */}
         <div className="absolute top-2 left-2 flex items-center gap-1 bg-black/70 backdrop-blur-sm rounded-md px-2 py-0.5">
           <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
-          <span className="text-xs font-semibold text-white">{item.rating?.toFixed(1)}</span>
+          <span className="text-xs font-semibold text-white rating-animate">{item.rating?.toFixed(1)}</span>
         </div>
+        {/* Favorite button below rating */}
+        <button
+          onClick={handleFavoriteClick}
+          className="absolute top-9 left-2 bg-black/60 backdrop-blur-sm rounded-md p-1 transition-all hover:scale-110"
+          aria-label={fav ? "Retirer des favoris" : "Ajouter aux favoris"}
+        >
+          <Heart className={`h-3.5 w-3.5 transition-colors ${fav ? "text-red-500 fill-red-500" : "text-white/70"}`} />
+        </button>
         {/* Type badge */}
         <div className="absolute top-2 right-2">
           <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${getTypeBadgeClass(item.type)}`}>
@@ -310,7 +362,7 @@ function HeroSection({ items, onContentClick }: { items: ContentItem[]; onConten
             <div className="flex gap-3">
               <Button
                 size="lg"
-                className="bg-red-600 hover:bg-red-700 text-white font-bold px-8 shadow-lg shadow-red-900/30"
+                className="btn-glow bg-red-600 hover:bg-red-700 text-white font-bold px-8 shadow-lg shadow-red-900/30"
                 onClick={() => onContentClick(item.id)}
               >
                 <Play className="h-5 w-5 mr-2 fill-white" />
@@ -349,20 +401,56 @@ function HeroSection({ items, onContentClick }: { items: ContentItem[]; onConten
 // ==================== CONTENT DETAIL VIEW ====================
 
 function ContentDetailView({ onBack }: { onBack: () => void }) {
-  const { contentDetail, currentEmbed, setCurrentEmbed, setContentDetail } = useAppStore();
+  const { contentDetail, currentEmbed, setCurrentEmbed, setContentDetail, setView, toggleFavorite, isFavorite } = useAppStore();
+  const { toast } = useToast();
   const [loadingEmbed, setLoadingEmbed] = useState(false);
+  const [iframeLoaded, setIframeLoaded] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const fetchContentDetail = async (id: string) => {
+    setCurrentEmbed(null);
+    setIframeLoaded(false);
+    try {
+      const res = await fetch(`/api/content/${id}`);
+      const data = await res.json();
+      setContentDetail(data);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (e) {
+      console.error(e);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger le contenu.",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (!contentDetail) return null;
 
   const config = TYPE_CONFIG[contentDetail.type] || TYPE_CONFIG.movie;
   const isManga = contentDetail.type === "manga";
   const hasEpisodes = contentDetail.embeds.some((e) => e.episode !== null);
+  const fav = isFavorite(contentDetail.id);
+
+  const handleToggleFavorite = () => {
+    toggleFavorite(contentDetail.id);
+    if (!fav) {
+      toast({
+        title: "Ajouté aux favoris",
+        description: `${contentDetail.titleFr || contentDetail.title} a été ajouté à vos favoris.`,
+      });
+    } else {
+      toast({
+        title: "Retiré des favoris",
+        description: `${contentDetail.titleFr || contentDetail.title} a été retiré de vos favoris.`,
+      });
+    }
+  };
 
   const handleSelectEmbed = (embed: typeof contentDetail.embeds[0]) => {
     setLoadingEmbed(true);
+    setIframeLoaded(false);
     setCurrentEmbed(embed);
-    setTimeout(() => setLoadingEmbed(false), 500);
     if (scrollRef.current) {
       scrollRef.current.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -453,12 +541,27 @@ function ContentDetailView({ onBack }: { onBack: () => void }) {
               </p>
 
               {contentDetail.categories?.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1.5 mb-4">
                   {contentDetail.categories.map((c) => (
                     <Badge key={c.slug} variant="outline" className="border-white/20 text-white/60 text-xs">{c.name}</Badge>
                   ))}
                 </div>
               )}
+
+              {/* Favorite Button */}
+              <Button
+                variant={fav ? "default" : "outline"}
+                size="sm"
+                onClick={handleToggleFavorite}
+                className={
+                  fav
+                    ? "bg-red-600 hover:bg-red-700 text-white border-red-600"
+                    : "border-white/20 text-white/70 hover:text-white hover:bg-white/5"
+                }
+              >
+                <Heart className={`h-4 w-4 mr-1.5 ${fav ? "fill-white" : ""}`} />
+                {fav ? "Retirer des favoris" : "Ajouter aux favoris"}
+              </Button>
             </div>
           </div>
         </div>
@@ -468,14 +571,7 @@ function ContentDetailView({ onBack }: { onBack: () => void }) {
       <div className="max-w-7xl mx-auto px-4 md:px-12 mt-8">
         <div className="relative bg-black rounded-lg overflow-hidden shadow-2xl shadow-black/50">
           {currentEmbed ? (
-            loadingEmbed ? (
-              <div className="aspect-video flex items-center justify-center">
-                <div className="flex flex-col items-center gap-3">
-                  <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
-                  <p className="text-sm text-white/60">Chargement du lecteur...</p>
-                </div>
-              </div>
-            ) : isManga ? (
+            isManga ? (
               <div className="aspect-video flex items-center justify-center bg-zinc-900">
                 <div className="text-center space-y-3 p-8">
                   <BookOpen className="h-12 w-12 text-amber-400 mx-auto" />
@@ -483,34 +579,31 @@ function ContentDetailView({ onBack }: { onBack: () => void }) {
                   <p className="text-white/60 text-sm">
                     Serveur: <span className="text-white font-medium">{currentEmbed.serverName}</span>
                   </p>
-                  <p className="text-white/40 text-xs">
-                    URL: {currentEmbed.url}
-                  </p>
                   <p className="text-amber-400/80 text-xs mt-4">
                     (En production, le lecteur manga s&apos;affichera ici)
                   </p>
                 </div>
               </div>
             ) : (
-              <div className="aspect-video flex items-center justify-center bg-zinc-900">
-                <div className="text-center space-y-3 p-8">
-                  <div className="bg-red-600 rounded-full p-4 w-16 h-16 flex items-center justify-center mx-auto">
-                    <Play className="h-8 w-8 text-white fill-white" />
+              <div className="player-container">
+                {(!iframeLoaded || loadingEmbed) && (
+                  <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/80">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
+                      <p className="text-sm text-white/60">Chargement du lecteur...</p>
+                    </div>
                   </div>
-                  <h3 className="text-lg font-bold text-white">Lecteur vidéo</h3>
-                  <p className="text-white/60 text-sm">
-                    Serveur: <span className="text-white font-medium">{currentEmbed.serverName}</span>
-                    {currentEmbed.quality && (
-                      <span className="ml-2 text-amber-400">{currentEmbed.quality}</span>
-                    )}
-                    {currentEmbed.lang && (
-                      <span className="ml-2 uppercase text-xs px-1.5 py-0.5 bg-white/10 rounded">{currentEmbed.lang}</span>
-                    )}
-                  </p>
-                  <p className="text-white/40 text-xs mt-2">
-                    (En production, l&apos;embed vidéo s&apos;affichera ici)
-                  </p>
-                </div>
+                )}
+                <iframe
+                  src={currentEmbed.url}
+                  allowFullScreen
+                  allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                  onLoad={() => {
+                    setIframeLoaded(true);
+                    setLoadingEmbed(false);
+                  }}
+                  title={`${contentDetail.titleFr || contentDetail.title} - ${currentEmbed.serverName}`}
+                />
               </div>
             )
           ) : (
@@ -637,7 +730,7 @@ function ContentDetailView({ onBack }: { onBack: () => void }) {
 
         {/* Related Content */}
         {contentDetail.related && contentDetail.related.length > 0 && (
-          <section className="mt-8">
+          <section className="mt-8 pb-20 md:pb-0">
             <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-red-400" />
               Contenu similaire
@@ -649,7 +742,6 @@ function ContentDetailView({ onBack }: { onBack: () => void }) {
                   item={item}
                   onClick={() => {
                     setCurrentEmbed(null);
-                    // reload detail
                     fetchContentDetail(item.id);
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
@@ -667,11 +759,12 @@ function ContentDetailView({ onBack }: { onBack: () => void }) {
 
 function BrowseView() {
   const {
-    selectedType, selectedCategory, browseContent, browseTotal, browsePage,
+    selectedType, selectedCategory, selectedSort, browseContent, browseTotal, browsePage,
     categories, categoriesByType, setBrowseContent, setBrowseTotal,
     setBrowsePage, setSelectedCategory, setContentDetail,
     setView, setCurrentEmbed,
   } = useAppStore();
+  const { toast } = useToast();
 
   const [loading, setLoading] = useState(false);
   const limit = 20;
@@ -682,7 +775,7 @@ function BrowseView() {
       const params = new URLSearchParams({ page: String(page), limit: String(limit) });
       if (selectedType !== "all") params.set("type", selectedType);
       if (selectedCategory) params.set("category", selectedCategory);
-      params.set("sort", "rating");
+      params.set("sort", selectedSort);
 
       const res = await fetch(`/api/content?${params}`);
       const data = await res.json();
@@ -690,10 +783,15 @@ function BrowseView() {
       setBrowseTotal(data.total || 0);
     } catch (e) {
       console.error(e);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les résultats.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
-  }, [selectedType, selectedCategory, limit]);
+  }, [selectedType, selectedCategory, selectedSort, limit, setBrowseContent, setBrowseTotal, toast]);
 
   const fetchContentDetail = async (id: string) => {
     try {
@@ -703,6 +801,11 @@ function BrowseView() {
       setView("detail");
     } catch (e) {
       console.error(e);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger le contenu.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -726,24 +829,38 @@ function BrowseView() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-12 py-6 page-content">
-      {/* Type Filter */}
-      <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2 mb-4">
-        {typeButtons.map((btn) => (
-          <Button
-            key={btn.key}
-            variant={selectedType === btn.key ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedCategory(null) || setSelectedType(btn.key)}
-            className={
-              selectedType === btn.key
-                ? "bg-red-600 hover:bg-red-700 text-white border-red-600 flex-shrink-0"
-                : "border-white/20 text-white/70 hover:text-white hover:bg-white/5 flex-shrink-0"
-            }
-          >
-            {btn.icon}
-            <span className="ml-1.5">{btn.label}</span>
-          </Button>
-        ))}
+      {/* Type Filter + Sort */}
+      <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-2 mb-4">
+        <div className="flex gap-2 flex-shrink-0">
+          {typeButtons.map((btn) => (
+            <Button
+              key={btn.key}
+              variant={selectedType === btn.key ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedCategory(null) || useAppStore.getState().setSelectedType(btn.key)}
+              className={
+                selectedType === btn.key
+                  ? "bg-red-600 hover:bg-red-700 text-white border-red-600 flex-shrink-0"
+                  : "border-white/20 text-white/70 hover:text-white hover:bg-white/5 flex-shrink-0"
+              }
+            >
+              {btn.icon}
+              <span className="ml-1.5">{btn.label}</span>
+            </Button>
+          ))}
+        </div>
+        {/* Sort Dropdown */}
+        <Select value={selectedSort} onValueChange={(v) => useAppStore.getState().setSelectedSort(v)}>
+          <SelectTrigger size="sm" className="w-auto border-white/20 bg-transparent text-white/70 ml-auto flex-shrink-0 h-8 text-xs">
+            <ArrowDownUp className="h-3.5 w-3.5 mr-1 opacity-50" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="bg-popover border-white/10">
+            {SORT_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Category Filter */}
@@ -813,7 +930,7 @@ function BrowseView() {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-8">
+        <div className="flex items-center justify-center gap-2 mt-8 pb-20 md:pb-0">
           <Button
             variant="outline"
             size="sm"
@@ -1011,11 +1128,11 @@ function SearchOverlay({ onClose }: { onClose: () => void }) {
   );
 }
 
-// ==================== DONATION MODAL ====================
+// ==================== DONATION SECTION ====================
 
 function DonationSection() {
   return (
-    <section className="max-w-4xl mx-auto px-4 md:px-12 py-12">
+    <section id="donation-section" className="max-w-4xl mx-auto px-4 md:px-12 py-12">
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-950/40 via-card to-card border border-red-900/20 p-6 md:p-10">
         {/* Background decoration */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/5 rounded-full blur-3xl" />
@@ -1043,11 +1160,152 @@ function DonationSection() {
             </Button>
           </div>
           <p className="text-xs text-muted-foreground/50 pt-2">
-            Chaque don, même petit, fait une grande différence ❤️
+            Chaque don, même petit, fait une grande différence
           </p>
         </div>
       </div>
     </section>
+  );
+}
+
+// ==================== MOBILE BOTTOM NAV ====================
+
+function MobileBottomNav() {
+  const { currentView, selectedType, setView, setSelectedType, setSelectedCategory } = useAppStore();
+
+  const tabs: { key: string; label: string; icon: React.ReactNode; type: ContentType }[] = [
+    { key: "home", label: "Accueil", icon: <Home className="h-5 w-5" />, type: "all" },
+    { key: "movie", label: "Films", icon: <Film className="h-5 w-5" />, type: "movie" },
+    { key: "series", label: "Séries", icon: <Tv className="h-5 w-5" />, type: "series" },
+    { key: "anime", label: "Anime", icon: <Sparkles className="h-5 w-5" />, type: "anime" },
+    { key: "manga", label: "Manga", icon: <BookOpen className="h-5 w-5" />, type: "manga" },
+  ];
+
+  const activeKey = currentView === "home" ? "home" : selectedType;
+
+  const handleTabClick = (tab: (typeof tabs)[0]) => {
+    if (tab.key === "home") {
+      setView("home");
+    } else {
+      setSelectedType(tab.type);
+      setSelectedCategory(null);
+      setView("browse");
+    }
+  };
+
+  return (
+    <nav className="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-40 md:hidden" aria-label="Navigation mobile">
+      <div className="flex items-center justify-around h-16 px-2">
+        {tabs.map((tab) => {
+          const isActive = activeKey === tab.key || (currentView === "browse" && tab.key !== "home" && selectedType === tab.type);
+          return (
+            <button
+              key={tab.key}
+              onClick={() => handleTabClick(tab)}
+              className={`nav-item flex flex-col items-center justify-center gap-0.5 w-14 h-full relative ${isActive ? "active text-red-500" : "text-muted-foreground"}`}
+              aria-label={tab.label}
+              aria-current={isActive ? "page" : undefined}
+            >
+              {tab.icon}
+              <span className="text-[10px] font-medium">{tab.label}</span>
+              {isActive && (
+                <span className="nav-dot absolute -top-px left-1/2 -translate-x-1/2 w-6 h-0.5 bg-red-500 rounded-full" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
+// ==================== MOBILE HAMBURGER MENU ====================
+
+function MobileMenu({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const { setView, setSelectedType, setSelectedCategory, favorites } = useAppStore();
+
+  const handleNavClick = (type: ContentType) => {
+    if (type === "all") {
+      setView("home");
+    } else {
+      setSelectedType(type);
+      setSelectedCategory(null);
+      setView("browse");
+    }
+    onOpenChange(false);
+  };
+
+  const handleFavoritesClick = () => {
+    // Switch to browse with favorites filter
+    onOpenChange(false);
+  };
+
+  const handleSoutenirClick = () => {
+    onOpenChange(false);
+    setTimeout(() => {
+      document.getElementById("donation-section")?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+  };
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="left" className="w-72 bg-background/95 backdrop-blur-xl border-white/5 p-0">
+        <SheetHeader className="p-4 pb-0">
+          <SheetTitle className="flex items-center gap-2">
+            <div className="bg-red-600 rounded-lg p-1">
+              <Play className="h-3 w-3 text-white fill-white" />
+            </div>
+            <span className="text-lg font-extrabold">
+              Stream<span className="text-red-500">Vibe</span>
+            </span>
+          </SheetTitle>
+          <SheetDescription className="text-xs text-muted-foreground">
+            Films, Séries, Anime & Manga
+          </SheetDescription>
+        </SheetHeader>
+        <div className="flex-1 overflow-y-auto p-4 space-y-1">
+          {/* Main Nav */}
+          <button
+            onClick={() => handleNavClick("all")}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary/80 transition-colors text-left"
+          >
+            <Home className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Accueil</span>
+          </button>
+          {(["movie", "series", "anime", "manga"] as const).map((type) => (
+            <button
+              key={type}
+              onClick={() => handleNavClick(type)}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary/80 transition-colors text-left"
+            >
+              <span className="text-muted-foreground">{TYPE_CONFIG[type]?.icon}</span>
+              <span className="text-sm font-medium">{TYPE_CONFIG[type]?.label}</span>
+            </button>
+          ))}
+
+          <Separator className="my-3 bg-white/5" />
+
+          {/* Extra links */}
+          <button
+            onClick={handleFavoritesClick}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary/80 transition-colors text-left"
+          >
+            <Bookmark className="h-4 w-4 text-red-400" />
+            <span className="text-sm font-medium">Mes Favoris</span>
+            {favorites.length > 0 && (
+              <Badge className="bg-red-600 text-white text-[10px] px-1.5 py-0 ml-auto">{favorites.length}</Badge>
+            )}
+          </button>
+          <button
+            onClick={handleSoutenirClick}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary/80 transition-colors text-left"
+          >
+            <Heart className="h-4 w-4 text-red-400" />
+            <span className="text-sm font-medium">Soutenir</span>
+          </button>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -1056,34 +1314,43 @@ function DonationSection() {
 export default function HomePage() {
   const {
     currentView, showSearch, featured, trendingMovies, trendingSeries,
-    trendingAnime, trendingManga,
-    setFeatured, setTrendingMovies, setTrendingSeries, setTrendingAnime, setTrendingManga,
-    setCategories, setView, setShowSearch, setContentDetail, setCurrentEmbed,
+    trendingAnime, trendingManga, latestContent, favorites,
+    setFeatured, setTrendingMovies, setTrendingSeries, setTrendingAnime, setTrendingManga, setLatestContent,
+    setCategories, setView, setShowSearch, setContentDetail, setCurrentEmbed, initFavorites,
   } = useAppStore();
 
+  const { toast } = useToast();
   const [homeLoading, setHomeLoading] = useState(true);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Initialize favorites from localStorage
+  useEffect(() => {
+    initFavorites();
+  }, [initFavorites]);
 
   // Fetch initial data
   useEffect(() => {
     async function fetchData() {
       try {
-        const [featuredRes, moviesRes, seriesRes, animeRes, mangaRes, catsRes] = await Promise.all([
+        const [featuredRes, moviesRes, seriesRes, animeRes, mangaRes, catsRes, latestRes] = await Promise.all([
           fetch("/api/featured"),
           fetch("/api/content?type=movie&sort=rating&limit=10"),
           fetch("/api/content?type=series&sort=rating&limit=10"),
           fetch("/api/content?type=anime&sort=rating&limit=10"),
           fetch("/api/content?type=manga&sort=rating&limit=10"),
           fetch("/api/categories"),
+          fetch("/api/content?sort=created&limit=10"),
         ]);
 
-        const [featuredData, moviesData, seriesData, animeData, mangaData, catsData] = await Promise.all([
+        const [featuredData, moviesData, seriesData, animeData, mangaData, catsData, latestData] = await Promise.all([
           featuredRes.json(),
           moviesRes.json(),
           seriesRes.json(),
           animeRes.json(),
           mangaRes.json(),
           catsRes.json(),
+          latestRes.json(),
         ]);
 
         setFeatured(featuredData.data || []);
@@ -1092,14 +1359,20 @@ export default function HomePage() {
         setTrendingAnime(animeData.data || []);
         setTrendingManga(mangaData.data || []);
         setCategories(catsData.data || []);
+        setLatestContent(latestData.data || []);
       } catch (e) {
         console.error(e);
+        toast({
+          title: "Erreur de chargement",
+          description: "Impossible de charger le contenu. Veuillez réessayer.",
+          variant: "destructive",
+        });
       } finally {
         setHomeLoading(false);
       }
     }
     fetchData();
-  }, [setFeatured, setTrendingMovies, setTrendingSeries, setTrendingAnime, setTrendingManga, setCategories]);
+  }, [setFeatured, setTrendingMovies, setTrendingSeries, setTrendingAnime, setTrendingManga, setCategories, setLatestContent, toast]);
 
   // Scroll to top handler
   useEffect(() => {
@@ -1120,6 +1393,11 @@ export default function HomePage() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (e) {
       console.error(e);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger le contenu.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -1134,6 +1412,17 @@ export default function HomePage() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-xl border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 md:px-12 h-16 flex items-center justify-between">
+          {/* Mobile hamburger */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden text-muted-foreground hover:text-foreground -ml-2"
+            onClick={() => setMobileMenuOpen(true)}
+            aria-label="Menu"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+
           {/* Logo */}
           <button onClick={handleBackHome} className="flex items-center gap-2 group">
             <div className="bg-red-600 rounded-lg p-1.5 group-hover:bg-red-500 transition-colors">
@@ -1144,7 +1433,7 @@ export default function HomePage() {
             </span>
           </button>
 
-          {/* Nav */}
+          {/* Nav - Desktop */}
           <nav className="hidden md:flex items-center gap-1">
             {(["all", "movie", "series", "anime", "manga"] as const).map((type) => (
               <Button
@@ -1152,8 +1441,12 @@ export default function HomePage() {
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  setView("browse");
-                  useAppStore.getState().setSelectedType(type);
+                  if (type === "all") {
+                    handleBackHome();
+                  } else {
+                    setView("browse");
+                    useAppStore.getState().setSelectedType(type);
+                  }
                 }}
                 className={`text-sm ${currentView === "browse" && useAppStore.getState().selectedType === type
                   ? "text-white font-semibold"
@@ -1173,9 +1466,30 @@ export default function HomePage() {
               size="icon"
               onClick={() => setShowSearch(true)}
               className="text-muted-foreground hover:text-foreground"
+              aria-label="Rechercher"
             >
               <Search className="h-5 w-5" />
             </Button>
+            {/* Favorites count on desktop */}
+            {favorites.length > 0 && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-muted-foreground hover:text-foreground hidden sm:flex"
+                onClick={() => {
+                  setView("browse");
+                  useAppStore.getState().setSelectedType("all");
+                }}
+                aria-label={`${favorites.length} favoris`}
+              >
+                <div className="relative">
+                  <Heart className="h-5 w-5" />
+                  <span className="absolute -top-1 -right-1.5 bg-red-600 text-white text-[9px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center">
+                    {favorites.length > 9 ? "9+" : favorites.length}
+                  </span>
+                </div>
+              </Button>
+            )}
             <Button
               size="sm"
               className="bg-red-600 hover:bg-red-700 text-white font-semibold hidden sm:flex"
@@ -1187,6 +1501,9 @@ export default function HomePage() {
           </div>
         </div>
       </header>
+
+      {/* Mobile Menu */}
+      <MobileMenu open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} />
 
       {/* Main Content */}
       <main className="flex-1 pt-16">
@@ -1209,6 +1526,22 @@ export default function HomePage() {
                 <div className="max-w-7xl mx-auto px-4 md:px-12 py-8 space-y-10">
                   {/* Ad Banner */}
                   <AdBanner slot="home-top" />
+
+                  {/* Derniers Ajouts */}
+                  <ContentRow
+                    title="Derniers Ajouts"
+                    items={latestContent}
+                    onContentClick={fetchContentDetail}
+                    icon={
+                      <span className="relative">
+                        <RotateCcw className="h-5 w-5 text-red-400" />
+                        <span className="absolute -top-1 -right-1.5 new-badge-shimmer text-[7px] font-bold text-white px-1 rounded-sm leading-tight">
+                          NEW
+                        </span>
+                      </span>
+                    }
+                    viewAllType="all"
+                  />
 
                   {/* Trending Movies */}
                   <ContentRow
@@ -1250,9 +1583,7 @@ export default function HomePage() {
                   />
 
                   {/* Donation Section */}
-                  <div id="donation-section">
-                    <DonationSection />
-                  </div>
+                  <DonationSection />
                 </div>
               </>
             )}
@@ -1267,7 +1598,7 @@ export default function HomePage() {
       </main>
 
       {/* Footer */}
-      <footer className="mt-auto border-t border-white/5 bg-background/50 backdrop-blur-sm">
+      <footer className="mt-auto border-t border-white/5 bg-background/50 backdrop-blur-sm pb-20 md:pb-0">
         <div className="max-w-7xl mx-auto px-4 md:px-12 py-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="col-span-2 md:col-span-1">
@@ -1332,6 +1663,9 @@ export default function HomePage() {
         </div>
       </footer>
 
+      {/* Mobile Bottom Nav */}
+      <MobileBottomNav />
+
       {/* Search Overlay */}
       <AnimatePresence>
         {showSearch && <SearchOverlay onClose={() => { setShowSearch(false); }} />}
@@ -1345,7 +1679,7 @@ export default function HomePage() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="fixed bottom-20 right-6 z-30 bg-red-600 hover:bg-red-700 text-white rounded-full p-3 shadow-lg shadow-red-900/30 transition-colors"
+            className="fixed bottom-24 md:bottom-6 right-6 z-30 bg-red-600 hover:bg-red-700 text-white rounded-full p-3 shadow-lg shadow-red-900/30 transition-colors"
           >
             <ArrowUp className="h-5 w-5" />
           </motion.button>

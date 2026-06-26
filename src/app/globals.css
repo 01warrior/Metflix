@@ -188,6 +188,10 @@
   overflow: hidden;
   border-radius: 0.5rem;
   background: #000;
+  border: 1px solid transparent;
+  background-image: linear-gradient(#000, #000), linear-gradient(135deg, rgba(220, 38, 38, 0.3), rgba(220, 38, 38, 0.05), rgba(220, 38, 38, 0.3));
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
 }
 .player-container iframe,
 .player-container video {
@@ -199,10 +203,10 @@
   border: 0;
 }
 
-/* Ad banner styles */
+/* Ad banner styles - subtle and professional */
 .ad-banner {
-  background: linear-gradient(135deg, oklch(0.18 0 0) 0%, oklch(0.22 0 0) 100%);
-  border: 1px solid oklch(0.28 0 0);
+  background: linear-gradient(135deg, oklch(0.14 0.005 0 / 0.5) 0%, oklch(0.16 0.003 0 / 0.3) 100%);
+  border: 1px dashed oklch(0.28 0 0 / 0.5);
   border-radius: 0.5rem;
 }
 
@@ -222,26 +226,96 @@
   }
 }
 
-/* Shimmer loading effect */
+/* Better shimmer loading effect */
 .shimmer {
   background: linear-gradient(
     90deg,
-    oklch(0.18 0 0) 25%,
-    oklch(0.25 0 0) 50%,
-    oklch(0.18 0 0) 75%
+    oklch(0.16 0 0) 0%,
+    oklch(0.22 0.005 0) 25%,
+    oklch(0.26 0.008 0) 50%,
+    oklch(0.22 0.005 0) 75%,
+    oklch(0.16 0 0) 100%
   );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
+  background-size: 400% 100%;
+  animation: shimmer 2s ease-in-out infinite;
 }
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
 }
 
 /* Glow effect for featured items */
 .glow-accent {
   box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
+}
+
+/* Pulse glow for hero "Regarder" button */
+.btn-glow {
+  position: relative;
+  overflow: hidden;
+}
+.btn-glow::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(45deg, #dc2626, #ef4444, #dc2626, #b91c1c);
+  border-radius: inherit;
+  z-index: -1;
+  animation: glowPulse 2s ease-in-out infinite;
+  filter: blur(8px);
+  opacity: 0.6;
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.4; filter: blur(6px); }
+  50% { opacity: 0.7; filter: blur(10px); }
+}
+
+/* Mobile bottom nav with blur backdrop */
+.mobile-bottom-nav {
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: oklch(0.1 0 0 / 0.85);
+  border-top: 1px solid oklch(1 0 0 / 8%);
+}
+
+.mobile-bottom-nav .nav-item {
+  transition: all 0.2s ease;
+}
+.mobile-bottom-nav .nav-item.active {
+  color: #ef4444;
+}
+.mobile-bottom-nav .nav-item.active .nav-dot {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+/* Rating number transition */
+@keyframes ratingCount {
+  0% { opacity: 0; transform: translateY(4px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.rating-animate {
+  animation: ratingCount 0.4s ease-out;
+}
+
+/* New badge shimmer effect */
+@keyframes newShimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.new-badge-shimmer {
+  background: linear-gradient(
+    90deg,
+    #dc2626 0%,
+    #f87171 25%,
+    #fca5a5 50%,
+    #f87171 75%,
+    #dc2626 100%
+  );
+  background-size: 200% 100%;
+  animation: newShimmer 2.5s linear infinite;
 }
 
 /* Type badge colors */
