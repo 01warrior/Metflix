@@ -1,20 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { posterUrl, backdropUrl } from "@/lib/content-utils";
 
-const TMDB_POSTER_BASE = "https://image.tmdb.org/t/p/w500";
-const TMDB_BACKDROP_BASE = "https://image.tmdb.org/t/p/w1280";
-
-function posterUrl(path: string | null): string {
-  if (!path) return `https://placehold.co/300x450/1a1a2e/ffffff?text=No+Image`;
-  return `${TMDB_POSTER_BASE}${path}`;
-}
-
-function backdropUrl(path: string | null): string {
-  if (!path) return `https://placehold.co/1280x720/1a1a2e/ffffff?text=Stream`;
-  return `${TMDB_BACKDROP_BASE}${path}`;
-}
-
-// Host provider display config
 const HOST_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
   vidsrc: { label: "VidSrc", color: "#e50914", icon: "🔴" },
   vidsrc_pro: { label: "VidSrc Pro", color: "#ff6b35", icon: "🟠" },
@@ -70,6 +57,7 @@ export async function GET(
       related = relatedRaw.map((item) => ({
         id: item.id,
         tmdbId: item.tmdbId,
+        anilistId: item.anilistId,
         title: item.title,
         titleFr: item.titleFr,
         overview: item.overview,
@@ -87,7 +75,7 @@ export async function GET(
       }));
     }
 
-    // Group embeds by episode/season, and include host provider info
+    // Group embeds by episode/season
     const embedGroups: { label: string; season: number | null; episode: number | null; embeds: any[] }[] = [];
 
     if (content.type === "manga") {
@@ -159,6 +147,7 @@ export async function GET(
     const result = {
       id: content.id,
       tmdbId: content.tmdbId,
+      anilistId: content.anilistId,
       title: content.title,
       titleFr: content.titleFr,
       overview: content.overview,

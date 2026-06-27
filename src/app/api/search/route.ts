@@ -1,19 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { posterUrl, backdropUrl } from "@/lib/content-utils";
 import type { Prisma } from "@prisma/client";
-
-const TMDB_POSTER_BASE = "https://image.tmdb.org/t/p/w500";
-const TMDB_BACKDROP_BASE = "https://image.tmdb.org/t/p/w1280";
-
-function posterUrl(path: string | null): string | null {
-  if (!path) return `https://placehold.co/300x450/1a1a2e/ffffff?text=No+Image`;
-  return `${TMDB_POSTER_BASE}${path}`;
-}
-
-function backdropUrl(path: string | null): string | null {
-  if (!path) return `https://placehold.co/1280x720/1a1a2e/ffffff?text=Stream`;
-  return `${TMDB_BACKDROP_BASE}${path}`;
-}
 
 export async function GET(request: Request) {
   try {
@@ -40,6 +28,7 @@ export async function GET(request: Request) {
       select: {
         id: true,
         tmdbId: true,
+        anilistId: true,
         title: true,
         titleFr: true,
         posterPath: true,

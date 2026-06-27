@@ -1,23 +1,12 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { posterUrl, backdropUrl } from "@/lib/content-utils";
 import type { Prisma } from "@prisma/client";
-
-const TMDB_POSTER_BASE = "https://image.tmdb.org/t/p/w500";
-const TMDB_BACKDROP_BASE = "https://image.tmdb.org/t/p/w1280";
-
-function posterUrl(path: string | null, width = 300, height = 450): string {
-  if (!path) return `https://placehold.co/${width}x${height}/1a1a2e/ffffff?text=No+Image`;
-  return `${TMDB_POSTER_BASE}${path}`;
-}
-
-function backdropUrl(path: string | null): string {
-  if (!path) return `https://placehold.co/1280x720/1a1a2e/ffffff?text=No+Backdrop`;
-  return `${TMDB_BACKDROP_BASE}${path}`;
-}
 
 interface ContentRow {
   id: string;
   tmdbId: number | null;
+  anilistId: number | null;
   title: string;
   titleFr: string | null;
   overview: string | null;
