@@ -2,18 +2,17 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { posterUrl, backdropUrl } from "@/lib/content-utils";
 
+import { EMBED_PROVIDERS, getProviderById } from "@/lib/embed-providers";
+
+// Build HOST_CONFIG from the provider registry (single source of truth)
 const HOST_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
-  vidsrc: { label: "VidSrc", color: "#e50914", icon: "🔴" },
-  vidsrc_pro: { label: "VidSrc Pro", color: "#ff6b35", icon: "🟠" },
-  embed_su: { label: "Embed.su", color: "#4ecdc4", icon: "🟢" },
-  autoembed: { label: "AutoEmbed", color: "#a855f7", icon: "🟣" },
-  twoembed: { label: "2Embed", color: "#3b82f6", icon: "🔵" },
-  doodstream: { label: "Doodstream", color: "#f59e0b", icon: "🟡" },
-  uqload: { label: "UQLOAD", color: "#22c55e", icon: "💚" },
-  voe: { label: "VOE", color: "#06b6d4", icon: "💎" },
-  vidzy: { label: "VIDZY", color: "#ec4899", icon: "🩷" },
   manga: { label: "Lecteur", color: "#8b5cf6", icon: "📚" },
 };
+for (const p of EMBED_PROVIDERS) {
+  HOST_CONFIG[p.id] = { label: p.name, color: p.color, icon: "🔗" };
+}
+// Fallback for legacy DB entries
+HOST_CONFIG["vidsrc"] = HOST_CONFIG["vidsrc"] || { label: "VidSrc", color: "#e50914", icon: "🔗" };
 
 export async function GET(
   _request: Request,

@@ -8,88 +8,9 @@ import {
   type SyncedAnime,
 } from "@/lib/anilist";
 import { resolveTmdbId } from "@/lib/anime-tmdb-mapping";
+import { generateAllEmbeds } from "@/lib/embed-providers";
 
-// Embed host configurations
-const EMBED_HOSTS = [
-  { hostProvider: "vidsrc", serverName: "VidSrc", quality: "1080p" },
-  { hostProvider: "vidsrc_pro", serverName: "VidSrc Pro", quality: "1080p" },
-  { hostProvider: "embed_su", serverName: "Embed.su", quality: "1080p" },
-  { hostProvider: "autoembed", serverName: "AutoEmbed", quality: "1080p" },
-  { hostProvider: "twoembed", serverName: "2Embed", quality: "1080p" },
-];
-
-function buildEmbedUrl(hostProvider: string, tmdbId: number, season: number, episode: number): string {
-  switch (hostProvider) {
-    case "vidsrc":
-      return `https://vidsrc.xyz/embed/tv/${tmdbId}/${season}/${episode}`;
-    case "vidsrc_pro":
-      return `https://vidsrc.pro/embed/tv/${tmdbId}/${season}/${episode}`;
-    case "embed_su":
-      return `https://embed.su/embed/tv/${tmdbId}/${season}/${episode}`;
-    case "autoembed":
-      return `https://autoembed.cc/embed/tv/${tmdbId}/${season}/${episode}`;
-    case "twoembed":
-      return `https://2embed.cc/embed/${tmdbId}&s=${season}&e=${episode}`;
-    default:
-      return `https://vidsrc.xyz/embed/tv/${tmdbId}/${season}/${episode}`;
-  }
-}
-
-function generateEmbedUrls(
-  tmdbId: number,
-  episodes: number,
-  seasons: number,
-  maxSeasons: number,
-  maxEpsPerSeason: number
-) {
-  const embeds: {
-    serverName: string;
-    serverType: string;
-    hostProvider: string;
-    url: string;
-    lang: string;
-    quality: string;
-    episode?: number;
-    season?: number;
-  }[] = [];
-
-  const effectiveSeasons = Math.min(seasons, maxSeasons);
-
-  for (const host of EMBED_HOSTS) {
-    if (episodes <= 1) {
-      embeds.push({
-        serverName: host.serverName,
-        serverType: "embed",
-        hostProvider: host.hostProvider,
-        url: buildEmbedUrl(host.hostProvider, tmdbId, 1, 1),
-        lang: "vostfr",
-        quality: host.quality,
-        season: 1,
-        episode: 1,
-      });
-    } else {
-      for (let s = 1; s <= effectiveSeasons; s++) {
-        const epsInSeason = s === 1 ? Math.min(episodes, maxEpsPerSeason) : maxEpsPerSeason;
-        for (let e = 1; e <= epsInSeason; e++) {
-          embeds.push({
-            serverName: host.serverName,
-            serverType: "embed",
-            hostProvider: host.hostProvider,
-            url: buildEmbedUrl(host.hostProvider, tmdbId, s, e),
-            lang: "vostfr",
-            quality: host.quality,
-            season: s,
-            episode: e,
-          });
-        }
-      }
-    }
-  }
-
-  return embeds;
-}
-
-function clamp(val: number, min: number, max: number, fallback: number): number {
+function clamp(val: number | null, min: number, max: number, fallback: number): number {
   const n = Number(val);
   if (isNaN(n)) return fallback;
   return Math.max(min, Math.min(max, Math.round(n)));
@@ -100,7 +21,6 @@ export async function GET(request: NextRequest) {
     const startTime = Date.now();
     const { searchParams } = request.nextUrl;
 
-    // Parse and validate query parameters
     const trendingPages = clamp(searchParams.get("trendingPages"), 1, 20, 2);
     const popularPages = clamp(searchParams.get("popularPages"), 1, 20, 2);
     const topRatedPages = clamp(searchParams.get("topRatedPages"), 1, 20, 2);
@@ -152,7 +72,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "No anime returned from AniList" }, { status: 502 });
     }
 
-    // 4. OPTIMIZATION: Fetch all existing anilistIds in ONE query
+    // 4. Fetch existing anilistIds in ONE query
     const existingByAnilistId = new Map<number, string>();
     const existingRows = await db.content.findMany({
       where: { type: "anime", anilistId: { not: null } },
@@ -164,7 +84,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 5. OPTIMIZATION: Fetch which contentIds already have embeds in ONE groupBy query
+    // 5. Fetch which contentIds already have embeds
     const existingEmbeds = await db.embedSource.groupBy({
       by: ["contentId"],
     });
@@ -180,21 +100,41 @@ export async function GET(request: NextRequest) {
 
     for (const anime of animeList) {
       try {
-        // Skip anime without a poster
         if (!anime.posterUrl) {
           skipped++;
           continue;
         }
 
-        // Resolve TMDB ID
         const tmdbId = resolveTmdbId(anime.title, anime.malId);
         if (tmdbId) tmdbResolved++;
 
-        // Check if exists by anilistId
         const existingId = anime.anilistId ? existingByAnilistId.get(anime.anilistId) : null;
 
+        const upsertContent = async (contentId: string) => {
+          // Add embeds if we have TMDB ID and no existing embeds
+          if (tmdbId && !contentIdsWithEmbeds.has(contentId) && anime.episodes && anime.episodes > 0) {
+            const embeds = generateAllEmbeds(
+              tmdbId,
+              "anime",
+              anime.seasons || 1,
+              maxSeasons,
+              maxEpsPerSeason,
+              anime.episodes
+            );
+            if (embeds.length > 0) {
+              // Batch insert in chunks of 500
+              for (let i = 0; i < embeds.length; i += 500) {
+                await db.embedSource.createMany({
+                  data: embeds.slice(i, i + 500).map((e) => ({ ...e, contentId })),
+                });
+              }
+              contentIdsWithEmbeds.add(contentId);
+              withEmbeds++;
+            }
+          }
+        };
+
         if (existingId) {
-          // Update existing content
           await db.content.update({
             where: { id: existingId },
             data: {
@@ -211,25 +151,14 @@ export async function GET(request: NextRequest) {
             },
           });
           updated++;
-
-          // Add embeds if we have TMDB ID and no existing embeds
-          if (tmdbId && !contentIdsWithEmbeds.has(existingId) && anime.episodes && anime.episodes > 0) {
-            const embeds = generateEmbedUrls(tmdbId, anime.episodes, anime.seasons, maxSeasons, maxEpsPerSeason);
-            if (embeds.length > 0) {
-              await db.embedSource.createMany({ data: embeds.map((e) => ({ ...e, contentId: existingId })) });
-              contentIdsWithEmbeds.add(existingId);
-              withEmbeds++;
-            }
-          }
+          await upsertContent(existingId);
         } else {
-          // Check by title to avoid duplicates
           const existingByTitle = await db.content.findFirst({
             where: { title: { equals: anime.title }, type: "anime" },
             select: { id: true },
           });
 
           if (existingByTitle) {
-            // Update with anilistId
             await db.content.update({
               where: { id: existingByTitle.id },
               data: {
@@ -247,17 +176,8 @@ export async function GET(request: NextRequest) {
             });
             existingByAnilistId.set(anime.anilistId, existingByTitle.id);
             updated++;
-
-            if (tmdbId && !contentIdsWithEmbeds.has(existingByTitle.id) && anime.episodes && anime.episodes > 0) {
-              const embeds = generateEmbedUrls(tmdbId, anime.episodes, anime.seasons, maxSeasons, maxEpsPerSeason);
-              if (embeds.length > 0) {
-                await db.embedSource.createMany({ data: embeds.map((e) => ({ ...e, contentId: existingByTitle.id })) });
-                contentIdsWithEmbeds.add(existingByTitle.id);
-                withEmbeds++;
-              }
-            }
+            await upsertContent(existingByTitle.id);
           } else {
-            // Create new content entry
             const newContent = await db.content.create({
               data: {
                 anilistId: anime.anilistId,
@@ -279,16 +199,7 @@ export async function GET(request: NextRequest) {
             });
             existingByAnilistId.set(anime.anilistId, newContent.id);
             created++;
-
-            // Create embed sources if we have a TMDB ID
-            if (tmdbId && anime.episodes && anime.episodes > 0) {
-              const embeds = generateEmbedUrls(tmdbId, anime.episodes, anime.seasons, maxSeasons, maxEpsPerSeason);
-              if (embeds.length > 0) {
-                await db.embedSource.createMany({ data: embeds.map((e) => ({ ...e, contentId: newContent.id })) });
-                contentIdsWithEmbeds.add(newContent.id);
-                withEmbeds++;
-              }
-            }
+            await upsertContent(newContent.id);
           }
         }
       } catch (err) {
@@ -300,7 +211,6 @@ export async function GET(request: NextRequest) {
 
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
 
-    // Get total anime count after sync
     const totalAnime = await db.content.count({ where: { type: "anime" } });
     const totalEmbeds = await db.embedSource.count({
       where: { content: { type: "anime" } },

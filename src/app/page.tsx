@@ -89,12 +89,17 @@ const TYPE_CONFIG: Record<
   },
 };
 
+// Colors from embed-providers are sent via API in hostConfig
+// Fallback for legacy data still in DB
 const HOST_COLORS: Record<string, string> = {
   vidsrc: "#e50914",
-  vidsrc_pro: "#ff6b35",
+  vidsrc_pm: "#e50914",
+  vidsrc_in: "#ff6b35",
+  vidsrc_pro: "#f59e0b",
   embed_su: "#4ecdc4",
-  autoembed: "#a855f7",
-  twoembed: "#3b82f6",
+  autoembed: "#06b6d4",
+  twoembed: "#22c55e",
+  superembed: "#ec4899",
 };
 
 const GENRES = [

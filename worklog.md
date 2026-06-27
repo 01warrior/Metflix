@@ -243,3 +243,37 @@ Stage Summary:
 - User can scale to 1000+ anime by adjusting page counts and genres in the admin panel
 - On a real server (not sandbox), there's no limit to AniList API usage
 - Server stability in sandbox remains a known limitation (processes get killed)
+
+---
+Task ID: 9
+Agent: Main Agent
+Task: Fix broken embed providers, create provider registry system, fix broken images
+
+Work Log:
+- Tested 15+ embed provider domains with curl (vidsrc.xyz, vidsrc.pro, vidsrc.cc, embed.su, etc.)
+- Found that 4/5 original providers were dead (vidsrc.xyz, autoembed.cc, 2embed.cc dead; vidsrc.cc, vidsrc.to blocked 403)
+- Only embed.su still worked. Found 2 new working providers: vidsrc.pm, vidsrc.in
+- Created src/lib/embed-providers.ts - centralized provider registry with:
+  - 11 providers total (3 active, 1 redirect, 7 dead/reference)
+  - URL templates with {tmdbId}, {season}, {episode} variables
+  - generateAllEmbeds() function for creating embed URLs
+  - Single source of truth for provider names, colors, quality labels
+  - Clear comments on how to add/remove/update providers
+- Rewrote src/app/api/anime/sync/route.ts to use new provider system
+- Created src/app/api/providers/route.ts - health check API for providers
+- Created src/app/api/embeds/regenerate/route.ts - regenerate all embeds with current providers
+- Created src/app/api/content/favorites/route.ts - proper favorites fetching API
+- Created src/app/api/content/random/route.ts - random content discovery API
+- Created src/app/api/anime/reset/route.ts - delete all anime + their embeds
+- Updated src/app/api/content/[id]/route.ts to use EMBED_PROVIDERS for hostConfig
+- Updated page.tsx: added onError fallback for broken images, updated HOST_COLORS, fixed favorites fetch, fixed admin reset
+- Regenerated all anime embeds: 3852 new embeds for 167 anime with 3 working providers
+
+Stage Summary:
+- **3 working embed providers verified**: VidSrc PM, VidSrc IN, Embed.su
+- **Centralized provider system**: edit ONE file (embed-providers.ts) to add/remove providers
+- **Regenerate endpoint**: POST /api/embeds/regenerate?type=anime updates all embeds in DB
+- **Provider health check**: GET /api/providers shows live status of each provider
+- **Image fallback**: broken TMDB images show placeholder instead of 404
+- All existing embeds regenerated with working provider URLs
+- Lint clean, all views working in browser QA
