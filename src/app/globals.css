@@ -323,3 +323,175 @@
 .badge-series { background: oklch(0.55 0.15 150); color: white; }
 .badge-anime { background: oklch(0.55 0.15 300); color: white; }
 .badge-manga { background: oklch(0.55 0.15 60); color: white; }
+
+/* ==================== ENHANCED STYLING ==================== */
+
+/* Subtle noise texture overlay */
+.noise-bg::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  opacity: 0.015;
+  pointer-events: none;
+  z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* Improved hero with vignette */
+.hero-vignette::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 40%, oklch(0.05 0 0 / 0.4) 100%);
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Enhanced card hover with glow ring */
+.content-card::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  opacity: 0;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), transparent 50%, rgba(239, 68, 68, 0.05));
+  z-index: -1;
+  transition: opacity 0.3s ease;
+}
+.content-card:hover::after {
+  opacity: 1;
+}
+
+/* Text shadow for hero title */
+.text-glow {
+  text-shadow: 0 0 40px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+/* Improved genre pill hover */
+.genre-pill {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+.genre-pill::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.genre-pill:hover::before,
+.genre-pill.active::before {
+  opacity: 1;
+}
+
+/* Section title with decorative accent */
+.section-title {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 40px;
+  height: 3px;
+  background: linear-gradient(90deg, #ef4444, transparent);
+  border-radius: 2px;
+}
+
+/* Report button */
+.report-btn {
+  opacity: 0;
+  transition: opacity 0.2s ease, color 0.2s ease;
+}
+.report-btn:hover {
+  opacity: 1;
+}
+
+/* Improved player with backdrop shimmer */
+.player-container {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  background: #000;
+  border: 1px solid transparent;
+  background-image: linear-gradient(#000, #000), linear-gradient(135deg, rgba(220, 38, 38, 0.3), rgba(220, 38, 38, 0.05), rgba(220, 38, 38, 0.3));
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: 0 4px 30px rgba(220, 38, 38, 0.08);
+}
+.player-container iframe,
+.player-container video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 0.75rem;
+}
+
+/* Server button hover scale effect */
+.server-btn {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.server-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* Stat pill in header */
+.stat-pill {
+  background: linear-gradient(135deg, oklch(0.18 0.005 0), oklch(0.15 0 0));
+  border: 1px solid oklch(0.25 0 0);
+}
+
+/* Improved donation section */
+.donate-box {
+  background: linear-gradient(135deg, oklch(0.18 0.01 0 / 0.6), oklch(0.14 0.005 0 / 0.3), oklch(0.18 0.01 0 / 0.6));
+  border: 1px solid oklch(0.25 0 0 / 0.3);
+  backdrop-filter: blur(10px);
+}
+
+/* Content count badge */
+.count-badge {
+  background: oklch(0.25 0 0 / 0.8);
+  border: 1px solid oklch(0.35 0 0 / 0.3);
+}
+
+/* Improved empty state */
+.empty-state-icon {
+  animation: emptyFloat 3s ease-in-out infinite;
+}
+@keyframes emptyFloat {
+  0%, 100% { transform: translateY(0); opacity: 0.3; }
+  50% { transform: translateY(-8px); opacity: 0.5; }
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Better focus styles */
+*:focus-visible {
+  outline: 2px solid rgba(239, 68, 68, 0.5);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Logo gradient text */
+.logo-gradient {
+  background: linear-gradient(135deg, #ef4444, #f97316);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
