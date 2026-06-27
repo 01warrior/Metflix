@@ -118,8 +118,16 @@ const YEARS = Array.from({ length: 20 }, (_, i) => 2025 - i);
 
 // ==================== HELPERS ====================
 
+const PLACEHOLDER_POSTER = "https://placehold.co/300x450/1a1a2e/555555?text=No+Image";
+const PLACEHOLDER_BACKDROP = "https://placehold.co/1280x720/1a1a2e/555555?text=Stream";
+
 function getDisplayTitle(item: ContentItem | ContentDetail): string {
   return item.titleFr || item.title;
+}
+
+function handleImgError(e: React.SyntheticEvent<HTMLImageElement>, isPoster = true) {
+  e.currentTarget.src = isPoster ? PLACEHOLDER_POSTER : PLACEHOLDER_BACKDROP;
+  e.currentTarget.onerror = null;
 }
 
 function getTypeBadge(type: string) {
@@ -201,6 +209,7 @@ function ContentCard({ item }: { item: ContentItem }) {
           alt={getDisplayTitle(item)}
           className={`w-full h-full object-cover transition-opacity duration-300 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
           onLoad={() => setImgLoaded(true)}
+          onError={(e) => { handleImgError(e); setImgLoaded(true); }}
           loading="lazy"
         />
         {/* Gradient overlay at bottom */}
@@ -682,6 +691,7 @@ function HeroSection() {
             src={current.backdropUrl}
             alt=""
             className="w-full h-full object-cover"
+            onError={(e) => handleImgError(e, false)}
           />
         </motion.div>
       </AnimatePresence>
@@ -1339,6 +1349,7 @@ function DetailView() {
             src={contentDetail.posterUrl}
             alt={getDisplayTitle(contentDetail)}
             className="w-full aspect-[2/3] rounded-lg object-cover shadow-xl"
+            onError={(e) => handleImgError(e)}
           />
         </div>
 
