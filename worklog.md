@@ -184,3 +184,23 @@ Stage Summary:
 - FrenchStream-like multi-host player fully functional (verified by browser testing)
 - System ready for production: add TMDB API key later to auto-import thousands more titles
 - All features working: multi-host switching, episode selection, genre filtering, favorites, search
+
+---
+Task ID: 6
+Agent: Main Agent
+Task: Fix regression - restore original page.tsx that was lost
+
+Work Log:
+- Discovered src/app/page.tsx was deleted/lost (server showed 404 / "sandbox is inactive")
+- Found original 1694-line page.tsx in git commit d5bed1e
+- Restored original version from git history
+- Verified lint passes clean (0 errors, 0 warnings)
+- Verified server responds GET / 200 and all API endpoints 200
+- Committed restored version as 4abbf48
+- Attempted page.tsx rewrite (1213 lines) was incomplete - missing features vs original
+
+Stage Summary:
+- **REGRESSION FIXED** - Original page.tsx fully restored from git d5bed1e
+- All features from Task ID 4/5 are intact: multi-host player, episode selector, browse filters, favorites, search
+- Current state is identical to the verified version described in the user's reference message
+- NO code changes needed - site is back to its last known-good state
