@@ -53,6 +53,11 @@ import {
   Monitor,
   ArrowDownUp,
   Layers,
+  Settings,
+  RefreshCw,
+  Database,
+  Zap,
+  TrendingUp,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -319,6 +324,7 @@ function Header() {
   const { setView, setShowSearch, favorites, currentView, setSelectedType } =
     useAppStore();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
 
   const navItems = [
     { label: "Accueil", view: "home" as const, icon: <Home className="h-4 w-4" /> },
@@ -390,6 +396,13 @@ function Header() {
         {/* Right actions */}
         <div className="flex items-center gap-2">
           <button
+            onClick={() => setAdminOpen(true)}
+            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
+            aria-label="Administration"
+          >
+            <Settings className="h-4.5 w-4.5 text-muted-foreground" />
+          </button>
+          <button
             onClick={() => setShowSearch(true)}
             className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
             aria-label="Rechercher"
@@ -459,6 +472,7 @@ function Header() {
           </nav>
         </SheetContent>
       </Sheet>
+      <AdminPanel open={adminOpen} onOpenChange={setAdminOpen} />
     </header>
   );
 }
@@ -1607,6 +1621,474 @@ function Footer() {
         </div>
       </div>
     </footer>
+  );
+}
+
+// ==================== ADMIN PANEL ====================
+
+const ADMIN_GENRES = [
+  "Action",
+  "Adventure",
+  "Comedy",
+  "Drama",
+  "Fantasy",
+  "Romance",
+  "Sci-Fi",
+  "Horror",
+  "Thriller",
+  "Sports",
+  "Supernatural",
+  "Mystery",
+  "Slice of Life",
+];
+
+interface AnimeStatsData {
+  totalContent: number;
+  anime: { total: number; withEmbeds: number; totalEmbeds: number };
+  movies: { total: number };
+  series: { total: number };
+  manga: { total: number };
+  recentAnime: {
+    id: string;
+    title: string;
+    anilistId: number | null;
+    rating: number;
+    year: number | null;
+    posterPath: string | null;
+  }[];
+}
+
+interface SyncResultData {
+  fetched: number;
+  created: number;
+  updated: number;
+  skipped: number;
+  withEmbeds: number;
+  tmdbResolved: number;
+  totalAnime: number;
+  totalAnimeEmbeds: number;
+  elapsed: string;
+}
+
+function AdminPanel({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const { toast } = useToast();
+  const [trendingPages, setTrendingPages] = useState(2);
+  const [popularPages, setPopularPages] = useState(2);
+  const [topRatedPages, setTopRatedPages] = useState(2);
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [maxSeasons, setMaxSeasons] = useState(5);
+  const [maxEpsPerSeason, setMaxEpsPerSeason] = useState(3);
+  const [perPage, setPerPage] = useState(50);
+  const [syncLoading, setSyncLoading] = useState(false);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [stats, setStats] = useState<AnimeStatsData | null>(null);
+  const [syncResult, setSyncResult] = useState<SyncResultData | null>(null);
+
+  const fetchStats = useCallback(async () => {
+    setStatsLoading(true);
+    try {
+      const res = await fetch("/api/anime/stats");
+      const data = await res.json();
+      setStats(data);
+    } catch {
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les statistiques",
+        variant: "destructive",
+      });
+    } finally {
+      setStatsLoading(false);
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    if (open) fetchStats();
+  }, [open, fetchStats]);
+
+  const estimatedCount =
+    (trendingPages + popularPages + topRatedPages + selectedGenres.length) * perPage;
+
+  const toggleGenre = (genre: string) => {
+    setSelectedGenres((prev) =>
+      prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre]
+    );
+  };
+
+  const handleSync = async () => {
+    setSyncLoading(true);
+    setSyncResult(null);
+    try {
+      const params = new URLSearchParams({
+        trendingPages: String(trendingPages),
+        popularPages: String(popularPages),
+        topRatedPages: String(topRatedPages),
+        maxSeasons: String(maxSeasons),
+        maxEpsPerSeason: String(maxEpsPerSeason),
+        perplexity: String(perPage),
+      });
+      if (selectedGenres.length > 0) {
+        params.set("genres", selectedGenres.join(","));
+      }
+
+      const res = await fetch(`/api/anime/sync?${params.toString()}`);
+      const data = await res.json();
+
+      if (data.success) {
+        setSyncResult(data.stats);
+        toast({
+          title: "Sync réussi !",
+          description: `${data.stats.created} anime ajoutés, ${data.stats.updated} mis à jour`,
+        });
+        fetchStats();
+      } else {
+        toast({
+          title: "Erreur de sync",
+          description: data.error || "Échec inconnu",
+          variant: "destructive",
+        });
+      }
+    } catch {
+      toast({
+        title: "Erreur réseau",
+        description: "Impossible de contacter le serveur",
+        variant: "destructive",
+      });
+    } finally {
+      setSyncLoading(false);
+    }
+  };
+
+  const handleReset = () => {
+    if (
+      window.confirm(
+        "⚠️ Supprimer TOUS les anime de la base de données ? Cette action est irréversible."
+      )
+    ) {
+      toast({
+        title: "Info",
+        description: "La réinitialisation n'est pas encore implémentée via l'API.",
+      });
+    }
+  };
+
+  const tmdbRate =
+    stats && stats.anime.total > 0
+      ? Math.round((stats.anime.withEmbeds / stats.anime.total) * 100)
+      : 0;
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="right"
+        className="w-full sm:w-[440px] bg-background border-border overflow-y-auto"
+      >
+        <SheetHeader className="px-4 pt-6 pb-2">
+          <SheetTitle className="flex items-center gap-2 text-lg">
+            <Settings className="h-5 w-5" />
+            Administration AniList
+          </SheetTitle>
+          <SheetDescription>
+            Synchronisation et statistiques anime
+          </SheetDescription>
+        </SheetHeader>
+
+        <div className="px-4 pb-6 space-y-6 mt-2">
+          {/* ===== Stats Section ===== */}
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                <Database className="h-4 w-4 text-muted-foreground" />
+                Statistiques
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={fetchStats}
+                disabled={statsLoading}
+                className="h-7 text-xs"
+              >
+                <RefreshCw
+                  className={`h-3 w-3 mr-1 ${statsLoading ? "animate-spin" : ""}`}
+                />
+                Actualiser
+              </Button>
+            </div>
+            {stats ? (
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-lg border border-border bg-card p-3">
+                  <p className="text-xs text-muted-foreground">Total Anime</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {stats.anime.total}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-border bg-card p-3">
+                  <p className="text-xs text-muted-foreground">Avec Embeds</p>
+                  <p className="text-2xl font-bold text-green-400">
+                    {stats.anime.withEmbeds}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-border bg-card p-3">
+                  <p className="text-xs text-muted-foreground">Total Embeds</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {stats.anime.totalEmbeds}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-border bg-card p-3">
+                  <p className="text-xs text-muted-foreground">TMDB Match</p>
+                  <p className="text-2xl font-bold text-red-400">{tmdbRate}%</p>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-16 rounded-lg" />
+                ))}
+              </div>
+            )}
+          </section>
+
+          <Separator />
+
+          {/* ===== Sync Controls ===== */}
+          <section>
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5 mb-3">
+              <Zap className="h-4 w-4 text-muted-foreground" />
+              Contrôles de Sync
+            </h3>
+
+            <div className="space-y-3">
+              {/* Pages inputs */}
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">
+                    <TrendingUp className="h-3 w-3 inline mr-1" />
+                    Trending
+                  </label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={trendingPages}
+                    onChange={(e) =>
+                      setTrendingPages(
+                        Math.max(1, Math.min(20, Number(e.target.value) || 1))
+                      )
+                    }
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">
+                    <ArrowDownUp className="h-3 w-3 inline mr-1" />
+                    Populaire
+                  </label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={popularPages}
+                    onChange={(e) =>
+                      setPopularPages(
+                        Math.max(1, Math.min(20, Number(e.target.value) || 1))
+                      )
+                    }
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">
+                    <Star className="h-3 w-3 inline mr-1" />
+                    Top Notes
+                  </label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={topRatedPages}
+                    onChange={(e) =>
+                      setTopRatedPages(
+                        Math.max(1, Math.min(20, Number(e.target.value) || 1))
+                      )
+                    }
+                    className="h-8 text-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Genres */}
+              <div>
+                <label className="text-xs text-muted-foreground mb-1.5 block">
+                  Genres
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {ADMIN_GENRES.map((genre) => (
+                    <Badge
+                      key={genre}
+                      variant={
+                        selectedGenres.includes(genre) ? "default" : "outline"
+                      }
+                      className={`cursor-pointer text-xs transition-colors ${
+                        selectedGenres.includes(genre)
+                          ? "bg-red-600 text-white hover:bg-red-700 border-red-600"
+                          : "border-border text-muted-foreground hover:border-red-400 hover:text-red-400"
+                      }`}
+                      onClick={() => toggleGenre(genre)}
+                    >
+                      {genre}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              {/* Embed generation settings */}
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">
+                    Max Saisons
+                  </label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={maxSeasons}
+                    onChange={(e) =>
+                      setMaxSeasons(
+                        Math.max(1, Math.min(20, Number(e.target.value) || 1))
+                      )
+                    }
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">
+                    Max Eps/Saison
+                  </label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={50}
+                    value={maxEpsPerSeason}
+                    onChange={(e) =>
+                      setMaxEpsPerSeason(
+                        Math.max(1, Math.min(50, Number(e.target.value) || 1))
+                      )
+                    }
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">
+                    Items/page
+                  </label>
+                  <Select
+                    value={String(perPage)}
+                    onValueChange={(v) => setPerPage(Number(v))}
+                  >
+                    <SelectTrigger className="h-8 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* ===== Estimated Count ===== */}
+          <div className="rounded-lg border border-dashed border-border bg-card/50 p-3 text-center">
+            <p className="text-xs text-muted-foreground mb-1">Estimation</p>
+            <p className="text-sm sm:text-base font-bold text-foreground">
+              ({trendingPages} + {popularPages} + {topRatedPages}
+              {selectedGenres.length > 0 && ` + ${selectedGenres.length}`}) ×{" "}
+              {perPage}
+              <span className="mx-1.5 text-muted-foreground">≈</span>
+              <span className="text-red-400 text-lg">{estimatedCount}</span>
+              <span className="text-sm text-muted-foreground ml-1">anime</span>
+            </p>
+          </div>
+
+          <Separator />
+
+          {/* ===== Action Buttons ===== */}
+          <section className="space-y-2">
+            <Button
+              onClick={handleSync}
+              disabled={syncLoading}
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold h-11"
+            >
+              {syncLoading ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Play className="h-4 w-4 mr-2" />
+              )}
+              {syncLoading ? "Synchronisation..." : "▶ Lancer le Sync"}
+            </Button>
+
+            {syncResult && (
+              <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm space-y-1">
+                <p className="font-medium text-green-400">
+                  ✓ Sync terminé en {syncResult.elapsed}
+                </p>
+                <p className="text-muted-foreground">
+                  Récupérés:{" "}
+                  <span className="text-foreground font-medium">
+                    {syncResult.fetched}
+                  </span>{" "}
+                  · Créés:{" "}
+                  <span className="text-green-400 font-medium">
+                    {syncResult.created}
+                  </span>{" "}
+                  · Mis à jour:{" "}
+                  <span className="text-yellow-400 font-medium">
+                    {syncResult.updated}
+                  </span>{" "}
+                  · Embeds:{" "}
+                  <span className="text-blue-400 font-medium">
+                    {syncResult.withEmbeds}
+                  </span>
+                </p>
+                <p className="text-muted-foreground">
+                  TMDB résolus:{" "}
+                  <span className="text-red-400 font-medium">
+                    {syncResult.tmdbResolved}
+                  </span>{" "}
+                  · Ignorés:{" "}
+                  <span className="text-muted-foreground font-medium">
+                    {syncResult.skipped}
+                  </span>
+                </p>
+              </div>
+            )}
+
+            <Button
+              variant="outline"
+              onClick={handleReset}
+              className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 h-9 text-sm"
+            >
+              🗑 Réinitialiser les Anime
+            </Button>
+          </section>
+
+          <Separator />
+
+          {/* ===== Info ===== */}
+          <p className="text-[11px] text-muted-foreground/70 leading-relaxed">
+            <strong className="text-muted-foreground">AniList API</strong> : 100%
+            gratuit, illimité. Chaque page = ~{perPage} anime. Sur un vrai
+            serveur, vous pouvez monter à 5000+ anime.
+          </p>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
 
