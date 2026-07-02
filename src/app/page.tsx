@@ -31,34 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Search,
-  Play,
-  Star,
-  Film,
-  Tv,
-  BookOpen,
-  Heart,
-  ChevronLeft,
-  ChevronRight,
-  X,
-  Home,
-  Server,
-  Calendar,
-  Menu,
-  RotateCcw,
-  Clock,
-  Loader2,
-  Sparkles,
-  Monitor,
-  ArrowDownUp,
-  Layers,
-  Settings,
-  RefreshCw,
-  Database,
-  Zap,
-  TrendingUp,
-} from "lucide-react";
+import { Icon } from "@/lib/icons";
 import { motion, AnimatePresence } from "framer-motion";
 
 // ==================== CONSTANTS ====================
@@ -69,22 +42,22 @@ const TYPE_CONFIG: Record<
 > = {
   movie: {
     label: "Film",
-    icon: <Film className="h-3.5 w-3.5" />,
+    icon: <Icon name="film" className="h-3.5 w-3.5" />,
     badgeClass: "badge-movie",
   },
   series: {
     label: "Série",
-    icon: <Tv className="h-3.5 w-3.5" />,
+    icon: <Icon name="tv" className="h-3.5 w-3.5" />,
     badgeClass: "badge-series",
   },
   anime: {
     label: "Anime",
-    icon: <Sparkles className="h-3.5 w-3.5" />,
+    icon: <Icon name="sparkles" className="h-3.5 w-3.5" />,
     badgeClass: "badge-anime",
   },
   manga: {
     label: "Manga",
-    icon: <BookOpen className="h-3.5 w-3.5" />,
+    icon: <Icon name="book-open" className="h-3.5 w-3.5" />,
     badgeClass: "badge-manga",
   },
 };
@@ -136,6 +109,13 @@ function handleImgError(e: React.SyntheticEvent<HTMLImageElement>, isPoster = tr
 }
 
 function getTypeBadge(type: string) {
+  if (type === "manga") {
+    return (
+      <span className="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-purple-600/90 text-white">
+        Livre
+      </span>
+    );
+  }
   const cfg = TYPE_CONFIG[type];
   if (!cfg) return null;
   return (
@@ -227,20 +207,26 @@ function ContentCard({ item }: { item: ContentItem }) {
           className="absolute top-2 right-2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm transition-all hover:scale-110"
           aria-label={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
         >
-          <Heart
+          <Icon
+            name="heart"
             className={`h-4 w-4 transition-all ${isFav ? "fill-red-500 text-red-500" : "text-white/80"}`}
           />
         </button>
-        {/* Play icon overlay on hover */}
+        {/* Play/Book icon overlay on hover */}
         <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <div className="w-12 h-12 rounded-full bg-red-600/90 flex items-center justify-center shadow-lg">
-            <Play className="h-5 w-5 text-white ml-0.5" fill="white" />
+          <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg ${item.type === "manga" ? "bg-purple-600/90" : "bg-red-600/90"}`}>
+            <Icon name={item.type === "manga" ? "book-open" : "play"} className={`h-5 w-5 text-white${item.type !== "manga" ? " ml-0.5" : ""}`} {...(item.type !== "manga" ? { fill: "white" } : {})} />
           </div>
         </div>
-        {/* Quality badge */}
-        <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-600/90 text-white backdrop-blur-sm">
-          1080p
-        </span>
+        {/* Quality badge / Chapter count for manga */}
+        {item.type === "manga" && item.seasons ? (
+          <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-600/90 text-white backdrop-blur-sm">
+            {item.seasons} chap.</span>
+        ) : (
+          <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-600/90 text-white backdrop-blur-sm">
+            1080p
+          </span>
+        )}
       </div>
       {/* Info */}
       <div className="p-2.5">
@@ -249,7 +235,7 @@ function ContentCard({ item }: { item: ContentItem }) {
         </h3>
         <div className="flex items-center gap-2 mt-1">
           <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
-            <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
+            <Icon name="star" className="h-3 w-3 fill-amber-500 text-amber-500" />
             <span>{item.rating?.toFixed(1) || "N/A"}</span>
           </span>
           {item.year && (
@@ -308,7 +294,7 @@ function ContentRow({
           className="absolute left-0 top-0 bottom-0 z-10 w-10 flex items-center justify-center bg-gradient-to-r from-background to-transparent opacity-0 group-hover/row:opacity-100 transition-opacity"
           aria-label="Précédent"
         >
-          <ChevronLeft className="h-6 w-6 text-foreground" />
+          <Icon name="chevron-left" className="h-6 w-6 text-foreground" />
         </button>
         <div
           ref={scrollRef}
@@ -325,7 +311,7 @@ function ContentRow({
           className="absolute right-0 top-0 bottom-0 z-10 w-10 flex items-center justify-center bg-gradient-to-l from-background to-transparent opacity-0 group-hover/row:opacity-100 transition-opacity"
           aria-label="Suivant"
         >
-          <ChevronRight className="h-6 w-6 text-foreground" />
+          <Icon name="chevron-right" className="h-6 w-6 text-foreground" />
         </button>
       </div>
     </section>
@@ -341,11 +327,11 @@ function Header() {
   const [adminOpen, setAdminOpen] = useState(false);
 
   const navItems = [
-    { label: "Accueil", view: "home" as const, icon: <Home className="h-4 w-4" /> },
-    { label: "Films", type: "movie" as ContentType, icon: <Film className="h-4 w-4" /> },
-    { label: "Séries", type: "series" as ContentType, icon: <Tv className="h-4 w-4" /> },
-    { label: "Anime", type: "anime" as ContentType, icon: <Sparkles className="h-4 w-4" /> },
-    { label: "Manga", type: "manga" as ContentType, icon: <BookOpen className="h-4 w-4" /> },
+    { label: "Accueil", view: "home" as const, icon: <Icon name="home" className="h-4 w-4" /> },
+    { label: "Films", type: "movie" as ContentType, icon: <Icon name="film" className="h-4 w-4" /> },
+    { label: "Séries", type: "series" as ContentType, icon: <Icon name="tv" className="h-4 w-4" /> },
+    { label: "Anime", type: "anime" as ContentType, icon: <Icon name="sparkles" className="h-4 w-4" /> },
+    { label: "Manga", type: "manga" as ContentType, icon: <Icon name="book-open" className="h-4 w-4" /> },
   ];
 
   const handleNav = (item: (typeof navItems)[number]) => {
@@ -397,7 +383,7 @@ function Header() {
                 : "text-muted-foreground hover:text-foreground hover:bg-muted"
             }`}
           >
-            <Heart className="h-3.5 w-3.5" />
+            <Icon name="heart" className="h-3.5 w-3.5" />
             Favoris
             {favorites.length > 0 && (
               <span className="ml-0.5 text-[10px] bg-red-500 text-white rounded-full px-1.5 py-0.5 leading-none font-bold">
@@ -414,14 +400,14 @@ function Header() {
             className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
             aria-label="Administration"
           >
-            <Settings className="h-4.5 w-4.5 text-muted-foreground" />
+            <Icon name="settings" className="h-4.5 w-4.5 text-muted-foreground" />
           </button>
           <button
             onClick={() => setShowSearch(true)}
             className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
             aria-label="Rechercher"
           >
-            <Search className="h-4.5 w-4.5 text-muted-foreground" />
+            <Icon name="search" className="h-4.5 w-4.5 text-muted-foreground" />
           </button>
           {/* Mobile hamburger */}
           <button
@@ -429,7 +415,7 @@ function Header() {
             className="md:hidden w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
             aria-label="Menu"
           >
-            <Menu className="h-5 w-5 text-muted-foreground" />
+            <Icon name="menu" className="h-5 w-5 text-muted-foreground" />
           </button>
         </div>
       </div>
@@ -475,7 +461,7 @@ function Header() {
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
               }`}
             >
-              <Heart className="h-4 w-4" />
+              <Icon name="heart" className="h-4 w-4" />
               Mes Favoris
               {favorites.length > 0 && (
                 <span className="ml-auto text-xs bg-red-500 text-white rounded-full px-2 py-0.5 font-bold">
@@ -499,17 +485,16 @@ function MobileBottomNav() {
   if (currentView === "detail") return null;
 
   const tabs = [
-    { label: "Accueil", view: "home" as const, icon: Home },
-    { label: "Films", type: "movie" as ContentType, icon: Film },
-    { label: "Séries", type: "series" as ContentType, icon: Tv },
-    { label: "Anime", type: "anime" as ContentType, icon: Sparkles },
-    { label: "Manga", type: "manga" as ContentType, icon: BookOpen },
+    { label: "Accueil", view: "home" as const, icon: "home" as const },
+    { label: "Films", type: "movie" as ContentType, icon: "film" as const },
+    { label: "Séries", type: "series" as ContentType, icon: "tv" as const },
+    { label: "Anime", type: "anime" as ContentType, icon: "sparkles" as const },
+    { label: "Manga", type: "manga" as ContentType, icon: "book-open" as const },
   ];
 
   return (
     <nav className="md:hidden mobile-bottom-nav fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around h-14">
       {tabs.map((tab) => {
-        const Icon = tab.icon;
         const isActive =
           (tab.view && currentView === tab.view) ||
           (tab.type && currentView === "browse" && selectedType === tab.type);
@@ -526,6 +511,7 @@ function MobileBottomNav() {
             className="nav-item flex flex-col items-center gap-0.5 py-1 px-2 relative"
           >
             <Icon
+              name={tab.icon}
               className={`h-5 w-5 transition-colors ${isActive ? "text-red-500" : "text-muted-foreground"}`}
             />
             <span
@@ -608,7 +594,7 @@ function SearchOverlay() {
           className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted"
           aria-label="Fermer"
         >
-          <X className="h-5 w-5" />
+          <Icon name="x" className="h-5 w-5" />
         </button>
         <Input
           ref={inputRef}
@@ -621,7 +607,7 @@ function SearchOverlay() {
       <div className="flex-1 overflow-y-auto p-4">
         {loading && (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            <Icon name="loader" className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         )}
         {!loading && query.length >= 2 && searchResults.length === 0 && (
@@ -731,18 +717,18 @@ function HeroSection() {
             </p>
             <div className="flex items-center gap-3 mb-5">
               <span className="flex items-center gap-1 text-sm text-white/80">
-                <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
+                <Icon name="star" className="h-4 w-4 fill-amber-500 text-amber-500" />
                 {current.rating?.toFixed(1)}
               </span>
               {current.year && (
                 <span className="flex items-center gap-1 text-sm text-white/80">
-                  <Calendar className="h-4 w-4" />
+                  <Icon name="calendar" className="h-4 w-4" />
                   {current.year}
                 </span>
               )}
               {current.runtime && (
                 <span className="flex items-center gap-1 text-sm text-white/80">
-                  <Clock className="h-4 w-4" />
+                  <Icon name="clock" className="h-4 w-4" />
                   {current.runtime} min
                 </span>
               )}
@@ -755,7 +741,7 @@ function HeroSection() {
                 }}
                 className="btn-glow inline-flex items-center gap-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"
               >
-                <Play className="h-5 w-5" fill="white" />
+                <Icon name="play" className="h-5 w-5" fill="white" />
                 Regarder
               </button>
             </div>
@@ -813,7 +799,7 @@ function HomeView() {
       {latestContent.length > 0 && (
         <section className="mb-8 px-4 md:px-0">
           <div className="flex items-center gap-2 mb-4">
-            <RotateCcw className="h-4 w-4 text-red-400" />
+            <Icon name="rotate-ccw" className="h-4 w-4 text-red-400" />
             <h2 className="text-lg md:text-xl font-bold text-foreground">
               Derniers Ajouts
             </h2>
@@ -963,7 +949,7 @@ function BrowseView() {
     { value: "movie", label: "Films" },
     { value: "series", label: "Séries" },
     { value: "anime", label: "Anime" },
-    { value: "manga", label: "Manga" },
+    { value: "manga", label: "Livres" },
   ];
 
   return (
@@ -1022,7 +1008,7 @@ function BrowseView() {
         {/* Sort + Year */}
         <div className="flex flex-wrap gap-3 items-center">
           <div className="flex items-center gap-2">
-            <ArrowDownUp className="h-3.5 w-3.5 text-muted-foreground" />
+            <Icon name="arrow-down-up" className="h-3.5 w-3.5 text-muted-foreground" />
             <Select value={selectedSort} onValueChange={setSelectedSort}>
               <SelectTrigger className="w-[180px] bg-muted border-0 h-9 text-sm">
                 <SelectValue placeholder="Trier par" />
@@ -1036,7 +1022,7 @@ function BrowseView() {
             </Select>
           </div>
           <div className="flex items-center gap-2">
-            <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+            <Icon name="calendar" className="h-3.5 w-3.5 text-muted-foreground" />
             <Select
               value={selectedYearFrom?.toString() || "all"}
               onValueChange={(v) => setSelectedYearFrom(v === "all" ? null : Number(v))}
@@ -1072,7 +1058,9 @@ function BrowseView() {
             </Select>
           </div>
           <span className="text-xs text-muted-foreground ml-auto">
-            {browseTotal} résultat{browseTotal !== 1 ? "s" : ""}
+            {selectedType === "manga"
+              ? `${browseTotal} livre${browseTotal !== 1 ? "s" : ""}`
+              : `${browseTotal} résultat${browseTotal !== 1 ? "s" : ""}`}
           </span>
         </div>
       </div>
@@ -1094,7 +1082,7 @@ function BrowseView() {
 
       {/* Infinite scroll loader */}
       <div ref={loaderRef} className="flex justify-center py-8">
-        {browseLoading && <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />}
+        {browseLoading && <Icon name="loader" className="h-6 w-6 animate-spin text-muted-foreground" />}
       </div>
     </motion.div>
   );
@@ -1206,17 +1194,125 @@ function DetailView() {
         }}
         className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
       >
-        <ChevronLeft className="h-4 w-4" />
+        <Icon name="chevron-left" className="h-4 w-4" />
         Retour
       </button>
 
-      {/* Player area */}
-      <div className="player-container mb-6">
-        {currentEmbed && !isManga ? (
+      {/* Manga reading info or Player area */}
+      {isManga ? (
+        <div className="mb-8 rounded-xl overflow-hidden border border-border bg-card">
+          <div className="grid md:grid-cols-[280px_1fr] gap-0">
+            {/* Manga cover */}
+            <div className="relative">
+              <img
+                src={contentDetail.posterUrl}
+                alt={getDisplayTitle(contentDetail)}
+                className="w-full aspect-[2/3] md:aspect-auto md:h-full object-cover"
+                onError={(e) => handleImgError(e)}
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent to-card/50 hidden md:block" />
+            </div>
+            {/* Manga info */}
+            <div className="p-6 flex flex-col">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-purple-600/90 text-white">
+                  Livre
+                </span>
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-600/20 text-purple-400">
+                  Manga
+                </span>
+                <button
+                  onClick={handleFav}
+                  className="ml-auto w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors"
+                  aria-label={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
+                >
+                  <Icon
+                    name="heart"
+                    className={`h-5 w-5 transition-all ${isFav ? "fill-red-500 text-red-500" : "text-muted-foreground"}`}
+                  />
+                </button>
+              </div>
+              <h1 className="text-2xl md:text-3xl font-extrabold text-foreground leading-tight mb-3">
+                {getDisplayTitle(contentDetail)}
+              </h1>
+              {/* Rating */}
+              <div className="flex items-center gap-3 mb-4 text-sm">
+                <span className="flex items-center gap-1">
+                  <Icon name="star" className="h-4 w-4 fill-amber-500 text-amber-500" />
+                  <span className="text-foreground font-semibold">{contentDetail.rating?.toFixed(1)}</span>
+                </span>
+                {contentDetail.year && (
+                  <span className="flex items-center gap-1 text-muted-foreground">
+                    <Icon name="calendar" className="h-3.5 w-3.5" />
+                    {contentDetail.year}
+                  </span>
+                )}
+              </div>
+              {/* Info cards */}
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="rounded-lg bg-muted/50 p-3 text-center">
+                  <Icon name="book-marked" className="h-5 w-5 text-purple-400 mx-auto mb-1" />
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Auteur</p>
+                  <p className="text-xs font-semibold text-foreground truncate">{contentDetail.genres?.split(",")[0]?.trim() || "Inconnu"}</p>
+                </div>
+                <div className="rounded-lg bg-muted/50 p-3 text-center">
+                  <Icon name="books" className="h-5 w-5 text-emerald-400 mx-auto mb-1" />
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Statut</p>
+                  <p className="text-xs font-semibold text-foreground">{contentDetail.seasons && contentDetail.seasons > 100 ? "En cours" : "Terminé"}</p>
+                </div>
+                <div className="rounded-lg bg-muted/50 p-3 text-center">
+                  <Icon name="book-open" className="h-5 w-5 text-blue-400 mx-auto mb-1" />
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Chapitres</p>
+                  <p className="text-xs font-semibold text-foreground">{contentDetail.seasons || "?"}</p>
+                </div>
+              </div>
+              {/* Description */}
+              {contentDetail.overviewFr && (
+                <p className="text-sm text-muted-foreground leading-relaxed mb-4 line-clamp-4">
+                  {contentDetail.overviewFr}
+                </p>
+              )}
+              {/* Read online button */}
+              {contentDetail.anilistId && (
+                <a
+                  href={`https://anilist.co/manga/${contentDetail.anilistId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors w-fit"
+                >
+                  <Icon name="book-open" className="h-4 w-4" />
+                  Lire en ligne
+                </a>
+              )}
+              {/* Chapter grid */}
+              {contentDetail.seasons && contentDetail.seasons > 0 && (
+                <div className="mt-5">
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+                    <Icon name="bookmark" className="h-4 w-4" />
+                    Chapitres
+                  </h3>
+                  <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-1.5 max-h-48 overflow-y-auto">
+                    {Array.from({ length: Math.min(contentDetail.seasons, 200) }).map((_, i) => (
+                      <button
+                        key={i + 1}
+                        className="px-1 py-1.5 rounded text-[11px] font-medium bg-muted text-muted-foreground hover:text-foreground hover:bg-purple-600/20 hover:text-purple-400 transition-colors"
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="player-container mb-6">
+          {currentEmbed ? (
           <>
             {playerLoading && (
               <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/60">
-                <Loader2 className="h-8 w-8 animate-spin text-red-500" />
+                <Icon name="loader" className="h-8 w-8 animate-spin text-red-500" />
               </div>
             )}
             <iframe
@@ -1229,17 +1325,10 @@ function DetailView() {
               title="Player"
             />
           </>
-        ) : isManga ? (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center">
-              <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-              <p className="text-muted-foreground">Sélectionnez un chapitre ci-dessous</p>
-            </div>
-          </div>
         ) : contentDetail.embedGroups.length === 0 ? (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center px-4">
-              <Server className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
+              <Icon name="server" className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
               <p className="text-muted-foreground font-medium mb-1">Aucun serveur disponible</p>
               <p className="text-muted-foreground/70 text-sm">
                 {contentDetail.type === "anime"
@@ -1251,20 +1340,21 @@ function DetailView() {
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
-              <Monitor className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+              <Icon name="monitor" className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
               <p className="text-muted-foreground">Sélectionnez un serveur ci-dessous</p>
             </div>
           </div>
         )}
       </div>
+      )}
 
-      {/* Server buttons + Episode selector */}
-      <div className="space-y-4 mb-8">
+      {/* Server buttons + Episode selector (not for manga) */}
+      {!isManga && <div className="space-y-4 mb-8">
         {/* For movies: show server buttons directly */}
         {!isSeriesOrAnime && contentDetail.embedGroups.length > 0 && (
           <div>
             <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-              <Server className="h-4 w-4" />
+              <Icon name="server" className="h-4 w-4" />
               Serveurs disponibles
             </h3>
             <div className="flex flex-wrap gap-2">
@@ -1284,7 +1374,7 @@ function DetailView() {
         {isSeriesOrAnime && (
           <div>
             <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-              <Tv className="h-4 w-4" />
+              <Icon name="tv" className="h-4 w-4" />
               Épisodes
             </h3>
 
@@ -1356,10 +1446,10 @@ function DetailView() {
             )}
           </div>
         )}
-      </div>
+      </div>}
 
-      {/* Content info */}
-      <div className="grid md:grid-cols-[220px_1fr] gap-6 mb-8">
+      {/* Content info (not for manga - already shown in reading section) */}
+      {!isManga && <div className="grid md:grid-cols-[220px_1fr] gap-6 mb-8">
         {/* Poster */}
         <div className="hidden md:block">
           <img
@@ -1392,7 +1482,8 @@ function DetailView() {
               className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors"
               aria-label={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
             >
-              <Heart
+              <Icon
+                name="heart"
                 className={`h-5 w-5 transition-all ${isFav ? "fill-red-500 text-red-500" : "text-muted-foreground"}`}
               />
             </button>
@@ -1401,26 +1492,26 @@ function DetailView() {
           {/* Meta */}
           <div className="flex flex-wrap items-center gap-3 mb-4 text-sm text-muted-foreground">
             <span className="flex items-center gap-1">
-              <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
+              <Icon name="star" className="h-4 w-4 fill-amber-500 text-amber-500" />
               <span className="text-foreground font-semibold">
                 {contentDetail.rating?.toFixed(1)}
               </span>
             </span>
             {contentDetail.year && (
               <span className="flex items-center gap-1">
-                <Calendar className="h-3.5 w-3.5" />
+                <Icon name="calendar" className="h-3.5 w-3.5" />
                 {contentDetail.year}
               </span>
             )}
             {contentDetail.runtime && (
               <span className="flex items-center gap-1">
-                <Clock className="h-3.5 w-3.5" />
+                <Icon name="clock" className="h-3.5 w-3.5" />
                 {contentDetail.runtime} min
               </span>
             )}
             {contentDetail.seasons && (
               <span className="flex items-center gap-1">
-                <Layers className="h-3.5 w-3.5" />
+                <Icon name="layers" className="h-3.5 w-3.5" />
                 {contentDetail.seasons} saison{contentDetail.seasons > 1 ? "s" : ""}
               </span>
             )}
@@ -1448,7 +1539,7 @@ function DetailView() {
             </p>
           )}
         </div>
-      </div>
+      </div>}
 
       {/* Ad banner */}
       <div className="ad-banner flex items-center justify-center py-2.5 px-4 mb-8">
@@ -1569,7 +1660,7 @@ function FavoritesView() {
       className="page-content max-w-7xl mx-auto px-4 md:px-8 py-6"
     >
       <div className="flex items-center gap-3 mb-6">
-        <Heart className="h-6 w-6 text-red-500" fill="currentColor" />
+        <Icon name="heart" className="h-6 w-6 text-red-500" fill="currentColor" />
         <h1 className="text-2xl font-extrabold text-foreground">Mes Favoris</h1>
         <span className="text-sm text-muted-foreground">
           ({favorites.length})
@@ -1580,7 +1671,7 @@ function FavoritesView() {
         <SkeletonGrid />
       ) : favorites.length === 0 ? (
         <div className="text-center py-20">
-          <Heart className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+          <Icon name="heart" className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
           <p className="text-muted-foreground mb-2">Aucun favori pour le moment</p>
           <p className="text-sm text-muted-foreground/60">
             Cliquez sur le cœur d&apos;un contenu pour l&apos;ajouter
@@ -1849,7 +1940,7 @@ function AdminPanel({
   };
 
   const handleReset = async () => {
-    if (!window.confirm("⚠️ Supprimer TOUS les anime ? Irréversible.")) return;
+    if (!window.confirm("Supprimer TOUS les anime ? Irréversible.")) return;
     try {
       const res = await fetch("/api/anime/reset", { method: "DELETE" });
       const data = await res.json();
@@ -1861,10 +1952,10 @@ function AdminPanel({
     ? Math.round(((stats.anime.total - (matchStats?.anime.unmatched || 0)) / stats.anime.total) * 100) : 0;
 
   const TABS = [
-    { id: "overview" as const, label: "Vue d'ensemble", icon: <Database className="h-3.5 w-3.5" /> },
-    { id: "anime" as const, label: "Anime", icon: <Sparkles className="h-3.5 w-3.5" /> },
-    { id: "tmdb" as const, label: "Films & Séries", icon: <Film className="h-3.5 w-3.5" /> },
-    { id: "images" as const, label: "Images", icon: <Monitor className="h-3.5 w-3.5" /> },
+    { id: "overview" as const, label: "Vue d'ensemble", icon: <Icon name="database" className="h-3.5 w-3.5" /> },
+    { id: "anime" as const, label: "Anime", icon: <Icon name="sparkles" className="h-3.5 w-3.5" /> },
+    { id: "tmdb" as const, label: "Films & Séries", icon: <Icon name="film" className="h-3.5 w-3.5" /> },
+    { id: "images" as const, label: "Images", icon: <Icon name="monitor" className="h-3.5 w-3.5" /> },
   ];
 
   return (
@@ -1872,7 +1963,7 @@ function AdminPanel({
       <SheetContent side="left" className="w-full sm:w-[460px] overflow-y-auto">
         <SheetHeader className="mb-4">
           <SheetTitle className="flex items-center gap-2 text-lg">
-            <Settings className="h-5 w-5 text-red-500" /> Administration
+            <Icon name="settings" className="h-5 w-5 text-red-500" /> Administration
           </SheetTitle>
           <SheetDescription>Gérer le contenu, les syncs et les paramètres</SheetDescription>
         </SheetHeader>
@@ -1896,8 +1987,12 @@ function AdminPanel({
                   <span className={`w-2 h-2 rounded-full ${matchStats?.tmdbKeyValid ? "bg-green-400" : "bg-red-400"} animate-pulse`} />
                   TMDB API
                 </p>
-                <p className="text-sm font-semibold">
-                  {matchStats?.tmdbKeyValid ? "✅ Clé TMDB configurée et valide" : "❌ Clé TMDB non configurée"}
+                <p className="text-sm font-semibold flex items-center gap-1.5">
+                  {matchStats?.tmdbKeyValid ? (
+                    <><Icon name="badge-check" className="h-3.5 w-3.5 text-green-400" /> Clé TMDB configurée et valide</>
+                  ) : (
+                    <><Icon name="alert-02" className="h-3.5 w-3.5 text-red-400" /> Clé TMDB non configurée</>
+                  )}
                 </p>
               </div>
 
@@ -1918,14 +2013,14 @@ function AdminPanel({
 
               {imageFixStats && imageFixStats.needsFix > 0 && (
                 <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3">
-                  <p className="text-xs text-yellow-400 font-medium mb-1">⚠️ {imageFixStats.needsFix} images cassées</p>
+                  <p className="text-xs text-yellow-400 font-medium mb-1 flex items-center gap-1"><Icon name="warning" className="h-3.5 w-3.5" /> {imageFixStats.needsFix} images cassées</p>
                   <p className="text-[11px] text-muted-foreground">Onglet &quot;Images&quot; pour corriger</p>
                 </div>
               )}
 
               {matchStats && matchStats.anime.unmatched > 0 && (
                 <div className="rounded-lg border border-orange-500/30 bg-orange-500/5 p-3">
-                  <p className="text-xs text-orange-400 font-medium mb-1">⚡ {matchStats.anime.unmatched} anime sans TMDB ID</p>
+                  <p className="text-xs text-orange-400 font-medium mb-1 flex items-center gap-1"><Icon name="zap" className="h-3.5 w-3.5" /> {matchStats.anime.unmatched} anime sans TMDB ID</p>
                   <p className="text-[11px] text-muted-foreground">Onglet &quot;Anime&quot; → Matcher</p>
                 </div>
               )}
@@ -1934,13 +2029,13 @@ function AdminPanel({
               <section className="space-y-2">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions rapides</h3>
                 <Button onClick={() => setAdminTab("tmdb")} variant="outline" className="w-full h-9 text-sm border-blue-500/20 text-blue-400 hover:bg-blue-500/10">
-                  <Film className="h-4 w-4 mr-2" /> Ajouter des Films via TMDB
+                  <Icon name="film" className="h-4 w-4 mr-2" /> Ajouter des Films via TMDB
                 </Button>
                 <Button onClick={() => setAdminTab("anime")} variant="outline" className="w-full h-9 text-sm border-orange-500/20 text-orange-400 hover:bg-orange-500/10">
-                  <Sparkles className="h-4 w-4 mr-2" /> Synchroniser les Anime (AniList)
+                  <Icon name="sparkles" className="h-4 w-4 mr-2" /> Synchroniser les Anime (AniList)
                 </Button>
                 <Button onClick={() => setAdminTab("images")} variant="outline" className="w-full h-9 text-sm border-purple-500/20 text-purple-400 hover:bg-purple-500/10">
-                  <Monitor className="h-4 w-4 mr-2" /> Corriger les images cassées
+                  <Icon name="monitor" className="h-4 w-4 mr-2" /> Corriger les images cassées
                 </Button>
               </section>
             </>
@@ -1961,22 +2056,22 @@ function AdminPanel({
 
               <section>
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5 mb-3">
-                  <Zap className="h-4 w-4 text-muted-foreground" /> Sync AniList
+                  <Icon name="zap" className="h-4 w-4 text-muted-foreground" /> Sync AniList
                 </h3>
                 <div className="space-y-3">
                   <div className="grid grid-cols-3 gap-2">
                     <div>
-                      <label className="text-xs text-muted-foreground mb-1 block"><TrendingUp className="h-3 w-3 inline mr-1" />Trending</label>
+                      <label className="text-xs text-muted-foreground mb-1 block"><Icon name="trending-up" className="h-3 w-3 inline mr-1" />Trending</label>
                       <Input type="number" min={1} max={20} value={trendingPages}
                         onChange={(e) => setTrendingPages(Math.max(1, Math.min(20, Number(e.target.value) || 1)))} className="h-8 text-sm" />
                     </div>
                     <div>
-                      <label className="text-xs text-muted-foreground mb-1 block"><ArrowDownUp className="h-3 w-3 inline mr-1" />Populaire</label>
+                      <label className="text-xs text-muted-foreground mb-1 block"><Icon name="arrow-down-up" className="h-3 w-3 inline mr-1" />Populaire</label>
                       <Input type="number" min={1} max={20} value={popularPages}
                         onChange={(e) => setPopularPages(Math.max(1, Math.min(20, Number(e.target.value) || 1)))} className="h-8 text-sm" />
                     </div>
                     <div>
-                      <label className="text-xs text-muted-foreground mb-1 block"><Star className="h-3 w-3 inline mr-1" />Top Notes</label>
+                      <label className="text-xs text-muted-foreground mb-1 block"><Icon name="star" className="h-3 w-3 inline mr-1" />Top Notes</label>
                       <Input type="number" min={1} max={20} value={topRatedPages}
                         onChange={(e) => setTopRatedPages(Math.max(1, Math.min(20, Number(e.target.value) || 1)))} className="h-8 text-sm" />
                     </div>
@@ -2012,13 +2107,13 @@ function AdminPanel({
               </div>
 
               <Button onClick={handleSync} disabled={syncLoading} className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold h-11">
-                {syncLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Play className="h-4 w-4 mr-2" />}
-                {syncLoading ? "Synchronisation..." : "▶ Sync AniList"}
+                {syncLoading ? <Icon name="loader" className="h-4 w-4 mr-2 animate-spin" /> : <Icon name="play" className="h-4 w-4 mr-2" />}
+                {syncLoading ? "Synchronisation..." : "Sync AniList"}
               </Button>
 
               {syncResult && (
                 <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm space-y-1">
-                  <p className="font-medium text-green-400">✓ Sync terminé en {syncResult.elapsed}</p>
+                  <p className="font-medium text-green-400 flex items-center gap-1"><Icon name="check" className="h-3.5 w-3.5" /> Sync terminé en {syncResult.elapsed}</p>
                   <p className="text-muted-foreground">Créés: <span className="text-green-400">{syncResult.created}</span> · MAJ: <span className="text-yellow-400">{syncResult.updated}</span> · Embeds: <span className="text-blue-400">{syncResult.withEmbeds}</span></p>
                 </div>
               )}
@@ -2027,17 +2122,17 @@ function AdminPanel({
 
               <section>
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5 mb-3">
-                  <Search className="h-4 w-4 text-muted-foreground" /> Auto-Match TMDB
+                  <Icon name="search" className="h-4 w-4 text-muted-foreground" /> Auto-Match TMDB
                   {matchStats?.tmdbKeyValid && <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-green-500/20 text-green-400 uppercase ml-1">AUTO</span>}
                 </h3>
                 <Button onClick={handleMatchTmdb} disabled={matchLoading || !matchStats?.tmdbKeyValid}
                   variant="outline" className="w-full border-orange-500/30 text-orange-400 hover:bg-orange-500/10 h-10 font-semibold">
-                  {matchLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Zap className="h-4 w-4 mr-2" />}
-                  {matchLoading ? "Matching..." : `⚡ Matcher 100 anime (${matchStats?.anime.unmatched || "?"} restants)`}
+                  {matchLoading ? <Icon name="loader" className="h-4 w-4 mr-2 animate-spin" /> : <Icon name="zap" className="h-4 w-4 mr-2" />}
+                  {matchLoading ? "Matching..." : `Matcher 100 anime (${matchStats?.anime.unmatched || "?"} restants)`}
                 </Button>
                 {matchResult && (
                   <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm space-y-1 mt-2">
-                    <p className="font-medium text-green-400">✓ {matchResult.matched}/{matchResult.processed} matchés</p>
+                    <p className="font-medium text-green-400 flex items-center gap-1"><Icon name="check" className="h-3.5 w-3.5" /> {matchResult.matched}/{matchResult.processed} matchés</p>
                     {matchResult.remainingUnmatched > 0 && <p className="text-muted-foreground text-xs">Encore {matchResult.remainingUnmatched} restants. Relancez !</p>}
                   </div>
                 )}
@@ -2046,7 +2141,7 @@ function AdminPanel({
               <Separator />
               <Button variant="outline" onClick={handleReset}
                 className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 h-9 text-sm">
-                🗑 Réinitialiser les Anime
+                <Icon name="delete" className="h-3.5 w-3.5 mr-1" /> Réinitialiser les Anime
               </Button>
             </>
           )}
@@ -2055,13 +2150,13 @@ function AdminPanel({
             <>
               {!matchStats?.tmdbKeyValid ? (
                 <div className="rounded-lg border border-red-500/30 bg-red-500/5 p-4 text-center">
-                  <p className="text-red-400 font-medium mb-1">❌ TMDB non configuré</p>
+                  <p className="text-red-400 font-medium mb-1 flex items-center gap-1"><Icon name="alert-02" className="h-3.5 w-3.5" /> TMDB non configuré</p>
                   <p className="text-xs text-muted-foreground">Ajoutez TMDB_API_KEY dans le fichier .env</p>
                 </div>
               ) : (
                 <>
                   <div className="rounded-lg border border-green-500/30 bg-green-500/5 p-3 mb-3">
-                    <p className="text-xs text-green-400 font-medium">✅ TMDB connecté — Prêt à importer</p>
+                    <p className="text-xs text-green-400 font-medium flex items-center gap-1"><Icon name="badge-check" className="h-3.5 w-3.5" /> TMDB connecté — Prêt à importer</p>
                   </div>
 
                   <div className="space-y-3 mb-4">
@@ -2097,12 +2192,12 @@ function AdminPanel({
 
                   <section className="space-y-2">
                     <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                      <Film className="h-3.5 w-3.5" /> Films
+                      <Icon name="film" className="h-3.5 w-3.5" /> Films
                     </h3>
                     <Button onClick={() => handleTmdbSync("movies")} disabled={tmdbSyncLoading}
                       className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold h-10">
-                      {tmdbSyncLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Film className="h-4 w-4 mr-2" />}
-                      {tmdbSyncLoading ? "Import..." : "🎬 Importer des Films"}
+                      {tmdbSyncLoading ? <Icon name="loader" className="h-4 w-4 mr-2 animate-spin" /> : <Icon name="film" className="h-4 w-4 mr-2" />}
+                      {tmdbSyncLoading ? "Import..." : "Importer des Films"}
                     </Button>
                   </section>
 
@@ -2110,18 +2205,18 @@ function AdminPanel({
 
                   <section className="space-y-2">
                     <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                      <Tv className="h-3.5 w-3.5" /> Séries
+                      <Icon name="tv" className="h-3.5 w-3.5" /> Séries
                     </h3>
                     <Button onClick={() => handleTmdbSync("series")} disabled={tmdbSyncLoading}
                       className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold h-10">
-                      {tmdbSyncLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Tv className="h-4 w-4 mr-2" />}
-                      {tmdbSyncLoading ? "Import..." : "📺 Importer des Séries"}
+                      {tmdbSyncLoading ? <Icon name="loader" className="h-4 w-4 mr-2 animate-spin" /> : <Icon name="tv" className="h-4 w-4 mr-2" />}
+                      {tmdbSyncLoading ? "Import..." : "Importer des Séries"}
                     </Button>
                   </section>
 
                   {tmdbSyncResult && (
                     <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm space-y-1">
-                      <p className="font-medium text-green-400">✓ {tmdbSyncResult.type === "movie" ? "Films" : "Séries"} terminé</p>
+                      <p className="font-medium text-green-400 flex items-center gap-1"><Icon name="check" className="h-3.5 w-3.5" /> {tmdbSyncResult.type === "movie" ? "Films" : "Séries"} terminé</p>
                       <p className="text-muted-foreground">
                         Créés: <span className="text-green-400">{tmdbSyncResult.created}</span> ·
                         MAJ: <span className="text-yellow-400">{tmdbSyncResult.updated}</span> ·
@@ -2153,27 +2248,27 @@ function AdminPanel({
               {imageFixStats && imageFixStats.needsFix > 0 && (
                 <>
                   <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3 mb-3">
-                    <p className="text-xs text-yellow-400 font-medium mb-1">⚠️ {imageFixStats.needsFix} images à corriger</p>
+                    <p className="text-xs text-yellow-400 font-medium mb-1 flex items-center gap-1"><Icon name="warning" className="h-3.5 w-3.5" /> {imageFixStats.needsFix} images à corriger</p>
                     <p className="text-[11px] text-muted-foreground">Télécharge les vrais posters/backdrops depuis TMDB.</p>
                   </div>
                   <Button onClick={handleFixImages} disabled={fixLoading}
                     className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold h-10">
-                    {fixLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Monitor className="h-4 w-4 mr-2" />}
-                    {fixLoading ? "Correction..." : "🖼 Corriger les images"}
+                    {fixLoading ? <Icon name="loader" className="h-4 w-4 mr-2 animate-spin" /> : <Icon name="monitor" className="h-4 w-4 mr-2" />}
+                    {fixLoading ? "Correction..." : "Corriger les images"}
                   </Button>
                 </>
               )}
 
               {fixResult && (
                 <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm space-y-1 mt-2">
-                  <p className="font-medium text-green-400">✓ Images corrigées</p>
+                  <p className="font-medium text-green-400 flex items-center gap-1"><Icon name="check" className="h-3.5 w-3.5" /> Images corrigées</p>
                   <p className="text-muted-foreground">Fixées: <span className="text-green-400">{fixResult.fixed}</span> · OK: <span>{fixResult.alreadyGood}</span> · NF: <span className="text-red-400">{fixResult.notFound}</span></p>
                 </div>
               )}
 
               {imageFixStats && imageFixStats.needsFix === 0 && (
                 <div className="rounded-lg border border-green-500/30 bg-green-500/5 p-4 text-center">
-                  <p className="text-green-400 font-medium">✅ Toutes les images sont OK !</p>
+                  <p className="text-green-400 font-medium flex items-center gap-1 justify-center"><Icon name="badge-check" className="h-3.5 w-3.5" /> Toutes les images sont OK !</p>
                 </div>
               )}
             </>

@@ -358,3 +358,35 @@ Stage Summary:
 - New Images tab for fixing broken posters/backdrops via TMDB
 - All API calls updated to new endpoint patterns (no X-TMDB-Key header needed)
 - Zero lint errors
+
+---
+Task ID: 3-4
+Agent: Main Agent + Full-stack Developer subagent
+Task: Replace Lucide icons with Huge Icons, remove all emojis, add Manga/Books reading section
+
+Work Log:
+- Installed @hugeicons/react (1.1.9) and @hugeicons/core-free-icons (4.2.2)
+- Created src/lib/icons.tsx: HugeiconsIcon wrapper with ICON_MAP (50+ icons), <Icon name="..." /> component mimicking Lucide API
+- Replaced all 73 Lucide icon usages in page.tsx with <Icon name="..." /> from Huge Icons
+- Removed entire lucide-react import block (26 icon imports), replaced with single `import { Icon } from "@/lib/icons"`
+- Removed ALL 16 emoji occurrences: ⚠️→warning icon, ⚡→zap icon, ✅→badge-check icon, ✓→check icon, ❌→alert-02 icon, 🎬→film icon, 📺→tv icon, 🖼→image icon, 🗑→delete icon
+- Added complete Manga/Books reading section in ContentDetailView:
+  - Cover + info layout in card with gradient overlay
+  - "LIVRE" + "Manga" badges with purple theme
+  - Info cards: Auteur, Statut (En cours/Terminé), Chapitres
+  - "Lire en ligne" button linking to anilist.co/manga/{anilistId}
+  - Scrollable chapter grid (numbered buttons, max 200)
+  - Video player/server section hidden for manga
+- Updated ContentCard for manga: purple book-open overlay, chapter count badge ("N chap.")
+- Updated BrowseView: "Livres" filter label for manga type
+- Browser QA verified: home, manga browse, manga detail, film detail, admin panel — all working, zero console errors
+- Lint: 0 errors, 0 warnings
+
+Stage Summary:
+- **Full icon migration**: Lucide → Huge Icons (@hugeicons/react) across entire frontend
+- **Zero emojis remaining**: All 16 emoji instances replaced with semantic Huge Icon components
+- **Manga reading section**: Complete book-style detail view with cover, metadata, chapter grid, AniList read link
+- **Manga cards**: Purple-themed "Livre" badge, chapter count, book-open hover overlay
+- **Admin Panel**: All icons migrated, no visual regressions
+- All 7 embed servers still working for films/series/anime
+- Zero runtime errors, clean lint

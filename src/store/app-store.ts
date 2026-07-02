@@ -5,6 +5,7 @@ export type ContentType = "all" | "movie" | "series" | "anime" | "manga";
 export interface ContentItem {
   id: string;
   tmdbId: number | null;
+  anilistId: number | null;
   title: string;
   titleFr: string | null;
   overview: string | null;

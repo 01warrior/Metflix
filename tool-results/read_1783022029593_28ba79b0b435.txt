@@ -1,0 +1,2002 @@
+     1→"use client";
+     2→
+     3→import { useEffect, useCallback, useRef, useState, useMemo } from "react";
+     4→import {
+     5→  useAppStore,
+     6→  type ContentItem,
+     7→  type ContentType,
+     8→  type ContentDetail,
+     9→  type EmbedSource,
+    10→  type EmbedGroup,
+    11→  type HostConfig,
+    12→} from "@/store/app-store";
+    13→import { Button } from "@/components/ui/button";
+    14→import { Input } from "@/components/ui/input";
+    15→import { Badge } from "@/components/ui/badge";
+    16→import { Skeleton } from "@/components/ui/skeleton";
+    17→import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+    18→import { Separator } from "@/components/ui/separator";
+    19→import {
+    20→  Sheet,
+    21→  SheetContent,
+    22→  SheetHeader,
+    23→  SheetTitle,
+    24→  SheetDescription,
+    25→} from "@/components/ui/sheet";
+    26→import {
+    27→  Select,
+    28→  SelectContent,
+    29→  SelectItem,
+    30→  SelectTrigger,
+    31→  SelectValue,
+    32→} from "@/components/ui/select";
+    33→import { useToast } from "@/hooks/use-toast";
+    34→import {
+    35→  Search,
+    36→  Play,
+    37→  Star,
+    38→  Film,
+    39→  Tv,
+    40→  BookOpen,
+    41→  Heart,
+    42→  ChevronLeft,
+    43→  ChevronRight,
+    44→  X,
+    45→  Home,
+    46→  Server,
+    47→  Calendar,
+    48→  Menu,
+    49→  RotateCcw,
+    50→  Clock,
+    51→  Loader2,
+    52→  Sparkles,
+    53→  Monitor,
+    54→  ArrowDownUp,
+    55→  Layers,
+    56→  Settings,
+    57→  RefreshCw,
+    58→  Database,
+    59→  Zap,
+    60→  TrendingUp,
+    61→} from "lucide-react";
+    62→import { motion, AnimatePresence } from "framer-motion";
+    63→
+    64→// ==================== CONSTANTS ====================
+    65→
+    66→const TYPE_CONFIG: Record<
+    67→  string,
+    68→  { label: string; icon: React.ReactNode; badgeClass: string }
+    69→> = {
+    70→  movie: {
+    71→    label: "Film",
+    72→    icon: <Film className="h-3.5 w-3.5" />,
+    73→    badgeClass: "badge-movie",
+    74→  },
+    75→  series: {
+    76→    label: "Série",
+    77→    icon: <Tv className="h-3.5 w-3.5" />,
+    78→    badgeClass: "badge-series",
+    79→  },
+    80→  anime: {
+    81→    label: "Anime",
+    82→    icon: <Sparkles className="h-3.5 w-3.5" />,
+    83→    badgeClass: "badge-anime",
+    84→  },
+    85→  manga: {
+    86→    label: "Manga",
+    87→    icon: <BookOpen className="h-3.5 w-3.5" />,
+    88→    badgeClass: "badge-manga",
+    89→  },
+    90→};
+    91→
+    92→// Colors from embed-providers are sent via API in hostConfig
+    93→// Fallback for legacy data still in DB
+    94→const HOST_COLORS: Record<string, string> = {
+    95→  vidsrc: "#e50914",
+    96→  vidsrc_pm: "#e50914",
+    97→  vidsrc_in: "#ff6b35",
+    98→  vidsrc_pro: "#f59e0b",
+    99→  embed_su: "#4ecdc4",
+   100→  autoembed: "#06b6d4",
+   101→  twoembed: "#22c55e",
+   102→  superembed: "#ec4899",
+   103→};
+   104→
+   105→const GENRES = [
+   106→  "Action",
+   107→  "Comédie",
+   108→  "Drame",
+   109→  "Sci-Fi",
+   110→  "Horreur",
+   111→  "Thriller",
+   112→  "Romance",
+   113→  "Aventure",
+   114→  "Animation",
+   115→  "Crime",
+   116→  "Fantaisie",
+   117→  "Mystère",
+   118→  "Famille",
+   119→  "Documentaire",
+   120→];
+   121→
+   122→const YEARS = Array.from({ length: 20 }, (_, i) => 2025 - i);
+   123→
+   124→// ==================== HELPERS ====================
+   125→
+   126→const PLACEHOLDER_POSTER = "https://placehold.co/300x450/1a1a2e/555555?text=No+Image";
+   127→const PLACEHOLDER_BACKDROP = "https://placehold.co/1280x720/1a1a2e/555555?text=Stream";
+   128→
+   129→function getDisplayTitle(item: ContentItem | ContentDetail): string {
+   130→  return item.titleFr || item.title;
+   131→}
+   132→
+   133→function handleImgError(e: React.SyntheticEvent<HTMLImageElement>, isPoster = true) {
+   134→  e.currentTarget.src = isPoster ? PLACEHOLDER_POSTER : PLACEHOLDER_BACKDROP;
+   135→  e.currentTarget.onerror = null;
+   136→}
+   137→
+   138→function getTypeBadge(type: string) {
+   139→  const cfg = TYPE_CONFIG[type];
+   140→  if (!cfg) return null;
+   141→  return (
+   142→    <span
+   143→      className={`absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${cfg.badgeClass}`}
+   144→    >
+   145→      {cfg.label}
+   146→    </span>
+   147→  );
+   148→}
+   149→
+   150→// ==================== SKELETON CARD ====================
+   151→
+   152→function SkeletonCard() {
+   153→  return (
+   154→    <div className="flex-shrink-0 w-[150px] sm:w-[170px]">
+   155→      <Skeleton className="w-full aspect-[2/3] rounded-lg" />
+   156→      <Skeleton className="h-4 w-3/4 mt-2" />
+   157→      <Skeleton className="h-3 w-1/2 mt-1.5" />
+   158→    </div>
+   159→  );
+   160→}
+   161→
+   162→function SkeletonGrid() {
+   163→  return (
+   164→    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+   165→      {Array.from({ length: 12 }).map((_, i) => (
+   166→        <div key={i}>
+   167→          <Skeleton className="w-full aspect-[2/3] rounded-lg" />
+   168→          <Skeleton className="h-4 w-3/4 mt-2" />
+   169→          <Skeleton className="h-3 w-1/2 mt-1.5" />
+   170→        </div>
+   171→      ))}
+   172→    </div>
+   173→  );
+   174→}
+   175→
+   176→// ==================== CONTENT CARD ====================
+   177→
+   178→function ContentCard({ item }: { item: ContentItem }) {
+   179→  const {
+   180→    setView,
+   181→    setSelectedContentId,
+   182→    toggleFavorite,
+   183→    favorites,
+   184→    contentDetail,
+   185→    setCurrentEmbed,
+   186→  } = useAppStore();
+   187→  const { toast } = useToast();
+   188→  const [imgLoaded, setImgLoaded] = useState(false);
+   189→  const isFav = favorites.includes(item.id);
+   190→
+   191→  const handleClick = () => {
+   192→    setView("detail");
+   193→    setSelectedContentId(item.id);
+   194→  };
+   195→
+   196→  const handleFavClick = (e: React.MouseEvent) => {
+   197→    e.stopPropagation();
+   198→    toggleFavorite(item.id);
+   199→    toast({
+   200→      title: isFav ? "Retiré des favoris" : "Ajouté aux favoris",
+   201→      description: isFav ? getDisplayTitle(item) + " retiré" : getDisplayTitle(item) + " ajouté",
+   202→    });
+   203→  };
+   204→
+   205→  return (
+   206→    <div
+   207→      className="content-card group cursor-pointer relative rounded-lg overflow-hidden bg-card"
+   208→      onClick={handleClick}
+   209→    >
+   210→      <div className="relative aspect-[2/3]">
+   211→        {!imgLoaded && <Skeleton className="absolute inset-0 rounded-lg" />}
+   212→        <img
+   213→          src={item.posterUrl}
+   214→          alt={getDisplayTitle(item)}
+   215→          className={`w-full h-full object-cover transition-opacity duration-300 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
+   216→          onLoad={() => setImgLoaded(true)}
+   217→          onError={(e) => { handleImgError(e); setImgLoaded(true); }}
+   218→          loading="lazy"
+   219→        />
+   220→        {/* Gradient overlay at bottom */}
+   221→        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
+   222→        {/* Type badge */}
+   223→        {getTypeBadge(item.type)}
+   224→        {/* Favorite button */}
+   225→        <button
+   226→          onClick={handleFavClick}
+   227→          className="absolute top-2 right-2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm transition-all hover:scale-110"
+   228→          aria-label={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
+   229→        >
+   230→          <Heart
+   231→            className={`h-4 w-4 transition-all ${isFav ? "fill-red-500 text-red-500" : "text-white/80"}`}
+   232→          />
+   233→        </button>
+   234→        {/* Play icon overlay on hover */}
+   235→        <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+   236→          <div className="w-12 h-12 rounded-full bg-red-600/90 flex items-center justify-center shadow-lg">
+   237→            <Play className="h-5 w-5 text-white ml-0.5" fill="white" />
+   238→          </div>
+   239→        </div>
+   240→        {/* Quality badge */}
+   241→        <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-600/90 text-white backdrop-blur-sm">
+   242→          1080p
+   243→        </span>
+   244→      </div>
+   245→      {/* Info */}
+   246→      <div className="p-2.5">
+   247→        <h3 className="text-sm font-medium text-foreground truncate">
+   248→          {getDisplayTitle(item)}
+   249→        </h3>
+   250→        <div className="flex items-center gap-2 mt-1">
+   251→          <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
+   252→            <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
+   253→            <span>{item.rating?.toFixed(1) || "N/A"}</span>
+   254→          </span>
+   255→          {item.year && (
+   256→            <span className="text-xs text-muted-foreground">{item.year}</span>
+   257→          )}
+   258→        </div>
+   259→      </div>
+   260→    </div>
+   261→  );
+   262→}
+   263→
+   264→// ==================== CONTENT ROW ====================
+   265→
+   266→function ContentRow({
+   267→  title,
+   268→  items,
+   269→  seeAllType,
+   270→}: {
+   271→  title: string;
+   272→  items: ContentItem[];
+   273→  seeAllType?: ContentType;
+   274→}) {
+   275→  const scrollRef = useRef<HTMLDivElement>(null);
+   276→  const { setView, setSelectedType } = useAppStore();
+   277→
+   278→  const scroll = (dir: "left" | "right") => {
+   279→    if (!scrollRef.current) return;
+   280→    const amount = 600;
+   281→    scrollRef.current.scrollBy({
+   282→      left: dir === "left" ? -amount : amount,
+   283→      behavior: "smooth",
+   284→    });
+   285→  };
+   286→
+   287→  if (!items.length) return null;
+   288→
+   289→  return (
+   290→    <section className="mb-8">
+   291→      <div className="flex items-center justify-between mb-4 px-4 md:px-0">
+   292→        <h2 className="text-lg md:text-xl font-bold text-foreground">{title}</h2>
+   293→        {seeAllType && (
+   294→          <button
+   295→            onClick={() => {
+   296→              setSelectedType(seeAllType);
+   297→              setView("browse");
+   298→            }}
+   299→            className="text-sm text-red-400 hover:text-red-300 transition-colors"
+   300→          >
+   301→            Voir tout &rarr;
+   302→          </button>
+   303→        )}
+   304→      </div>
+   305→      <div className="relative group/row">
+   306→        <button
+   307→          onClick={() => scroll("left")}
+   308→          className="absolute left-0 top-0 bottom-0 z-10 w-10 flex items-center justify-center bg-gradient-to-r from-background to-transparent opacity-0 group-hover/row:opacity-100 transition-opacity"
+   309→          aria-label="Précédent"
+   310→        >
+   311→          <ChevronLeft className="h-6 w-6 text-foreground" />
+   312→        </button>
+   313→        <div
+   314→          ref={scrollRef}
+   315→          className="flex gap-3 overflow-x-auto hide-scrollbar px-4 md:px-0 pb-2"
+   316→        >
+   317→          {items.map((item) => (
+   318→            <div key={item.id} className="flex-shrink-0 w-[150px] sm:w-[170px]">
+   319→              <ContentCard item={item} />
+   320→            </div>
+   321→          ))}
+   322→        </div>
+   323→        <button
+   324→          onClick={() => scroll("right")}
+   325→          className="absolute right-0 top-0 bottom-0 z-10 w-10 flex items-center justify-center bg-gradient-to-l from-background to-transparent opacity-0 group-hover/row:opacity-100 transition-opacity"
+   326→          aria-label="Suivant"
+   327→        >
+   328→          <ChevronRight className="h-6 w-6 text-foreground" />
+   329→        </button>
+   330→      </div>
+   331→    </section>
+   332→  );
+   333→}
+   334→
+   335→// ==================== HEADER ====================
+   336→
+   337→function Header() {
+   338→  const { setView, setShowSearch, favorites, currentView, setSelectedType, selectedType } =
+   339→    useAppStore();
+   340→  const [mobileOpen, setMobileOpen] = useState(false);
+   341→  const [adminOpen, setAdminOpen] = useState(false);
+   342→
+   343→  const navItems = [
+   344→    { label: "Accueil", view: "home" as const, icon: <Home className="h-4 w-4" /> },
+   345→    { label: "Films", type: "movie" as ContentType, icon: <Film className="h-4 w-4" /> },
+   346→    { label: "Séries", type: "series" as ContentType, icon: <Tv className="h-4 w-4" /> },
+   347→    { label: "Anime", type: "anime" as ContentType, icon: <Sparkles className="h-4 w-4" /> },
+   348→    { label: "Manga", type: "manga" as ContentType, icon: <BookOpen className="h-4 w-4" /> },
+   349→  ];
+   350→
+   351→  const handleNav = (item: (typeof navItems)[number]) => {
+   352→    if (item.view) {
+   353→      setView(item.view);
+   354→    } else if (item.type) {
+   355→      setSelectedType(item.type);
+   356→      setView("browse");
+   357→    }
+   358→    setMobileOpen(false);
+   359→  };
+   360→
+   361→  return (
+   362→    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl">
+   363→      <div className="max-w-7xl mx-auto flex items-center justify-between h-14 px-4">
+   364→        {/* Logo */}
+   365→        <button
+   366→          onClick={() => setView("home")}
+   367→          className="text-xl font-extrabold tracking-tight"
+   368→        >
+   369→          <span className="text-red-500">Stream</span>
+   370→          <span className="text-foreground">Vibe</span>
+   371→        </button>
+   372→
+   373→        {/* Desktop nav */}
+   374→        <nav className="hidden md:flex items-center gap-1">
+   375→          {navItems.map((item) => (
+   376→            <button
+   377→              key={item.label}
+   378→              onClick={() => handleNav(item)}
+   379→              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+   380→                (item.view && currentView === item.view) ||
+   381→                (item.type && currentView === "browse" && selectedType === item.type)
+   382→                  ? "text-red-400 bg-red-400/10"
+   383→                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+   384→              }`}
+   385→            >
+   386→              {item.label}
+   387→            </button>
+   388→          ))}
+   389→          <button
+   390→            onClick={() => {
+   391→              setView("favorites");
+   392→              setMobileOpen(false);
+   393→            }}
+   394→            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5 ${
+   395→              currentView === "favorites"
+   396→                ? "text-red-400 bg-red-400/10"
+   397→                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+   398→            }`}
+   399→          >
+   400→            <Heart className="h-3.5 w-3.5" />
+   401→            Favoris
+   402→            {favorites.length > 0 && (
+   403→              <span className="ml-0.5 text-[10px] bg-red-500 text-white rounded-full px-1.5 py-0.5 leading-none font-bold">
+   404→                {favorites.length}
+   405→              </span>
+   406→            )}
+   407→          </button>
+   408→        </nav>
+   409→
+   410→        {/* Right actions */}
+   411→        <div className="flex items-center gap-2">
+   412→          <button
+   413→            onClick={() => setAdminOpen(true)}
+   414→            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
+   415→            aria-label="Administration"
+   416→          >
+   417→            <Settings className="h-4.5 w-4.5 text-muted-foreground" />
+   418→          </button>
+   419→          <button
+   420→            onClick={() => setShowSearch(true)}
+   421→            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
+   422→            aria-label="Rechercher"
+   423→          >
+   424→            <Search className="h-4.5 w-4.5 text-muted-foreground" />
+   425→          </button>
+   426→          {/* Mobile hamburger */}
+   427→          <button
+   428→            onClick={() => setMobileOpen(true)}
+   429→            className="md:hidden w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
+   430→            aria-label="Menu"
+   431→          >
+   432→            <Menu className="h-5 w-5 text-muted-foreground" />
+   433→          </button>
+   434→        </div>
+   435→      </div>
+   436→
+   437→      {/* Mobile menu sheet */}
+   438→      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+   439→        <SheetContent side="left" className="w-72 bg-background border-border p-0">
+   440→          <SheetHeader className="px-4 pt-6 pb-4">
+   441→            <SheetTitle className="flex items-center gap-2">
+   442→              <span className="text-xl font-extrabold">
+   443→                <span className="text-red-500">Stream</span>
+   444→                <span>Vibe</span>
+   445→              </span>
+   446→            </SheetTitle>
+   447→            <SheetDescription>Streaming en streaming gratuit</SheetDescription>
+   448→          </SheetHeader>
+   449→          <Separator />
+   450→          <nav className="flex flex-col p-2 gap-0.5">
+   451→            {navItems.map((item) => (
+   452→              <button
+   453→                key={item.label}
+   454→                onClick={() => handleNav(item)}
+   455→                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+   456→                  (item.view && currentView === item.view) ||
+   457→                  (item.type && currentView === "browse" && selectedType === item.type)
+   458→                    ? "text-red-400 bg-red-400/10"
+   459→                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+   460→                }`}
+   461→              >
+   462→                {item.icon}
+   463→                {item.label}
+   464→              </button>
+   465→            ))}
+   466→            <Separator className="my-2" />
+   467→            <button
+   468→              onClick={() => {
+   469→                setView("favorites");
+   470→                setMobileOpen(false);
+   471→              }}
+   472→              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+   473→                currentView === "favorites"
+   474→                  ? "text-red-400 bg-red-400/10"
+   475→                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+   476→              }`}
+   477→            >
+   478→              <Heart className="h-4 w-4" />
+   479→              Mes Favoris
+   480→              {favorites.length > 0 && (
+   481→                <span className="ml-auto text-xs bg-red-500 text-white rounded-full px-2 py-0.5 font-bold">
+   482→                  {favorites.length}
+   483→                </span>
+   484→              )}
+   485→            </button>
+   486→          </nav>
+   487→        </SheetContent>
+   488→      </Sheet>
+   489→      <AdminPanel open={adminOpen} onOpenChange={setAdminOpen} />
+   490→    </header>
+   491→  );
+   492→}
+   493→
+   494→// ==================== MOBILE BOTTOM NAV ====================
+   495→
+   496→function MobileBottomNav() {
+   497→  const { currentView, setView, setSelectedType, selectedType } = useAppStore();
+   498→
+   499→  if (currentView === "detail") return null;
+   500→
+   501→  const tabs = [
+   502→    { label: "Accueil", view: "home" as const, icon: Home },
+   503→    { label: "Films", type: "movie" as ContentType, icon: Film },
+   504→    { label: "Séries", type: "series" as ContentType, icon: Tv },
+   505→    { label: "Anime", type: "anime" as ContentType, icon: Sparkles },
+   506→    { label: "Manga", type: "manga" as ContentType, icon: BookOpen },
+   507→  ];
+   508→
+   509→  return (
+   510→    <nav className="md:hidden mobile-bottom-nav fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around h-14">
+   511→      {tabs.map((tab) => {
+   512→        const Icon = tab.icon;
+   513→        const isActive =
+   514→          (tab.view && currentView === tab.view) ||
+   515→          (tab.type && currentView === "browse" && selectedType === tab.type);
+   516→        return (
+   517→          <button
+   518→            key={tab.label}
+   519→            onClick={() => {
+   520→              if (tab.view) setView(tab.view);
+   521→              else if (tab.type) {
+   522→                setSelectedType(tab.type);
+   523→                setView("browse");
+   524→              }
+   525→            }}
+   526→            className="nav-item flex flex-col items-center gap-0.5 py-1 px-2 relative"
+   527→          >
+   528→            <Icon
+   529→              className={`h-5 w-5 transition-colors ${isActive ? "text-red-500" : "text-muted-foreground"}`}
+   530→            />
+   531→            <span
+   532→              className={`text-[10px] font-medium transition-colors ${isActive ? "text-red-500" : "text-muted-foreground"}`}
+   533→            >
+   534→              {tab.label}
+   535→            </span>
+   536→            {isActive && (
+   537→              <span className="nav-dot absolute -top-0 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full bg-red-500 opacity-1 scale-x-100 transition-all" />
+   538→            )}
+   539→          </button>
+   540→        );
+   541→      })}
+   542→    </nav>
+   543→  );
+   544→}
+   545→
+   546→// ==================== SEARCH OVERLAY ====================
+   547→
+   548→function SearchOverlay() {
+   549→  const { showSearch, setShowSearch, setSearchResults, searchResults, setView, setSelectedContentId } =
+   550→    useAppStore();
+   551→  const [query, setQuery] = useState("");
+   552→  const [loading, setLoading] = useState(false);
+   553→  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+   554→  const inputRef = useRef<HTMLInputElement>(null);
+   555→
+   556→  useEffect(() => {
+   557→    if (showSearch) {
+   558→      setQuery("");
+   559→      setSearchResults([]);
+   560→      setTimeout(() => inputRef.current?.focus(), 100);
+   561→    }
+   562→  }, [showSearch, setSearchResults]);
+   563→
+   564→  const doSearch = useCallback(
+   565→    async (q: string) => {
+   566→      if (q.length < 2) {
+   567→        setSearchResults([]);
+   568→        return;
+   569→      }
+   570→      setLoading(true);
+   571→      try {
+   572→        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+   573→        const data = await res.json();
+   574→        setSearchResults(data.data || []);
+   575→      } catch {
+   576→        setSearchResults([]);
+   577→      } finally {
+   578→        setLoading(false);
+   579→      }
+   580→    },
+   581→    [setSearchResults]
+   582→  );
+   583→
+   584→  const handleChange = (value: string) => {
+   585→    setQuery(value);
+   586→    if (debounceRef.current) clearTimeout(debounceRef.current);
+   587→    debounceRef.current = setTimeout(() => doSearch(value), 300);
+   588→  };
+   589→
+   590→  const handleSelect = (item: ContentItem) => {
+   591→    setShowSearch(false);
+   592→    setSelectedContentId(item.id);
+   593→    setView("detail");
+   594→  };
+   595→
+   596→  if (!showSearch) return null;
+   597→
+   598→  return (
+   599→    <motion.div
+   600→      initial={{ opacity: 0 }}
+   601→      animate={{ opacity: 1 }}
+   602→      exit={{ opacity: 0 }}
+   603→      className="fixed inset-0 z-[60] bg-background/95 backdrop-blur-xl flex flex-col"
+   604→    >
+   605→      <div className="flex items-center gap-3 px-4 h-16 border-b border-border/50">
+   606→        <button
+   607→          onClick={() => setShowSearch(false)}
+   608→          className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted"
+   609→          aria-label="Fermer"
+   610→        >
+   611→          <X className="h-5 w-5" />
+   612→        </button>
+   613→        <Input
+   614→          ref={inputRef}
+   615→          value={query}
+   616→          onChange={(e) => handleChange(e.target.value)}
+   617→          placeholder="Rechercher un film, série, anime..."
+   618→          className="flex-1 bg-transparent border-0 text-lg focus-visible:ring-0 placeholder:text-muted-foreground/50"
+   619→        />
+   620→      </div>
+   621→      <div className="flex-1 overflow-y-auto p-4">
+   622→        {loading && (
+   623→          <div className="flex items-center justify-center py-12">
+   624→            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+   625→          </div>
+   626→        )}
+   627→        {!loading && query.length >= 2 && searchResults.length === 0 && (
+   628→          <div className="text-center py-12 text-muted-foreground">
+   629→            Aucun résultat pour &quot;{query}&quot;
+   630→          </div>
+   631→        )}
+   632→        {!loading && query.length < 2 && (
+   633→          <div className="text-center py-12 text-muted-foreground text-sm">
+   634→            Tapez au moins 2 caractères pour rechercher
+   635→          </div>
+   636→        )}
+   637→        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+   638→          {searchResults.map((item) => (
+   639→            <div
+   640→              key={item.id}
+   641→              onClick={() => handleSelect(item)}
+   642→              className="cursor-pointer"
+   643→            >
+   644→              <ContentCard item={item} />
+   645→            </div>
+   646→          ))}
+   647→        </div>
+   648→      </div>
+   649→    </motion.div>
+   650→  );
+   651→}
+   652→
+   653→// ==================== HERO SECTION ====================
+   654→
+   655→function HeroSection() {
+   656→  const { featured, setView, setSelectedContentId } = useAppStore();
+   657→  const [activeIdx, setActiveIdx] = useState(0);
+   658→  const timerRef = useRef<NodeJS.Timeout | null>(null);
+   659→
+   660→  const items = featured.slice(0, 8);
+   661→  const current = items[activeIdx];
+   662→
+   663→  const startTimer = () => {
+   664→    if (timerRef.current) clearInterval(timerRef.current);
+   665→    timerRef.current = setInterval(() => {
+   666→      setActiveIdx((prev) => (prev + 1) % items.length);
+   667→    }, 6000);
+   668→  };
+   669→
+   670→  useEffect(() => {
+   671→    if (items.length > 1) startTimer();
+   672→    return () => {
+   673→      if (timerRef.current) clearInterval(timerRef.current);
+   674→    };
+   675→  }, [items.length]);
+   676→
+   677→  if (!current) {
+   678→    return (
+   679→      <div className="relative w-full h-[50vh] md:h-[65vh] shimmer" />
+   680→    );
+   681→  }
+   682→
+   683→  return (
+   684→    <div className="relative w-full h-[50vh] md:h-[65vh] overflow-hidden">
+   685→      {/* Backdrop image */}
+   686→      <AnimatePresence mode="wait">
+   687→        <motion.div
+   688→          key={current.id}
+   689→          initial={{ opacity: 0 }}
+   690→          animate={{ opacity: 1 }}
+   691→          exit={{ opacity: 0 }}
+   692→          transition={{ duration: 0.6 }}
+   693→          className="absolute inset-0"
+   694→        >
+   695→          <img
+   696→            src={current.backdropUrl}
+   697→            alt=""
+   698→            className="w-full h-full object-cover"
+   699→            onError={(e) => handleImgError(e, false)}
+   700→          />
+   701→        </motion.div>
+   702→      </AnimatePresence>
+   703→      {/* Gradients */}
+   704→      <div className="hero-gradient absolute inset-0" />
+   705→      <div className="hero-gradient-bottom absolute inset-0" />
+   706→
+   707→      {/* Content */}
+   708→      <div className="relative z-10 flex flex-col justify-end h-full max-w-7xl mx-auto px-4 md:px-8 pb-12 md:pb-16">
+   709→        <AnimatePresence mode="wait">
+   710→          <motion.div
+   711→            key={current.id}
+   712→            initial={{ opacity: 0, y: 20 }}
+   713→            animate={{ opacity: 1, y: 0 }}
+   714→            exit={{ opacity: 0, y: -10 }}
+   715→            transition={{ duration: 0.4 }}
+   716→          >
+   717→            {getTypeBadge(current.type) && (
+   718→              <div className="mb-3">
+   719→                <span
+   720→                  className={`inline-block px-2.5 py-1 rounded text-xs font-bold uppercase tracking-wider ${TYPE_CONFIG[current.type]?.badgeClass || ""}`}
+   721→                >
+   722→                  {TYPE_CONFIG[current.type]?.label || current.type}
+   723→                </span>
+   724→              </div>
+   725→            )}
+   726→            <h1 className="text-3xl md:text-5xl font-extrabold text-white mb-3 leading-tight max-w-2xl">
+   727→              {getDisplayTitle(current)}
+   728→            </h1>
+   729→            <p className="text-sm md:text-base text-white/70 mb-5 max-w-xl line-clamp-3">
+   730→              {current.overviewFr || current.overview}
+   731→            </p>
+   732→            <div className="flex items-center gap-3 mb-5">
+   733→              <span className="flex items-center gap-1 text-sm text-white/80">
+   734→                <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
+   735→                {current.rating?.toFixed(1)}
+   736→              </span>
+   737→              {current.year && (
+   738→                <span className="flex items-center gap-1 text-sm text-white/80">
+   739→                  <Calendar className="h-4 w-4" />
+   740→                  {current.year}
+   741→                </span>
+   742→              )}
+   743→              {current.runtime && (
+   744→                <span className="flex items-center gap-1 text-sm text-white/80">
+   745→                  <Clock className="h-4 w-4" />
+   746→                  {current.runtime} min
+   747→                </span>
+   748→              )}
+   749→            </div>
+   750→            <div className="flex items-center gap-3">
+   751→              <button
+   752→                onClick={() => {
+   753→                  setSelectedContentId(current.id);
+   754→                  setView("detail");
+   755→                }}
+   756→                className="btn-glow inline-flex items-center gap-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"
+   757→              >
+   758→                <Play className="h-5 w-5" fill="white" />
+   759→                Regarder
+   760→              </button>
+   761→            </div>
+   762→          </motion.div>
+   763→        </AnimatePresence>
+   764→      </div>
+   765→
+   766→      {/* Indicators */}
+   767→      {items.length > 1 && (
+   768→        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5">
+   769→          {items.map((item, idx) => (
+   770→            <button
+   771→              key={item.id}
+   772→              onClick={() => {
+   773→                setActiveIdx(idx);
+   774→                startTimer();
+   775→              }}
+   776→              className={`h-1.5 rounded-full transition-all duration-300 ${
+   777→                idx === activeIdx
+   778→                  ? "w-8 bg-red-500"
+   779→                  : "w-1.5 bg-white/30 hover:bg-white/50"
+   780→              }`}
+   781→              aria-label={`Slide ${idx + 1}`}
+   782→            />
+   783→          ))}
+   784→        </div>
+   785→      )}
+   786→    </div>
+   787→  );
+   788→}
+   789→
+   790→// ==================== HOME VIEW ====================
+   791→
+   792→function HomeView() {
+   793→  const {
+   794→    featured,
+   795→    trendingMovies,
+   796→    trendingSeries,
+   797→    trendingAnime,
+   798→    trendingManga,
+   799→    latestContent,
+   800→  } = useAppStore();
+   801→
+   802→  return (
+   803→    <motion.div
+   804→      initial={{ opacity: 0 }}
+   805→      animate={{ opacity: 1 }}
+   806→      exit={{ opacity: 0 }}
+   807→      className="page-content"
+   808→    >
+   809→      {/* Hero */}
+   810→      <HeroSection />
+   811→
+   812→      {/* Derniers Ajouts */}
+   813→      {latestContent.length > 0 && (
+   814→        <section className="mb-8 px-4 md:px-0">
+   815→          <div className="flex items-center gap-2 mb-4">
+   816→            <RotateCcw className="h-4 w-4 text-red-400" />
+   817→            <h2 className="text-lg md:text-xl font-bold text-foreground">
+   818→              Derniers Ajouts
+   819→            </h2>
+   820→            <span className="new-badge-shimmer px-2 py-0.5 rounded-full text-[10px] font-bold text-white uppercase tracking-wider">
+   821→              NEW
+   822→            </span>
+   823→          </div>
+   824→          <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
+   825→            {latestContent.map((item) => (
+   826→              <div
+   827→                key={item.id}
+   828→                className="flex-shrink-0 w-[150px] sm:w-[170px]"
+   829→              >
+   830→                <ContentCard item={item} />
+   831→              </div>
+   832→            ))}
+   833→          </div>
+   834→        </section>
+   835→      )}
+   836→
+   837→      {/* Ad banner */}
+   838→      <div className="max-w-7xl mx-auto px-4 md:px-0 mb-8">
+   839→        <div className="ad-banner flex items-center justify-center py-2.5 px-4">
+   840→          <span className="text-[10px] text-muted-foreground/50 uppercase tracking-widest">
+   841→            Pub
+   842→          </span>
+   843→        </div>
+   844→      </div>
+   845→
+   846→      {/* Trending rows */}
+   847→      <div className="max-w-7xl mx-auto">
+   848→        <ContentRow
+   849→          title="Films Tendances"
+   850→          items={trendingMovies}
+   851→          seeAllType="movie"
+   852→        />
+   853→        <ContentRow
+   854→          title="Séries Populaires"
+   855→          items={trendingSeries}
+   856→          seeAllType="series"
+   857→        />
+   858→        <ContentRow
+   859→          title="Anime Populaires"
+   860→          items={trendingAnime}
+   861→          seeAllType="anime"
+   862→        />
+   863→        <ContentRow
+   864→          title="Manga"
+   865→          items={trendingManga}
+   866→          seeAllType="manga"
+   867→        />
+   868→      </div>
+   869→    </motion.div>
+   870→  );
+   871→}
+   872→
+   873→// ==================== BROWSE VIEW ====================
+   874→
+   875→function BrowseView() {
+   876→  const {
+   877→    selectedType,
+   878→    setSelectedType,
+   879→    selectedGenre,
+   880→    setSelectedGenre,
+   881→    selectedSort,
+   882→    setSelectedSort,
+   883→    selectedYearFrom,
+   884→    setSelectedYearFrom,
+   885→    selectedYearTo,
+   886→    setSelectedYearTo,
+   887→    browseContent,
+   888→    browseTotal,
+   889→    browseLoading,
+   890→    browsePage,
+   891→    setBrowseContent,
+   892→    setBrowseTotal,
+   893→    setBrowsePage,
+   894→    setBrowseLoading,
+   895→    resetBrowse,
+   896→  } = useAppStore();
+   897→
+   898→  const loaderRef = useRef<HTMLDivElement>(null);
+   899→  const initialFetchDone = useRef(false);
+   900→
+   901→  // Reset when filters change
+   902→  useEffect(() => {
+   903→    initialFetchDone.current = false;
+   904→  }, [selectedType, selectedGenre, selectedSort, selectedYearFrom, selectedYearTo]);
+   905→
+   906→  const fetchContent = useCallback(async (page: number, append: boolean) => {
+   907→    setBrowseLoading(true);
+   908→    try {
+   909→      const params = new URLSearchParams();
+   910→      if (selectedType !== "all") params.set("type", selectedType);
+   911→      if (selectedGenre) params.set("genre", selectedGenre);
+   912→      if (selectedSort) params.set("sort", selectedSort);
+   913→      if (selectedYearFrom) params.set("yearFrom", String(selectedYearFrom));
+   914→      if (selectedYearTo) params.set("yearTo", String(selectedYearTo));
+   915→      params.set("page", String(page));
+   916→      params.set("limit", "20");
+   917→
+   918→      const res = await fetch(`/api/content?${params.toString()}`);
+   919→      const data = await res.json();
+   920→
+   921→      if (append) {
+   922→        setBrowseContent([...browseContent, ...(data.data || [])]);
+   923→      } else {
+   924→        setBrowseContent(data.data || []);
+   925→      }
+   926→      setBrowseTotal(data.total || 0);
+   927→      setBrowsePage(page);
+   928→    } catch {
+   929→      setBrowseContent([]);
+   930→    } finally {
+   931→      setBrowseLoading(false);
+   932→      initialFetchDone.current = true;
+   933→    }
+   934→  }, [selectedType, selectedGenre, selectedSort, selectedYearFrom, selectedYearTo, browseContent, setBrowseContent, setBrowseTotal, setBrowsePage, setBrowseLoading]);
+   935→
+   936→  // Fetch when filters change
+   937→  useEffect(() => {
+   938→    fetchContent(1, false);
+   939→  }, [selectedType, selectedGenre, selectedSort, selectedYearFrom, selectedYearTo]);
+   940→
+   941→  // Infinite scroll
+   942→  useEffect(() => {
+   943→    const el = loaderRef.current;
+   944→    if (!el) return;
+   945→    const observer = new IntersectionObserver(
+   946→      (entries) => {
+   947→        if (
+   948→          entries[0].isIntersecting &&
+   949→          !browseLoading &&
+   950→          browseContent.length < browseTotal
+   951→        ) {
+   952→          fetchContent(browsePage + 1, true);
+   953→        }
+   954→      },
+   955→      { threshold: 0.1 }
+   956→    );
+   957→    observer.observe(el);
+   958→    return () => observer.disconnect();
+   959→  }, [browseLoading, browseContent.length, browseTotal, browsePage, fetchContent]);
+   960→
+   961→  const typeTabs: { value: ContentType; label: string }[] = [
+   962→    { value: "all", label: "Tous" },
+   963→    { value: "movie", label: "Films" },
+   964→    { value: "series", label: "Séries" },
+   965→    { value: "anime", label: "Anime" },
+   966→    { value: "manga", label: "Manga" },
+   967→  ];
+   968→
+   969→  return (
+   970→    <motion.div
+   971→      initial={{ opacity: 0 }}
+   972→      animate={{ opacity: 1 }}
+   973→      exit={{ opacity: 0 }}
+   974→      className="page-content max-w-7xl mx-auto px-4 md:px-8 py-6"
+   975→    >
+   976→      {/* Filter bar */}
+   977→      <div className="space-y-4 mb-6">
+   978→        {/* Type tabs */}
+   979→        <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
+   980→          {typeTabs.map((tab) => (
+   981→            <button
+   982→              key={tab.value}
+   983→              onClick={() => setSelectedType(tab.value)}
+   984→              className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+   985→                selectedType === tab.value
+   986→                  ? "bg-red-600 text-white"
+   987→                  : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
+   988→              }`}
+   989→            >
+   990→              {tab.label}
+   991→            </button>
+   992→          ))}
+   993→        </div>
+   994→
+   995→        {/* Genre pills */}
+   996→        <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
+   997→          <button
+   998→            onClick={() => setSelectedGenre(null)}
+   999→            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+  1000→              !selectedGenre
+  1001→                ? "bg-red-600/20 text-red-400 border border-red-600/40"
+  1002→                : "bg-muted text-muted-foreground hover:text-foreground border border-transparent"
+  1003→            }`}
+  1004→          >
+  1005→            Tous les genres
+  1006→          </button>
+  1007→          {GENRES.map((genre) => (
+  1008→            <button
+  1009→              key={genre}
+  1010→              onClick={() => setSelectedGenre(genre === selectedGenre ? null : genre)}
+  1011→              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+  1012→                selectedGenre === genre
+  1013→                  ? "bg-red-600/20 text-red-400 border border-red-600/40"
+  1014→                  : "bg-muted text-muted-foreground hover:text-foreground border border-transparent"
+  1015→              }`}
+  1016→            >
+  1017→              {genre}
+  1018→            </button>
+  1019→          ))}
+  1020→        </div>
+  1021→
+  1022→        {/* Sort + Year */}
+  1023→        <div className="flex flex-wrap gap-3 items-center">
+  1024→          <div className="flex items-center gap-2">
+  1025→            <ArrowDownUp className="h-3.5 w-3.5 text-muted-foreground" />
+  1026→            <Select value={selectedSort} onValueChange={setSelectedSort}>
+  1027→              <SelectTrigger className="w-[180px] bg-muted border-0 h-9 text-sm">
+  1028→                <SelectValue placeholder="Trier par" />
+  1029→              </SelectTrigger>
+  1030→              <SelectContent>
+  1031→                <SelectItem value="rating">Meilleures notes</SelectItem>
+  1032→                <SelectItem value="created">Plus récents</SelectItem>
+  1033→                <SelectItem value="title_asc">Titre A-Z</SelectItem>
+  1034→                <SelectItem value="title_desc">Titre Z-A</SelectItem>
+  1035→              </SelectContent>
+  1036→            </Select>
+  1037→          </div>
+  1038→          <div className="flex items-center gap-2">
+  1039→            <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+  1040→            <Select
+  1041→              value={selectedYearFrom?.toString() || "all"}
+  1042→              onValueChange={(v) => setSelectedYearFrom(v === "all" ? null : Number(v))}
+  1043→            >
+  1044→              <SelectTrigger className="w-[120px] bg-muted border-0 h-9 text-sm">
+  1045→                <SelectValue placeholder="De" />
+  1046→              </SelectTrigger>
+  1047→              <SelectContent>
+  1048→                <SelectItem value="all">Toutes</SelectItem>
+  1049→                {YEARS.map((y) => (
+  1050→                  <SelectItem key={y} value={y.toString()}>
+  1051→                    {y}
+  1052→                  </SelectItem>
+  1053→                ))}
+  1054→              </SelectContent>
+  1055→            </Select>
+  1056→            <span className="text-xs text-muted-foreground">à</span>
+  1057→            <Select
+  1058→              value={selectedYearTo?.toString() || "all"}
+  1059→              onValueChange={(v) => setSelectedYearTo(v === "all" ? null : Number(v))}
+  1060→            >
+  1061→              <SelectTrigger className="w-[120px] bg-muted border-0 h-9 text-sm">
+  1062→                <SelectValue placeholder="Jusqu&apos;à" />
+  1063→              </SelectTrigger>
+  1064→              <SelectContent>
+  1065→                <SelectItem value="all">Toutes</SelectItem>
+  1066→                {YEARS.map((y) => (
+  1067→                  <SelectItem key={y} value={y.toString()}>
+  1068→                    {y}
+  1069→                  </SelectItem>
+  1070→                ))}
+  1071→              </SelectContent>
+  1072→            </Select>
+  1073→          </div>
+  1074→          <span className="text-xs text-muted-foreground ml-auto">
+  1075→            {browseTotal} résultat{browseTotal !== 1 ? "s" : ""}
+  1076→          </span>
+  1077→        </div>
+  1078→      </div>
+  1079→
+  1080→      {/* Content grid */}
+  1081→      {!initialFetchDone.current && browseContent.length === 0 ? (
+  1082→        <SkeletonGrid />
+  1083→      ) : browseContent.length === 0 ? (
+  1084→        <div className="text-center py-20 text-muted-foreground">
+  1085→          Aucun contenu trouvé
+  1086→        </div>
+  1087→      ) : (
+  1088→        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+  1089→          {browseContent.map((item) => (
+  1090→            <ContentCard key={item.id} item={item} />
+  1091→          ))}
+  1092→        </div>
+  1093→      )}
+  1094→
+  1095→      {/* Infinite scroll loader */}
+  1096→      <div ref={loaderRef} className="flex justify-center py-8">
+  1097→        {browseLoading && <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />}
+  1098→      </div>
+  1099→    </motion.div>
+  1100→  );
+  1101→}
+  1102→
+  1103→// ==================== DETAIL VIEW ====================
+  1104→
+  1105→function DetailView() {
+  1106→  const {
+  1107→    contentDetail,
+  1108→    setContentDetail,
+  1109→    selectedContentId,
+  1110→    setView,
+  1111→    currentEmbed,
+  1112→    setCurrentEmbed,
+  1113→    toggleFavorite,
+  1114→    favorites,
+  1115→    toast,
+  1116→  } = useAppStore();
+  1117→  const [loading, setLoading] = useState(true);
+  1118→  const [playerLoading, setPlayerLoading] = useState(false);
+  1119→  const [selectedEpisode, setSelectedEpisode] = useState<string | null>(null);
+  1120→  const [iframeKey, setIframeKey] = useState(0);
+  1121→
+  1122→  // Fetch detail on mount or ID change
+  1123→  const fetchDetail = useCallback(async (id: string) => {
+  1124→    setSelectedEpisode(null);
+  1125→    setCurrentEmbed(null);
+  1126→    setLoading(true);
+  1127→    try {
+  1128→      const res = await fetch(`/api/content/${id}`);
+  1129→      const data = await res.json();
+  1130→      setContentDetail(data);
+  1131→      // Auto-select first embed
+  1132→      if (data.embedGroups?.length > 0 && data.embedGroups[0].embeds?.length > 0) {
+  1133→        const firstEmbed = data.embedGroups[0].embeds[0];
+  1134→        setCurrentEmbed(firstEmbed);
+  1135→        if (data.type !== "movie" && data.type !== "manga") {
+  1136→          const firstGroup = data.embedGroups[0];
+  1137→          setSelectedEpisode(
+  1138→            firstGroup.season != null && firstGroup.episode != null
+  1139→              ? `S${firstGroup.season}E${firstGroup.episode}`
+  1140→              : null
+  1141→          );
+  1142→        }
+  1143→      }
+  1144→    } catch {
+  1145→      setContentDetail(null);
+  1146→      toast({ title: "Erreur", description: "Impossible de charger le contenu" });
+  1147→    } finally {
+  1148→      setLoading(false);
+  1149→    }
+  1150→  }, [setContentDetail, setCurrentEmbed, setSelectedEpisode, toast]);
+  1151→
+  1152→  useEffect(() => {
+  1153→    if (!selectedContentId) return;
+  1154→    fetchDetail(selectedContentId);
+  1155→  }, [selectedContentId, fetchDetail]);
+  1156→
+  1157→  if (loading) {
+  1158→    return (
+  1159→      <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
+  1160→        <Skeleton className="w-full aspect-video rounded-lg mb-6" />
+  1161→        <div className="flex gap-4">
+  1162→          <Skeleton className="w-32 aspect-[2/3] rounded-lg hidden md:block" />
+  1163→          <div className="flex-1 space-y-3">
+  1164→            <Skeleton className="h-8 w-1/2" />
+  1165→            <Skeleton className="h-4 w-3/4" />
+  1166→            <Skeleton className="h-4 w-1/2" />
+  1167→          </div>
+  1168→        </div>
+  1169→      </div>
+  1170→    );
+  1171→  }
+  1172→
+  1173→  if (!contentDetail) return null;
+  1174→
+  1175→  const isFav = favorites.includes(contentDetail.id);
+  1176→  const isSeriesOrAnime = contentDetail.type === "series" || contentDetail.type === "anime";
+  1177→  const isManga = contentDetail.type === "manga";
+  1178→
+  1179→  const handleEmbedClick = (embed: EmbedSource, episodeKey?: string) => {
+  1180→    setCurrentEmbed(embed);
+  1181→    setPlayerLoading(true);
+  1182→    setIframeKey((k) => k + 1);
+  1183→    if (episodeKey) setSelectedEpisode(episodeKey);
+  1184→  };
+  1185→
+  1186→  const handleFav = () => {
+  1187→    toggleFavorite(contentDetail.id);
+  1188→    toast({
+  1189→      title: isFav ? "Retiré des favoris" : "Ajouté aux favoris",
+  1190→      description: getDisplayTitle(contentDetail),
+  1191→    });
+  1192→  };
+  1193→
+  1194→  return (
+  1195→    <motion.div
+  1196→      initial={{ opacity: 0 }}
+  1197→      animate={{ opacity: 1 }}
+  1198→      exit={{ opacity: 0 }}
+  1199→      className="page-content max-w-7xl mx-auto px-4 md:px-8 py-6"
+  1200→    >
+  1201→      {/* Back button */}
+  1202→      <button
+  1203→        onClick={() => {
+  1204→          setView("home");
+  1205→          setContentDetail(null);
+  1206→        }}
+  1207→        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
+  1208→      >
+  1209→        <ChevronLeft className="h-4 w-4" />
+  1210→        Retour
+  1211→      </button>
+  1212→
+  1213→      {/* Player area */}
+  1214→      <div className="player-container mb-6">
+  1215→        {currentEmbed && !isManga ? (
+  1216→          <>
+  1217→            {playerLoading && (
+  1218→              <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/60">
+  1219→                <Loader2 className="h-8 w-8 animate-spin text-red-500" />
+  1220→              </div>
+  1221→            )}
+  1222→            <iframe
+  1223→              key={iframeKey}
+  1224→              src={currentEmbed.url}
+  1225→              className="absolute inset-0 w-full h-full border-0"
+  1226→              allowFullScreen
+  1227→              allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+  1228→              onLoad={() => setPlayerLoading(false)}
+  1229→              title="Player"
+  1230→            />
+  1231→          </>
+  1232→        ) : isManga ? (
+  1233→          <div className="absolute inset-0 flex items-center justify-center">
+  1234→            <div className="text-center">
+  1235→              <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+  1236→              <p className="text-muted-foreground">Sélectionnez un chapitre ci-dessous</p>
+  1237→            </div>
+  1238→          </div>
+  1239→        ) : contentDetail.embedGroups.length === 0 ? (
+  1240→          <div className="absolute inset-0 flex items-center justify-center">
+  1241→            <div className="text-center px-4">
+  1242→              <Server className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
+  1243→              <p className="text-muted-foreground font-medium mb-1">Aucun serveur disponible</p>
+  1244→              <p className="text-muted-foreground/70 text-sm">
+  1245→                {contentDetail.type === "anime"
+  1246→                  ? "Cet anime n'a pas encore été matché avec TMDB. Utilisez l'Administration → Auto-Match TMDB pour ajouter des liens."
+  1247→                  : "Ce contenu n'a pas de liens streaming disponibles."}
+  1248→              </p>
+  1249→            </div>
+  1250→          </div>
+  1251→        ) : (
+  1252→          <div className="absolute inset-0 flex items-center justify-center">
+  1253→            <div className="text-center">
+  1254→              <Monitor className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+  1255→              <p className="text-muted-foreground">Sélectionnez un serveur ci-dessous</p>
+  1256→            </div>
+  1257→          </div>
+  1258→        )}
+  1259→      </div>
+  1260→
+  1261→      {/* Server buttons + Episode selector */}
+  1262→      <div className="space-y-4 mb-8">
+  1263→        {/* For movies: show server buttons directly */}
+  1264→        {!isSeriesOrAnime && contentDetail.embedGroups.length > 0 && (
+  1265→          <div>
+  1266→            <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+  1267→              <Server className="h-4 w-4" />
+  1268→              Serveurs disponibles
+  1269→            </h3>
+  1270→            <div className="flex flex-wrap gap-2">
+  1271→              {contentDetail.embedGroups[0].embeds.map((embed) => (
+  1272→                <ServerButton
+  1273→                  key={embed.id}
+  1274→                  embed={embed}
+  1275→                  isActive={currentEmbed?.id === embed.id}
+  1276→                  onClick={() => handleEmbedClick(embed)}
+  1277→                />
+  1278→              ))}
+  1279→            </div>
+  1280→          </div>
+  1281→        )}
+  1282→
+  1283→        {/* For series/anime: episode selector + server buttons per episode */}
+  1284→        {isSeriesOrAnime && (
+  1285→          <div>
+  1286→            <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+  1287→              <Tv className="h-4 w-4" />
+  1288→              Épisodes
+  1289→            </h3>
+  1290→
+  1291→            {/* Episode grid */}
+  1292→            <div className="flex flex-wrap gap-2 mb-4">
+  1293→              {contentDetail.embedGroups.map((group) => {
+  1294→                const epKey =
+  1295→                  group.season != null && group.episode != null
+  1296→                    ? `S${group.season}E${group.episode}`
+  1297→                    : "all";
+  1298→                return (
+  1299→                  <button
+  1300→                    key={epKey}
+  1301→                    onClick={() => {
+  1302→                      setSelectedEpisode(epKey);
+  1303→                      // Auto-select first embed for this episode
+  1304→                      if (group.embeds.length > 0) {
+  1305→                        handleEmbedClick(group.embeds[0], epKey);
+  1306→                      }
+  1307→                    }}
+  1308→                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+  1309→                      selectedEpisode === epKey
+  1310→                        ? "bg-red-600 text-white shadow-lg shadow-red-600/20"
+  1311→                        : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
+  1312→                    }`}
+  1313→                  >
+  1314→                    {group.label.replace("Saison ", "S").replace(" - Épisode ", "E")}
+  1315→                  </button>
+  1316→                );
+  1317→              })}
+  1318→            </div>
+  1319→
+  1320→            {/* Server buttons for selected episode */}
+  1321→            {selectedEpisode && (
+  1322→              <div>
+  1323→                <h4 className="text-xs font-medium text-muted-foreground/70 mb-2 ml-1">
+  1324→                  Serveurs pour{" "}
+  1325→                  {contentDetail.embedGroups.find(
+  1326→                    (g) => {
+  1327→                      const k =
+  1328→                        g.season != null && g.episode != null
+  1329→                          ? `S${g.season}E${g.episode}`
+  1330→                          : "all";
+  1331→                      return k === selectedEpisode;
+  1332→                    }
+  1333→                  )?.label || selectedEpisode}
+  1334→                </h4>
+  1335→                <div className="flex flex-wrap gap-2">
+  1336→                  {contentDetail.embedGroups
+  1337→                    .find(
+  1338→                      (g) => {
+  1339→                        const k =
+  1340→                          g.season != null && g.episode != null
+  1341→                            ? `S${g.season}E${g.episode}`
+  1342→                            : "all";
+  1343→                        return k === selectedEpisode;
+  1344→                      }
+  1345→                    )
+  1346→                    ?.embeds.map((embed) => (
+  1347→                      <ServerButton
+  1348→                        key={embed.id}
+  1349→                        embed={embed}
+  1350→                        isActive={currentEmbed?.id === embed.id}
+  1351→                        onClick={() => handleEmbedClick(embed, selectedEpisode)}
+  1352→                      />
+  1353→                    ))}
+  1354→                </div>
+  1355→              </div>
+  1356→            )}
+  1357→          </div>
+  1358→        )}
+  1359→      </div>
+  1360→
+  1361→      {/* Content info */}
+  1362→      <div className="grid md:grid-cols-[220px_1fr] gap-6 mb-8">
+  1363→        {/* Poster */}
+  1364→        <div className="hidden md:block">
+  1365→          <img
+  1366→            src={contentDetail.posterUrl}
+  1367→            alt={getDisplayTitle(contentDetail)}
+  1368→            className="w-full aspect-[2/3] rounded-lg object-cover shadow-xl"
+  1369→            onError={(e) => handleImgError(e)}
+  1370→          />
+  1371→        </div>
+  1372→
+  1373→        <div>
+  1374→          <div className="flex items-start justify-between gap-4 mb-3">
+  1375→            <div>
+  1376→              <div className="flex items-center gap-2 mb-2">
+  1377→                <span
+  1378→                  className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${TYPE_CONFIG[contentDetail.type]?.badgeClass || ""}`}
+  1379→                >
+  1380→                  {TYPE_CONFIG[contentDetail.type]?.label || contentDetail.type}
+  1381→                </span>
+  1382→                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-600/90 text-white">
+  1383→                  1080p
+  1384→                </span>
+  1385→              </div>
+  1386→              <h1 className="text-2xl md:text-3xl font-extrabold text-foreground leading-tight">
+  1387→                {getDisplayTitle(contentDetail)}
+  1388→              </h1>
+  1389→            </div>
+  1390→            <button
+  1391→              onClick={handleFav}
+  1392→              className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors"
+  1393→              aria-label={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
+  1394→            >
+  1395→              <Heart
+  1396→                className={`h-5 w-5 transition-all ${isFav ? "fill-red-500 text-red-500" : "text-muted-foreground"}`}
+  1397→              />
+  1398→            </button>
+  1399→          </div>
+  1400→
+  1401→          {/* Meta */}
+  1402→          <div className="flex flex-wrap items-center gap-3 mb-4 text-sm text-muted-foreground">
+  1403→            <span className="flex items-center gap-1">
+  1404→              <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
+  1405→              <span className="text-foreground font-semibold">
+  1406→                {contentDetail.rating?.toFixed(1)}
+  1407→              </span>
+  1408→            </span>
+  1409→            {contentDetail.year && (
+  1410→              <span className="flex items-center gap-1">
+  1411→                <Calendar className="h-3.5 w-3.5" />
+  1412→                {contentDetail.year}
+  1413→              </span>
+  1414→            )}
+  1415→            {contentDetail.runtime && (
+  1416→              <span className="flex items-center gap-1">
+  1417→                <Clock className="h-3.5 w-3.5" />
+  1418→                {contentDetail.runtime} min
+  1419→              </span>
+  1420→            )}
+  1421→            {contentDetail.seasons && (
+  1422→              <span className="flex items-center gap-1">
+  1423→                <Layers className="h-3.5 w-3.5" />
+  1424→                {contentDetail.seasons} saison{contentDetail.seasons > 1 ? "s" : ""}
+  1425→              </span>
+  1426→            )}
+  1427→          </div>
+  1428→
+  1429→          {/* Genres */}
+  1430→          {contentDetail.genres && (
+  1431→            <div className="flex flex-wrap gap-2 mb-4">
+  1432→              {contentDetail.genres.split(",").map((g) => g.trim()).filter(Boolean).map((genre) => (
+  1433→                <Badge
+  1434→                  key={genre}
+  1435→                  variant="secondary"
+  1436→                  className="text-xs bg-muted text-muted-foreground"
+  1437→                >
+  1438→                  {genre}
+  1439→                </Badge>
+  1440→              ))}
+  1441→            </div>
+  1442→          )}
+  1443→
+  1444→          {/* Overview */}
+  1445→          {contentDetail.overviewFr && (
+  1446→            <p className="text-sm text-muted-foreground leading-relaxed">
+  1447→              {contentDetail.overviewFr}
+  1448→            </p>
+  1449→          )}
+  1450→        </div>
+  1451→      </div>
+  1452→
+  1453→      {/* Ad banner */}
+  1454→      <div className="ad-banner flex items-center justify-center py-2.5 px-4 mb-8">
+  1455→        <span className="text-[10px] text-muted-foreground/50 uppercase tracking-widest">
+  1456→          Pub
+  1457→        </span>
+  1458→      </div>
+  1459→
+  1460→      {/* Related content */}
+  1461→      {contentDetail.related && contentDetail.related.length > 0 && (
+  1462→        <section>
+  1463→          <h2 className="text-lg font-bold text-foreground mb-4">
+  1464→            Contenu similaire
+  1465→          </h2>
+  1466→          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+  1467→            {contentDetail.related.map((item) => (
+  1468→              <ContentCard key={item.id} item={item} />
+  1469→            ))}
+  1470→          </div>
+  1471→        </section>
+  1472→      )}
+  1473→    </motion.div>
+  1474→  );
+  1475→}
+  1476→
+  1477→// ==================== SERVER BUTTON ====================
+  1478→
+  1479→function ServerButton({
+  1480→  embed,
+  1481→  isActive,
+  1482→  onClick,
+  1483→}: {
+  1484→  embed: EmbedSource;
+  1485→  isActive: boolean;
+  1486→  onClick: () => void;
+  1487→}) {
+  1488→  const hostColor = HOST_COLORS[embed.hostProvider] || "#666";
+  1489→  const hostLabel = embed.hostConfig?.label || embed.serverName || embed.hostProvider;
+  1490→  const quality = embed.quality || "1080p";
+  1491→
+  1492→  return (
+  1493→    <button
+  1494→      onClick={onClick}
+  1495→      className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all border-2"
+  1496→      style={{
+  1497→        borderColor: isActive ? hostColor : "transparent",
+  1498→        backgroundColor: isActive ? `${hostColor}15` : "oklch(0.18 0 0)",
+  1499→        color: isActive ? hostColor : "oklch(0.7 0 0)",
+  1500→        boxShadow: isActive ? `0 0 12px ${hostColor}30` : "none",
+  1501→      }}
+  1502→    >
+  1503→      <span
+  1504→        className="w-2 h-2 rounded-full flex-shrink-0"
+  1505→        style={{ backgroundColor: hostColor }}
+  1506→      />
+  1507→      <span>{hostLabel}</span>
+  1508→      <span
+  1509→        className="px-1.5 py-0.5 rounded text-[9px] font-bold"
+  1510→        style={{
+  1511→          backgroundColor: `${hostColor}25`,
+  1512→          color: hostColor,
+  1513→        }}
+  1514→      >
+  1515→        {quality}
+  1516→      </span>
+  1517→    </button>
+  1518→  );
+  1519→}
+  1520→
+  1521→// ==================== FAVORITES VIEW ====================
+  1522→
+  1523→function FavoritesView() {
+  1524→  const { favorites, browseContent, setBrowseContent, setBrowseLoading, setBrowseTotal } =
+  1525→    useAppStore();
+  1526→  const [favItems, setFavItems] = useState<ContentItem[]>([]);
+  1527→  const [loading, setLoading] = useState(true);
+  1528→
+  1529→  // Fetch favorited items
+  1530→  useEffect(() => {
+  1531→    if (favorites.length === 0) {
+  1532→      setFavItems([]);
+  1533→      setLoading(false);
+  1534→      return;
+  1535→    }
+  1536→
+  1537→    let cancelled = false;
+  1538→    setLoading(true);
+  1539→
+  1540→    const fetchFavorites = async () => {
+  1541→      try {
+  1542→        const ids = favorites.join(",");
+  1543→        const res = await fetch(`/api/content?limit=100`);
+  1544→        const data = await res.json();
+  1545→        if (!cancelled) {
+  1546→          const items = (data.data || []).filter((item: ContentItem) =>
+  1547→            favorites.includes(item.id)
+  1548→          );
+  1549→          setFavItems(items);
+  1550→        }
+  1551→      } catch {
+  1552→        if (!cancelled) setFavItems([]);
+  1553→      } finally {
+  1554→        if (!cancelled) setLoading(false);
+  1555→      }
+  1556→    };
+  1557→
+  1558→    fetchFavorites();
+  1559→    return () => {
+  1560→      cancelled = true;
+  1561→    };
+  1562→  }, [favorites]);
+  1563→
+  1564→  return (
+  1565→    <motion.div
+  1566→      initial={{ opacity: 0 }}
+  1567→      animate={{ opacity: 1 }}
+  1568→      exit={{ opacity: 0 }}
+  1569→      className="page-content max-w-7xl mx-auto px-4 md:px-8 py-6"
+  1570→    >
+  1571→      <div className="flex items-center gap-3 mb-6">
+  1572→        <Heart className="h-6 w-6 text-red-500" fill="currentColor" />
+  1573→        <h1 className="text-2xl font-extrabold text-foreground">Mes Favoris</h1>
+  1574→        <span className="text-sm text-muted-foreground">
+  1575→          ({favorites.length})
+  1576→        </span>
+  1577→      </div>
+  1578→
+  1579→      {loading ? (
+  1580→        <SkeletonGrid />
+  1581→      ) : favorites.length === 0 ? (
+  1582→        <div className="text-center py-20">
+  1583→          <Heart className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+  1584→          <p className="text-muted-foreground mb-2">Aucun favori pour le moment</p>
+  1585→          <p className="text-sm text-muted-foreground/60">
+  1586→            Cliquez sur le cœur d&apos;un contenu pour l&apos;ajouter
+  1587→          </p>
+  1588→        </div>
+  1589→      ) : favItems.length === 0 ? (
+  1590→        <div className="text-center py-20 text-muted-foreground">
+  1591→          Chargement des favoris...
+  1592→        </div>
+  1593→      ) : (
+  1594→        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+  1595→          {favItems.map((item) => (
+  1596→            <ContentCard key={item.id} item={item} />
+  1597→          ))}
+  1598→        </div>
+  1599→      )}
+  1600→    </motion.div>
+  1601→  );
+  1602→}
+  1603→
+  1604→// ==================== FOOTER ====================
+  1605→
+  1606→function Footer() {
+  1607→  return (
+  1608→    <footer className="mt-auto border-t border-border/50 pb-20 md:pb-0">
+  1609→      {/* Donation section */}
+  1610→      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
+  1611→        <div className="rounded-xl bg-gradient-to-r from-red-950/30 via-red-900/10 to-red-950/30 border border-red-900/20 p-6 text-center">
+  1612→          <h3 className="text-lg font-bold text-foreground mb-2">
+  1613→            Soutenir le site
+  1614→          </h3>
+  1615→          <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
+  1616→            StreamVibe est gratuit et le restera. Aidez-nous à maintenir les
+  1617→            serveurs en faisant un don.
+  1618→          </p>
+  1619→          <Button className="bg-red-600 hover:bg-red-700 text-white font-semibold btn-glow">
+  1620→            Faire un don
+  1621→          </Button>
+  1622→        </div>
+  1623→      </div>
+  1624→
+  1625→      {/* Ad banner */}
+  1626→      <div className="max-w-7xl mx-auto px-4 md:px-8 mb-6">
+  1627→        <div className="ad-banner flex items-center justify-center py-2.5 px-4">
+  1628→          <span className="text-[10px] text-muted-foreground/50 uppercase tracking-widest">
+  1629→            Pub
+  1630→          </span>
+  1631→        </div>
+  1632→      </div>
+  1633→
+  1634→      {/* Footer links */}
+  1635→      <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
+  1636→        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+  1637→          <div className="text-xl font-extrabold">
+  1638→            <span className="text-red-500">Stream</span>
+  1639→            <span>Vibe</span>
+  1640→          </div>
+  1641→          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+  1642→            <span>Contact</span>
+  1643→            <span>DMCA</span>
+  1644→            <span>Conditions d&apos;utilisation</span>
+  1645→          </div>
+  1646→          <p className="text-xs text-muted-foreground/50">
+  1647→            &copy; {new Date().getFullYear()} StreamVibe. Tous droits réservés.
+  1648→          </p>
+  1649→        </div>
+  1650→      </div>
+  1651→    </footer>
+  1652→  );
+  1653→}
+  1654→
+  1655→// ==================== ADMIN PANEL ====================
+  1656→
+  1657→const ADMIN_GENRES = [
+  1658→  "Action", "Adventure", "Comedy", "Drama", "Fantasy",
+  1659→  "Romance", "Sci-Fi", "Horror", "Thriller", "Sports",
+  1660→  "Supernatural", "Mystery", "Slice of Life",
+  1661→];
+  1662→
+  1663→interface AdminStats {
+  1664→  totalContent: number;
+  1665→  anime: { total: number; withEmbeds: number; totalEmbeds: number };
+  1666→  movies: { total: number };
+  1667→  series: { total: number };
+  1668→  manga: { total: number };
+  1669→}
+  1670→
+  1671→interface MatchStats {
+  1672→  anime: { total: number; matched: number; unmatched: number };
+  1673→  movies: { total: number; matched: number; unmatched: number };
+  1674→  series: { total: number; matched: number; unmatched: number };
+  1675→  manga: { total: number };
+  1676→  total: { content: number; embeds: number };
+  1677→  hasTmdbKey: boolean;
+  1678→  tmdbKeyValid: boolean;
+  1679→}
+  1680→
+  1681→interface ImageFixStats {
+  1682→  total: number;
+  1683→  withTmdbId: number;
+  1684→  brokenPosters: number;
+  1685→  noPosters: number;
+  1686→  needsFix: number;
+  1687→  tmdbKeyValid: boolean;
+  1688→}
+  1689→
+  1690→function StatCard({ label, value, sub, color = "text-foreground" }: {
+  1691→  label: string; value: number | string; sub?: string; color?: string;
+  1692→}) {
+  1693→  return (
+  1694→    <div className="rounded-lg border border-border bg-card p-3">
+  1695→      <p className="text-[11px] text-muted-foreground">{label}</p>
+  1696→      <p className={`text-xl font-bold ${color}`}>{value}</p>
+  1697→      {sub && <p className="text-[10px] text-muted-foreground">{sub}</p>}
+  1698→    </div>
+  1699→  );
+  1700→}
+  1701→
+  1702→function AdminPanel({
+  1703→  open,
+  1704→  onOpenChange,
+  1705→}: {
+  1706→  open: boolean;
+  1707→  onOpenChange: (open: boolean) => void;
+  1708→}) {
+  1709→  const { toast } = useToast();
+  1710→
+  1711→  // AniList sync state
+  1712→  const [trendingPages, setTrendingPages] = useState(2);
+  1713→  const [popularPages, setPopularPages] = useState(2);
+  1714→  const [topRatedPages, setTopRatedPages] = useState(2);
+  1715→  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  1716→  const [maxSeasons, setMaxSeasons] = useState(5);
+  1717→  const [maxEpsPerSeason, setMaxEpsPerSeason] = useState(3);
+  1718→  const [perPage, setPerPage] = useState(50);
+  1719→  const [syncLoading, setSyncLoading] = useState(false);
+  1720→  const [syncResult, setSyncResult] = useState<any>(null);
+  1721→
+  1722→  // TMDB sync state
+  1723→  const [tmdbSyncLoading, setTmdbSyncLoading] = useState(false);
+  1724→  const [tmdbSyncResult, setTmdbSyncResult] = useState<any>(null);
+  1725→  const [tmdbPages, setTmdbPages] = useState(3);
+  1726→  const [tmdbSource, setTmdbSource] = useState("all");
+  1727→
+  1728→  // Match state
+  1729→  const [matchLoading, setMatchLoading] = useState(false);
+  1730→  const [matchResult, setMatchResult] = useState<any>(null);
+  1731→
+  1732→  // Image fix state
+  1733→  const [fixLoading, setFixLoading] = useState(false);
+  1734→  const [fixResult, setFixResult] = useState<any>(null);
+  1735→
+  1736→  // Stats
+  1737→  const [statsLoading, setStatsLoading] = useState(false);
+  1738→  const [stats, setStats] = useState<AdminStats | null>(null);
+  1739→  const [matchStats, setMatchStats] = useState<MatchStats | null>(null);
+  1740→  const [imageFixStats, setImageFixStats] = useState<ImageFixStats | null>(null);
+  1741→
+  1742→  // Admin tab
+  1743→  const [adminTab, setAdminTab] = useState<"overview" | "anime" | "tmdb" | "images">("overview");
+  1744→
+  1745→  const fetchStats = useCallback(async () => {
+  1746→    setStatsLoading(true);
+  1747→    try {
+  1748→      const [statsRes, matchRes, fixRes] = await Promise.all([
+  1749→        fetch("/api/anime/stats").then((r) => r.json()).catch(() => null),
+  1750→        fetch("/api/anime/match-tmdb").then((r) => r.json()).catch(() => null),
+  1751→        fetch("/api/tmdb/fix-images").then((r) => r.json()).catch(() => null),
+  1752→      ]);
+  1753→      if (statsRes) setStats(statsRes);
+  1754→      if (matchRes && matchRes.anime) setMatchStats(matchRes);
+  1755→      if (fixRes && fixRes.total !== undefined) setImageFixStats(fixRes);
+  1756→    } catch {
+  1757→      toast({ title: "Erreur", description: "Impossible de charger les stats", variant: "destructive" });
+  1758→    } finally {
+  1759→      setStatsLoading(false);
+  1760→    }
+  1761→  }, [toast]);
+  1762→
+  1763→  useEffect(() => {
+  1764→    if (open) fetchStats();
+  1765→  }, [open, fetchStats]);
+  1766→
+  1767→  const estimatedCount = (trendingPages + popularPages + topRatedPages + selectedGenres.length) * perPage;
+  1768→  const toggleGenre = (genre: string) => {
+  1769→    setSelectedGenres((prev) => prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre]);
+  1770→  };
+  1771→
+  1772→  const handleSync = async () => {
+  1773→    setSyncLoading(true);
+  1774→    setSyncResult(null);
+  1775→    try {
+  1776→      const params = new URLSearchParams({
+  1777→        trendingPages: String(trendingPages), popularPages: String(popularPages),
+  1778→        topRatedPages: String(topRatedPages), maxSeasons: String(maxSeasons),
+  1779→        maxEpsPerSeason: String(maxEpsPerSeason), perplexity: String(perPage),
+  1780→      });
+  1781→      if (selectedGenres.length > 0) params.set("genres", selectedGenres.join(","));
+  1782→      const res = await fetch(`/api/anime/sync?${params.toString()}`);
+  1783→      const data = await res.json();
+  1784→      if (data.success) {
+  1785→        setSyncResult(data.stats);
+  1786→        toast({ title: "Sync AniList réussi !", description: `${data.stats.created} créés, ${data.stats.updated} mis à jour` });
+  1787→        fetchStats();
+  1788→      } else {
+  1789→        toast({ title: "Erreur", description: data.error || "Échec", variant: "destructive" });
+  1790→      }
+  1791→    } catch { toast({ title: "Erreur réseau", variant: "destructive" }); }
+  1792→    finally { setSyncLoading(false); }
+  1793→  };
+  1794→
+  1795→  const handleTmdbSync = async (type: "movies" | "series") => {
+  1796→    setTmdbSyncLoading(true);
+  1797→    setTmdbSyncResult(null);
+  1798→    try {
+  1799→      const params = new URLSearchParams({ type, source: tmdbSource, pages: String(tmdbPages), limit: "500" });
+  1800→      const res = await fetch(`/api/tmdb/sync?${params.toString()}`, { method: "POST" });
+  1801→      const data = await res.json();
+  1802→      if (data.success) {
+  1803→        setTmdbSyncResult(data.stats);
+  1804→        toast({ title: `TMDB ${type === "movies" ? "Films" : "Séries"} réussi !`, description: `${data.stats.created} créés, ${data.stats.updated} mis à jour` });
+  1805→        fetchStats();
+  1806→      } else {
+  1807→        toast({ title: "Erreur TMDB", description: data.error || "Échec", variant: "destructive" });
+  1808→      }
+  1809→    } catch { toast({ title: "Erreur réseau", variant: "destructive" }); }
+  1810→    finally { setTmdbSyncLoading(false); }
+  1811→  };
+  1812→
+  1813→  const handleMatchTmdb = async () => {
+  1814→    if (!matchStats?.tmdbKeyValid) {
+  1815→      toast({ title: "TMDB non configuré", description: "Clé TMDB non valide", variant: "destructive" });
+  1816→      return;
+  1817→    }
+  1818→    setMatchLoading(true);
+  1819→    setMatchResult(null);
+  1820→    try {
+  1821→      const res = await fetch("/api/anime/match-tmdb?limit=100", { method: "POST" });
+  1822→      const data = await res.json();
+  1823→      if (data.error) {
+  1824→        toast({ title: "Erreur", description: data.error, variant: "destructive" });
+  1825→      } else {
+  1826→        setMatchResult(data.stats);
+  1827→        toast({ title: "Matching terminé !", description: `${data.stats.matched}/${data.stats.processed} matchés. ${data.stats.remainingUnmatched} restants.` });
+  1828→        fetchStats();
+  1829→      }
+  1830→    } catch { toast({ title: "Erreur réseau", variant: "destructive" }); }
+  1831→    finally { setMatchLoading(false); }
+  1832→  };
+  1833→
+  1834→  const handleFixImages = async () => {
+  1835→    setFixLoading(true);
+  1836→    setFixResult(null);
+  1837→    try {
+  1838→      const res = await fetch("/api/tmdb/fix-images?limit=200", { method: "POST" });
+  1839→      const data = await res.json();
+  1840→      if (data.success) {
+  1841→        setFixResult(data.stats);
+  1842→        toast({ title: "Images corrigées !", description: `${data.stats.fixed} images mises à jour` });
+  1843→        fetchStats();
+  1844→      } else {
+  1845→        toast({ title: "Erreur", description: data.error || "Échec", variant: "destructive" });
+  1846→      }
+  1847→    } catch { toast({ title: "Erreur réseau", variant: "destructive" }); }
+  1848→    finally { setFixLoading(false); }
+  1849→  };
+  1850→
+  1851→  const handleReset = async () => {
+  1852→    if (!window.confirm("⚠️ Supprimer TOUS les anime ? Irréversible.")) return;
+  1853→    try {
+  1854→      const res = await fetch("/api/anime/reset", { method: "DELETE" });
+  1855→      const data = await res.json();
+  1856→      if (data.success) { toast({ title: "Réinitialisé", description: `${data.deleted} anime supprimés` }); fetchStats(); }
+  1857→    } catch { toast({ title: "Erreur réseau", variant: "destructive" }); }
+  1858→  };
+  1859→
+  1860→  const tmdbRate = stats && stats.anime.total > 0
+  1861→    ? Math.round(((stats.anime.total - (matchStats?.anime.unmatched || 0)) / stats.anime.total) * 100) : 0;
+  1862→
+  1863→  const TABS = [
+  1864→    { id: "overview" as const, label: "Vue d'ensemble", icon: <Database className="h-3.5 w-3.5" /> },
+  1865→    { id: "anime" as const, label: "Anime", icon: <Sparkles className="h-3.5 w-3.5" /> },
+  1866→    { id: "tmdb" as const, label: "Films & Séries", icon: <Film className="h-3.5 w-3.5" /> },
+  1867→    { id: "images" as const, label: "Images", icon: <Monitor className="h-3.5 w-3.5" /> },
+  1868→  ];
+  1869→
+  1870→  return (
+  1871→    <Sheet open={open} onOpenChange={onOpenChange}>
+  1872→      <SheetContent side="left" className="w-full sm:w-[460px] overflow-y-auto">
+  1873→        <SheetHeader className="mb-4">
+  1874→          <SheetTitle className="flex items-center gap-2 text-lg">
+  1875→            <Settings className="h-5 w-5 text-red-500" /> Administration
+  1876→          </SheetTitle>
+  1877→          <SheetDescription>Gérer le contenu, les syncs et les paramètres</SheetDescription>
+  1878→        </SheetHeader>
+  1879→
+  1880→        <div className="flex gap-1 mb-5 bg-muted/50 rounded-lg p-1">
+  1881→          {TABS.map((tab) => (
+  1882→            <button key={tab.id} onClick={() => setAdminTab(tab.id)}
+  1883→              className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-md text-xs font-medium transition-all ${
+  1884→                adminTab === tab.id ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+  1885→              }`}>
+  1886→              {tab.icon}<span className="hidden sm:inline">{tab.label}</span>
+  1887→            </button>
+  1888→          ))}
+  1889→        </div>
+  1890→
+  1891→        <div className="space-y-4 pb-6">
+  1892→          {adminTab === "overview" && (
+  1893→            <>
+  1894→              <div className={`rounded-lg border p-3 ${matchStats?.tmdbKeyValid ? "border-green-500/30 bg-green-500/5" : "border-red-500/30 bg-red-500/5"}`}>
+  1895→                <p className="text-xs font-medium flex items-center gap-1.5 mb-2">
+  1896→                  <span className={`w-2 h-2 rounded-full ${matchStats?.tmdbKeyValid ? "bg-green-400" : "bg-red-400"} animate-pulse`} />
+  1897→                  TMDB API
+  1898→                </p>
+  1899→                <p className="text-sm font-semibold">
+  1900→                  {matchStats?.tmdbKeyValid ? "✅ Clé TMDB configurée et valide" : "❌ Clé TMDB non configurée"}
+  1901→                </p>
+  1902→              </div>
+  1903→
+  1904→              {stats ? (
+  1905→                <div className="grid grid-cols-2 gap-2">
+  1906→                  <StatCard label="Films" value={stats.movies.total} />
+  1907→                  <StatCard label="Séries" value={stats.series.total} />
+  1908→                  <StatCard label="Anime" value={stats.anime.total} sub={`${stats.anime.withEmbeds} avec streams`} />
+  1909→                  <StatCard label="Manga" value={stats.manga.total} />
+  1910→                  <StatCard label="Total Embeds" value={matchStats?.total.embeds || 0} color="text-blue-400" />
+  1911→                  <StatCard label="TMDB Match" value={`${tmdbRate}%`} color={tmdbRate > 80 ? "text-green-400" : tmdbRate > 40 ? "text-yellow-400" : "text-red-400"} />
+  1912→                </div>
+  1913→              ) : (
+  1914→                <div className="grid grid-cols-2 gap-2">
+  1915→                  {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-lg" />)}
+  1916→                </div>
+  1917→              )}
+  1918→
+  1919→              {imageFixStats && imageFixStats.needsFix > 0 && (
+  1920→                <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3">
+  1921→                  <p className="text-xs text-yellow-400 font-medium mb-1">⚠️ {imageFixStats.needsFix} images cassées</p>
+  1922→                  <p className="text-[11px] text-muted-foreground">Onglet &quot;Images&quot; pour corriger</p>
+  1923→                </div>
+  1924→              )}
+  1925→
+  1926→              {matchStats && matchStats.anime.unmatched > 0 && (
+  1927→                <div className="rounded-lg border border-orange-500/30 bg-orange-500/5 p-3">
+  1928→                  <p className="text-xs text-orange-400 font-medium mb-1">⚡ {matchStats.anime.unmatched} anime sans TMDB ID</p>
+  1929→                  <p className="text-[11px] text-muted-foreground">Onglet &quot;Anime&quot; → Matcher</p>
+  1930→                </div>
+  1931→              )}
+  1932→
+  1933→              <Separator />
+  1934→              <section className="space-y-2">
+  1935→                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions rapides</h3>
+  1936→                <Button onClick={() => setAdminTab("tmdb")} variant="outline" className="w-full h-9 text-sm border-blue-500/20 text-blue-400 hover:bg-blue-500/10">
+  1937→                  <Film className="h-4 w-4 mr-2" /> Ajouter des Films via TMDB
+  1938→                </Button>
+  1939→                <Button onClick={() => setAdminTab("anime")} variant="outline" className="w-full h-9 text-sm border-orange-500/20 text-orange-400 hover:bg-orange-500/10">
+  1940→                  <Sparkles className="h-4 w-4 mr-2" /> Synchroniser les Anime (AniList)
+  1941→                </Button>
+  1942→                <Button onClick={() => setAdminTab("images")} variant="outline" className="w-full h-9 text-sm border-purple-500/20 text-purple-400 hover:bg-purple-500/10">
+  1943→                  <Monitor className="h-4 w-4 mr-2" /> Corriger les images cassées
+  1944→                </Button>
+  1945→              </section>
+  1946→            </>
+  1947→          )}
+  1948→
+  1949→          {adminTab === "anime" && (
+  1950→            <>
+  1951→              {matchStats && (
+  1952→                <div className="grid grid-cols-2 gap-2">
+  1953→                  <StatCard label="Total Anime" value={matchStats.anime.total} />
+  1954→                  <StatCard label="Avec TMDB" value={matchStats.anime.matched} color="text-green-400" />
+  1955→                  <StatCard label="Sans streams" value={matchStats.anime.unmatched} color="text-red-400" />
+  1956→                  <StatCard label="Embeds anime" value={stats?.anime.totalEmbeds || 0} color="text-blue-400" />
+  1957→                </div>
+  1958→              )}
+  1959→
+  1960→              <Separator />
+  1961→
+  1962→              <section>
+  1963→                <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5 mb-3">
+  1964→                  <Zap className="h-4 w-4 text-muted-foreground" /> Sync AniList
+  1965→                </h3>
+  1966→                <div className="space-y-3">
+  1967→                  <div className="grid grid-cols-3 gap-2">
+  1968→                    <div>
+  1969→                      <label className="text-xs text-muted-foreground mb-1 block"><TrendingUp className="h-3 w-3 inline mr-1" />Trending</label>
+  1970→                      <Input type="number" min={1} max={20} value={trendingPages}
+  1971→                        onChange={(e) => setTrendingPages(Math.max(1, Math.min(20, Number(e.target.value) || 1)))} className="h-8 text-sm" />
+  1972→                    </div>
+  1973→                    <div>
+  1974→                      <label className="text-xs text-muted-foreground mb-1 block"><ArrowDownUp className="h-3 w-3 inline mr-1" />Populaire</label>
+  1975→                      <Input type="number" min={1} max={20} value={popularPages}
+  1976→                        onChange={(e) => setPopularPages(Math.max(1, Math.min(20, Number(e.target.value) || 1)))} className="h-8 text-sm" />
+  1977→                    </div>
+  1978→                    <div>
+  1979→                      <label className="text-xs text-muted-foreground mb-1 block"><Star className="h-3 w-3 inline mr-1" />Top Notes</label>
+  1980→                      <Input type="number" min={1} max={20} value={topRatedPages}
+  1981→                        onChange={(e) => setTopRatedPages(Math.max(1, Math.min(20, Number(e.target.value) || 1)))} className="h-8 text-sm" />
+  1982→                    </div>
+  1983→                  </div>
+  1984→                  <div>
+  1985→                    <label className="text-xs text-muted-foreground mb-1.5 block">Genres</label>
+  1986→                    <div className="flex flex-wrap gap-1.5">
+  1987→                      {ADMIN_GENRES.map((genre) => (
+  1988→                        <Badge key={genre} variant={selectedGenres.includes(genre) ? "default" : "outline"}
+  1989→                          className={`cursor-pointer text-xs transition-colors ${selectedGenres.includes(genre) ? "bg-red-600 text-white hover:bg-red-700 border-red-600" : "border-border text-muted-foreground hover:border-red-400 hover:text-red-400"}`}
+  1990→                          onClick={() => toggleGenre(genre)}>{genre}</Badge>
+  1991→                      ))}
+  1992→                    </div>
+  1993→                  </div>
+  1994→                  <div className="grid grid-cols-2 gap-2">
+  1995→                    <div>
+  1996→                      <label className="text-xs text-muted-foreground mb-1 block">Max Saisons</label>
+  1997→                      <Input type="number" min={1} max={20} value={maxSeasons}
+  1998→                        onChange={(e) => setMaxSeasons(Math.max(1, Math.min(20, Number(e.target.value) || 1)))} className="h-8 text-sm" />
+  1999→                    </div>
+  2000→                    <div>
+
+[showing lines 1-2000 of 2269; use offset=2001 with limit to continue reading]
