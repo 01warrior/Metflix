@@ -486,3 +486,4 @@ Stage Summary:
 - **VIDZY**: Incompatible - uses proprietary token-based system (vidzy_token.php), not simple TMDB embeds. Only works for sites with server-side integration like FrenchStream.
 - **27,822 embeds** in database (345 content items × 9 providers)
 - All features from previous sessions verified working
+- **Font fix**: Added missing `font-sans` class to `<body>` in layout.tsx — Nunito was configured as CSS variable but never applied. Now all elements render with Nunito (300-900 weights verified: H1=800, H3=500, p=400)

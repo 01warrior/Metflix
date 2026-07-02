@@ -26,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="fr" className="dark" suppressHydrationWarning>
       <body
-        className={`${nunito.variable} antialiased bg-background text-foreground`}
+        className={`${nunito.variable} font-sans antialiased bg-background text-foreground`}
       >
         {children}
         <Toaster />
