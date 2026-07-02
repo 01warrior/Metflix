@@ -325,6 +325,14 @@ function Header() {
     useAppStore();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [headerHovered, setHeaderHovered] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const navItems = [
     { label: "Accueil", view: "home" as const, icon: <Icon name="home" className="h-4 w-4" /> },
@@ -345,7 +353,17 @@ function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl">
+    <header
+      className={`sticky top-0 z-50 w-full border-b border-white/0 transition-all duration-300 ${
+        headerHovered
+          ? "bg-black/95 backdrop-blur-sm border-white/10"
+          : scrolled
+            ? "bg-gradient-to-b from-black/80 via-black/40 to-transparent"
+            : "bg-transparent"
+      }`}
+      onMouseEnter={() => setHeaderHovered(true)}
+      onMouseLeave={() => setHeaderHovered(false)}
+    >
       <div className="max-w-7xl mx-auto flex items-center justify-between h-14 px-4">
         {/* Logo */}
         <button
@@ -353,7 +371,7 @@ function Header() {
           className="text-xl font-extrabold tracking-tight"
         >
           <span className="text-red-500">Stream</span>
-          <span className="text-foreground">Vibe</span>
+          <span className="text-white">Vibe</span>
         </button>
 
         {/* Desktop nav */}
@@ -366,7 +384,7 @@ function Header() {
                 (item.view && currentView === item.view) ||
                 (item.type && currentView === "browse" && selectedType === item.type)
                   ? "text-red-400 bg-red-400/10"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  : "text-white/70 hover:text-white hover:bg-white/10"
               }`}
             >
               {item.label}
@@ -380,7 +398,7 @@ function Header() {
             className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5 ${
               currentView === "favorites"
                 ? "text-red-400 bg-red-400/10"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                : "text-white/70 hover:text-white hover:bg-white/10"
             }`}
           >
             <Icon name="heart" className="h-3.5 w-3.5" />
@@ -397,25 +415,25 @@ function Header() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setAdminOpen(true)}
-            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
+            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
             aria-label="Administration"
           >
-            <Icon name="settings" className="h-4.5 w-4.5 text-muted-foreground" />
+            <Icon name="settings" className="h-4.5 w-4.5 text-white/70" />
           </button>
           <button
             onClick={() => setShowSearch(true)}
-            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
+            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
             aria-label="Rechercher"
           >
-            <Icon name="search" className="h-4.5 w-4.5 text-muted-foreground" />
+            <Icon name="search" className="h-4.5 w-4.5 text-white/70" />
           </button>
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileOpen(true)}
-            className="md:hidden w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
+            className="md:hidden w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
             aria-label="Menu"
           >
-            <Icon name="menu" className="h-5 w-5 text-muted-foreground" />
+            <Icon name="menu" className="h-5 w-5 text-white/70" />
           </button>
         </div>
       </div>
@@ -639,7 +657,7 @@ function SearchOverlay() {
 // ==================== HERO SECTION ====================
 
 function HeroSection() {
-  const { featured, setView, setSelectedContentId } = useAppStore();
+  const { featured, setView, setSelectedContentId, toggleFavorite, favorites } = useAppStore();
   const [activeIdx, setActiveIdx] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -679,16 +697,17 @@ function HeroSection() {
           className="absolute inset-0"
         >
           <img
-            src={current.backdropUrl}
+            src={current.backdropUrl?.replace("/w1280/", "/original/")}
             alt=""
             className="w-full h-full object-cover"
+            loading="eager"
             onError={(e) => handleImgError(e, false)}
           />
         </motion.div>
       </AnimatePresence>
       {/* Gradients */}
-      <div className="hero-gradient absolute inset-0" />
-      <div className="hero-gradient-bottom absolute inset-0" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
 
       {/* Content */}
       <div className="relative z-10 flex flex-col justify-end h-full max-w-7xl mx-auto px-4 md:px-8 pb-12 md:pb-16">
@@ -734,6 +753,16 @@ function HeroSection() {
               )}
             </div>
             <div className="flex items-center gap-3">
+              <button
+                onClick={() => toggleFavorite(current.id)}
+                className="inline-flex items-center gap-2 px-6 py-2.5 bg-white/10 border border-white/20 hover:bg-white/20 text-white font-semibold rounded-lg transition-colors"
+              >
+                <Icon
+                  name={favorites.includes(current.id) ? "check" : "bookmark"}
+                  className="h-5 w-5"
+                />
+                Ma Liste
+              </button>
               <button
                 onClick={() => {
                   setSelectedContentId(current.id);
@@ -1202,7 +1231,7 @@ function DetailView() {
       const data = await res.json();
       if (data.baseUrl && data.hash && data.pages?.length > 0) {
         const pageUrls = data.pages.map(
-          (filename: string) => `${data.baseUrl}/data-saver/${data.hash}/${filename}`
+          (filename: string) => `/api/manga/proxy?url=${encodeURIComponent(`${data.baseUrl}/data-saver/${data.hash}/${filename}`)}`
         );
         openMangaReader(pageUrls, label, mangadexChapters);
       } else {
@@ -2465,7 +2494,7 @@ function MangaReader() {
         const data = await res.json();
         if (data.baseUrl && data.hash && data.pages?.length > 0) {
           const pageUrls = data.pages.map(
-            (filename: string) => `${data.baseUrl}/data-saver/${data.hash}/${filename}`
+            (filename: string) => `/api/manga/proxy?url=${encodeURIComponent(`${data.baseUrl}/data-saver/${data.hash}/${filename}`)}`
           );
           openMangaReader(pageUrls, title, mangaReaderChapters);
         } else {

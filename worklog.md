@@ -432,3 +432,25 @@ Stage Summary:
 - **43 Berserk chapters** loaded and readable (FR translation)
 - **Fallback**: if manga not on MangaDex, AniList link still available
 - No download feature (MangaDex pages are CDN-served, can be saved by user via browser)
+
+---
+Task ID: 6
+Agent: Main Agent + Full-stack Developer subagent
+Task: Fix manga reader images + Netflix header + Ma Liste button + hero HD + Nunito font
+
+Work Log:
+- Fixed manga reader "Image non disponible": created `/api/manga/proxy` route that streams images from MangaDex CDN with proper Referer/User-Agent headers, updated both page URL constructions to use proxy
+- Netflix-style transparent header: added scroll listener (50px threshold) + hover detection, 3 states: transparent (top), gradient (scrolled), solid (hovered), smooth 300ms transition
+- Added "Ma Liste" button in hero: bookmark/check icon, white/10 bg with border, toggles favorite on current featured content
+- Hero image quality: changed TMDB backdrop from w1280 to original size, added loading="eager", stronger gradient overlays (left: from-black/90, bottom: from page bg)
+- Font Nunito: replaced Geist in layout.tsx with Nunito (300-900 weights via next/font/google), updated tailwind.config.ts fontFamily sans, updated CSS variable
+- Browser QA verified: all 5 fixes working, zero console errors, manga reader loads pages correctly
+- Lint: 0 errors, 0 warnings
+
+Stage Summary:
+- **Manga images fixed**: proxy API eliminates CORS/referrer issues
+- **Netflix header**: transparent → gradient → solid on scroll/hover
+- **Ma Liste**: Netflix-style favorite button in hero
+- **Hero HD**: original TMDB backdrop images with enhanced gradients
+- **Nunito font**: site-wide rounded sans-serif font (300-900 weights)
+- Current project status: stable, all core features working
