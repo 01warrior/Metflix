@@ -335,7 +335,7 @@ function ContentRow({
 // ==================== HEADER ====================
 
 function Header() {
-  const { setView, setShowSearch, favorites, currentView, setSelectedType } =
+  const { setView, setShowSearch, favorites, currentView, setSelectedType, selectedType } =
     useAppStore();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
@@ -378,7 +378,7 @@ function Header() {
               onClick={() => handleNav(item)}
               className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                 (item.view && currentView === item.view) ||
-                (item.type && currentView === "browse")
+                (item.type && currentView === "browse" && selectedType === item.type)
                   ? "text-red-400 bg-red-400/10"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
               }`}
@@ -454,7 +454,7 @@ function Header() {
                 onClick={() => handleNav(item)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   (item.view && currentView === item.view) ||
-                  (item.type && currentView === "browse")
+                  (item.type && currentView === "browse" && selectedType === item.type)
                     ? "text-red-400 bg-red-400/10"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
@@ -494,7 +494,7 @@ function Header() {
 // ==================== MOBILE BOTTOM NAV ====================
 
 function MobileBottomNav() {
-  const { currentView, setView, setSelectedType } = useAppStore();
+  const { currentView, setView, setSelectedType, selectedType } = useAppStore();
 
   if (currentView === "detail") return null;
 
@@ -512,7 +512,7 @@ function MobileBottomNav() {
         const Icon = tab.icon;
         const isActive =
           (tab.view && currentView === tab.view) ||
-          (tab.type && currentView === "browse");
+          (tab.type && currentView === "browse" && selectedType === tab.type);
         return (
           <button
             key={tab.label}
