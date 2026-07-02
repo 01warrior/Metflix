@@ -390,3 +390,45 @@ Stage Summary:
 - **Admin Panel**: All icons migrated, no visual regressions
 - All 7 embed servers still working for films/series/anime
 - Zero runtime errors, clean lint
+
+---
+Task ID: 5
+Agent: Main Agent + Full-stack Developer subagent
+Task: Integrate MangaDex reader for reading/downloading manga chapters
+
+Work Log:
+- Verified MangaDex API accessible from sandbox (search, chapters, at-home/server pages)
+- Created 3 API routes:
+  - GET /api/manga/search?q= — searches MangaDex by title, returns top 5 with cover URLs
+  - GET /api/manga/chapters?mangadexId=&lang=fr — chapter list filtered (no external URLs, no 0-page chapters)
+  - GET /api/manga/pages?chapterId= — page URLs from MangaDex CDN (data-saver + hi-res)
+- Updated Zustand store: added mangaReaderOpen, mangaReaderPages, mangaReaderCurrentPage, mangaReaderChapterTitle, mangaReaderChapters + 3 actions
+- Built MangaReader component (~200 lines):
+  - Full-screen dark overlay with z-100
+  - Top bar: chapter title + page counter ("Page 3/32") + close button
+  - Left/right arrow navigation (semi-transparent circles)
+  - Centered manga page image (max 800px, object-contain)
+  - Bottom bar: prev/next chapter buttons + page navigation
+  - Keyboard: ArrowLeft/Right for pages, Escape to close
+  - Body scroll lock when open, loading spinner, image error fallback
+- Updated manga detail view:
+  - Auto-searches MangaDex when opening a manga (FR first, EN fallback)
+  - Shows loading state "Recherche sur MangaDex..."
+  - Shows real chapters with number, title, page count
+  - Falls back to AniList link if not found on MangaDex
+- Browser QA verified:
+  - Berserk: 43 FR chapters loaded from MangaDex
+  - Chapter 1: 32 pages, reader opened successfully
+  - Page navigation: 1→2 working, prev/next buttons functional
+  - Chapter navigation: Ch.1→Ch.2 loaded (38 pages), prev chapter enabled
+  - Close reader: works, returns to manga detail
+  - Zero console errors throughout
+- Lint: 0 errors, 0 warnings
+
+Stage Summary:
+- **Full manga reading experience**: search → chapters → page-by-page reader
+- **MangaDex integration**: real chapters in French with actual page images
+- **Reader features**: keyboard nav, chapter switching, page counter, close
+- **43 Berserk chapters** loaded and readable (FR translation)
+- **Fallback**: if manga not on MangaDex, AniList link still available
+- No download feature (MangaDex pages are CDN-served, can be saved by user via browser)

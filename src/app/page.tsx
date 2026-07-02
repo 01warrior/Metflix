@@ -1106,6 +1106,11 @@ function DetailView() {
   const [playerLoading, setPlayerLoading] = useState(false);
   const [selectedEpisode, setSelectedEpisode] = useState<string | null>(null);
   const [iframeKey, setIframeKey] = useState(0);
+  // MangaDex state
+  const [mangadexId, setMangadexId] = useState<string | null>(null);
+  const [mangadexChapters, setMangadexChapters] = useState<MangaDexChapter[]>([]);
+  const [mangadexLoading, setMangadexLoading] = useState(false);
+  const [mangadexError, setMangadexError] = useState<string | null>(null);
 
   // Fetch detail on mount or ID change
   const fetchDetail = useCallback(async (id: string) => {
@@ -1136,6 +1141,79 @@ function DetailView() {
       setLoading(false);
     }
   }, [setContentDetail, setCurrentEmbed, setSelectedEpisode, toast]);
+
+  // Search MangaDex when manga detail loads
+  const fetchMangaDexChapters = useCallback(async (mangaTitle: string) => {
+    setMangadexLoading(true);
+    setMangadexError(null);
+    setMangadexChapters([]);
+    setMangadexId(null);
+    try {
+      // Search for the manga on MangaDex
+      const searchRes = await fetch(`/api/manga/search?q=${encodeURIComponent(mangaTitle)}`);
+      const searchData = await searchRes.json();
+
+      if (!searchData.data || searchData.data.length === 0) {
+        setMangadexError("Non disponible sur MangaDex");
+        return;
+      }
+
+      const mdId = searchData.data[0].id;
+      setMangadexId(mdId);
+
+      // Fetch chapters in French
+      const chaptersRes = await fetch(`/api/manga/chapters?mangadexId=${mdId}&lang=fr`);
+      const chaptersData = await chaptersRes.json();
+
+      if (!chaptersData.data || chaptersData.data.length === 0) {
+        // Try English as fallback
+        const chaptersResEn = await fetch(`/api/manga/chapters?mangadexId=${mdId}&lang=en`);
+        const chaptersDataEn = await chaptersResEn.json();
+        if (!chaptersDataEn.data || chaptersDataEn.data.length === 0) {
+          setMangadexError("Aucun chapitre disponible");
+          return;
+        }
+        setMangadexChapters(chaptersDataEn.data);
+      } else {
+        setMangadexChapters(chaptersData.data);
+      }
+    } catch {
+      setMangadexError("Erreur de connexion a MangaDex");
+    } finally {
+      setMangadexLoading(false);
+    }
+  }, []);
+
+  // Trigger MangaDex search when manga content loads
+  useEffect(() => {
+    if (contentDetail?.type === "manga" && contentDetail.title) {
+      fetchMangaDexChapters(contentDetail.title);
+    }
+  }, [contentDetail?.type, contentDetail?.title, fetchMangaDexChapters]);
+
+  // Handle opening a chapter in the reader
+  const handleOpenChapter = useCallback(async (chapter: MangaDexChapter) => {
+    if (!chapter.id) return;
+    const label = `Ch. ${chapter.chapter || "?"}${chapter.title ? ` - ${chapter.title}` : ""}`;
+    const { openMangaReader } = useAppStore.getState();
+    setMangadexLoading(true);
+    try {
+      const res = await fetch(`/api/manga/pages?chapterId=${chapter.id}`);
+      const data = await res.json();
+      if (data.baseUrl && data.hash && data.pages?.length > 0) {
+        const pageUrls = data.pages.map(
+          (filename: string) => `${data.baseUrl}/data-saver/${data.hash}/${filename}`
+        );
+        openMangaReader(pageUrls, label, mangadexChapters);
+      } else {
+        toast({ title: "Erreur", description: "Impossible de charger les pages" });
+      }
+    } catch {
+      toast({ title: "Erreur", description: "Echec du chargement du chapitre" });
+    } finally {
+      setMangadexLoading(false);
+    }
+  }, [toast, mangadexChapters]);
 
   useEffect(() => {
     if (!selectedContentId) return;
@@ -1272,37 +1350,76 @@ function DetailView() {
                   {contentDetail.overviewFr}
                 </p>
               )}
-              {/* Read online button */}
-              {contentDetail.anilistId && (
-                <a
-                  href={`https://anilist.co/manga/${contentDetail.anilistId}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors w-fit"
-                >
-                  <Icon name="book-open" className="h-4 w-4" />
-                  Lire en ligne
-                </a>
-              )}
-              {/* Chapter grid */}
-              {contentDetail.seasons && contentDetail.seasons > 0 && (
-                <div className="mt-5">
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-                    <Icon name="bookmark" className="h-4 w-4" />
-                    Chapitres
-                  </h3>
-                  <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-1.5 max-h-48 overflow-y-auto">
-                    {Array.from({ length: Math.min(contentDetail.seasons, 200) }).map((_, i) => (
-                      <button
-                        key={i + 1}
-                        className="px-1 py-1.5 rounded text-[11px] font-medium bg-muted text-muted-foreground hover:text-foreground hover:bg-purple-600/20 hover:text-purple-400 transition-colors"
-                      >
-                        {i + 1}
-                      </button>
-                    ))}
+              {/* MangaDex chapter section */}
+              <div className="mt-2">
+                {/* Loading state */}
+                {mangadexLoading && (
+                  <div className="flex items-center gap-2 py-3">
+                    <Icon name="loader" className="h-4 w-4 animate-spin text-purple-400" />
+                    <span className="text-sm text-muted-foreground">Recherche sur MangaDex...</span>
                   </div>
-                </div>
-              )}
+                )}
+                {/* Error / not found state */}
+                {mangadexError && !mangadexLoading && (
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                      <Icon name="alert-02" className="h-4 w-4 text-amber-400" />
+                      {mangadexError}
+                    </p>
+                    {/* Fallback to AniList */}
+                    {contentDetail.anilistId && (
+                      <a
+                        href={`https://anilist.co/manga/${contentDetail.anilistId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground text-sm font-medium rounded-lg transition-colors"
+                      >
+                        <Icon name="globe" className="h-3.5 w-3.5" />
+                        Voir sur AniList
+                      </a>
+                    )}
+                  </div>
+                )}
+                {/* Chapter list from MangaDex */}
+                {!mangadexLoading && !mangadexError && mangadexChapters.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+                      <Icon name="book-open" className="h-4 w-4 text-purple-400" />
+                      Chapitres disponibles
+                      <span className="text-xs font-normal text-muted-foreground/70">
+                        ({mangadexChapters.length} chapitres)
+                      </span>
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-96 overflow-y-auto pr-1">
+                      {mangadexChapters.map((ch) => (
+                        <button
+                          key={ch.id}
+                          onClick={() => handleOpenChapter(ch)}
+                          disabled={mangadexLoading}
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-left bg-muted/50 hover:bg-purple-600/10 hover:text-purple-400 transition-colors group disabled:opacity-50"
+                        >
+                          <span className="text-xs font-bold text-purple-400 group-hover:text-purple-300 min-w-[3rem]">
+                            Ch. {ch.chapter || "?"}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            {ch.title && (
+                              <p className="text-xs font-medium text-foreground truncate group-hover:text-purple-300">
+                                {ch.title}
+                              </p>
+                            )}
+                          </div>
+                          {ch.pages > 0 && (
+                            <div className="flex items-center gap-1 text-muted-foreground flex-shrink-0">
+                              <Icon name="book-open" className="h-3 w-3" />
+                              <span className="text-[10px]">{ch.pages}p</span>
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -2279,6 +2396,229 @@ function AdminPanel({
   );
 }
 
+// ==================== MANGA READER ====================
+
+interface MangaDexChapter {
+  id: string;
+  chapter: string | null;
+  title: string | null;
+  volume: string | null;
+  pages: number;
+  publishAt: string | null;
+  readableAt: string | null;
+}
+
+function MangaReader() {
+  const {
+    mangaReaderOpen,
+    mangaReaderPages,
+    mangaReaderCurrentPage,
+    mangaReaderChapterTitle,
+    mangaReaderChapters,
+    closeMangaReader,
+    setMangaReaderPage,
+    openMangaReader,
+    toast,
+  } = useAppStore();
+  const [loading, setLoading] = useState(false);
+  const [imgError, setImgError] = useState<Record<number, boolean>>({});
+
+  const totalPages = mangaReaderPages.length;
+  const currentPage = mangaReaderCurrentPage;
+
+  // Keyboard navigation
+  useEffect(() => {
+    if (!mangaReaderOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft" && currentPage > 0) {
+        setMangaReaderPage(currentPage - 1);
+      } else if (e.key === "ArrowRight" && currentPage < totalPages - 1) {
+        setMangaReaderPage(currentPage + 1);
+      } else if (e.key === "Escape") {
+        closeMangaReader();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [mangaReaderOpen, currentPage, totalPages, setMangaReaderPage, closeMangaReader]);
+
+  // Lock body scroll when reader is open
+  useEffect(() => {
+    if (mangaReaderOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mangaReaderOpen]);
+
+  const openChapter = useCallback(
+    async (chapterId: string, title: string) => {
+      setLoading(true);
+      setImgError({});
+      try {
+        const res = await fetch(`/api/manga/pages?chapterId=${chapterId}`);
+        const data = await res.json();
+        if (data.baseUrl && data.hash && data.pages?.length > 0) {
+          const pageUrls = data.pages.map(
+            (filename: string) => `${data.baseUrl}/data-saver/${data.hash}/${filename}`
+          );
+          openMangaReader(pageUrls, title, mangaReaderChapters);
+        } else {
+          toast({ title: "Erreur", description: "Impossible de charger les pages de ce chapitre" });
+        }
+      } catch {
+        toast({ title: "Erreur", description: "Echec du chargement du chapitre" });
+      } finally {
+        setLoading(false);
+      }
+    },
+    [openMangaReader, mangaReaderChapters]
+  );
+
+  const currentChapterIndex = mangaReaderChapters.findIndex(
+    (ch) => `Ch. ${ch.chapter}${ch.title ? ` - ${ch.title}` : ""}` === mangaReaderChapterTitle
+  );
+
+  const goToChapter = useCallback(
+    (direction: "prev" | "next") => {
+      if (currentChapterIndex < 0) return;
+      const newIdx = direction === "prev" ? currentChapterIndex - 1 : currentChapterIndex + 1;
+      if (newIdx >= 0 && newIdx < mangaReaderChapters.length) {
+        const ch = mangaReaderChapters[newIdx];
+        const label = `Ch. ${ch.chapter}${ch.title ? ` - ${ch.title}` : ""}`;
+        openChapter(ch.id, label);
+      }
+    },
+    [mangaReaderChapters, currentChapterIndex, openChapter]
+  );
+
+  if (!mangaReaderOpen) return null;
+
+  const currentImgSrc = mangaReaderPages[currentPage] || "";
+  const hasPrevPage = currentPage > 0;
+  const hasNextPage = currentPage < totalPages - 1;
+  const hasPrevChapter = currentChapterIndex > 0;
+  const hasNextChapter = currentChapterIndex < mangaReaderChapters.length - 1;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[100] bg-black flex flex-col"
+      >
+        {/* Top bar */}
+        <div className="flex items-center justify-between px-4 py-3 bg-black/90 border-b border-white/10 flex-shrink-0">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-white truncate">
+              {mangaReaderChapterTitle}
+            </p>
+            <p className="text-xs text-white/60">
+              Page {currentPage + 1} / {totalPages}
+            </p>
+          </div>
+          <button
+            onClick={closeMangaReader}
+            className="ml-3 w-9 h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors flex-shrink-0"
+            aria-label="Fermer le lecteur"
+          >
+            <Icon name="x" className="h-5 w-5 text-white" />
+          </button>
+        </div>
+
+        {/* Main area */}
+        <div className="flex-1 relative flex items-center justify-center overflow-hidden">
+          {loading ? (
+            <div className="flex items-center justify-center">
+              <Icon name="loader" className="h-8 w-8 animate-spin text-white" />
+            </div>
+          ) : (
+            <>
+              {/* Left arrow */}
+              {hasPrevPage && (
+                <button
+                  onClick={() => setMangaReaderPage(currentPage - 1)}
+                  className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-black/60 hover:bg-black/80 transition-colors z-10"
+                  aria-label="Page precedente"
+                >
+                  <Icon name="chevron-left" className="h-6 w-6 text-white" />
+                </button>
+              )}
+
+              {/* Page image */}
+              <div className="max-w-[800px] w-full h-full flex items-center justify-center p-4">
+                {imgError[currentPage] ? (
+                  <div className="flex flex-col items-center justify-center text-center p-8">
+                    <Icon name="image" className="h-12 w-12 text-white/30 mb-3" />
+                    <p className="text-white/50 text-sm">Image non disponible</p>
+                  </div>
+                ) : (
+                  <img
+                    src={currentImgSrc}
+                    alt={`Page ${currentPage + 1}`}
+                    className="max-w-full max-h-full object-contain"
+                    onError={() => setImgError((prev) => ({ ...prev, [currentPage]: true }))}
+                  />
+                )}
+              </div>
+
+              {/* Right arrow */}
+              {hasNextPage && (
+                <button
+                  onClick={() => setMangaReaderPage(currentPage + 1)}
+                  className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-black/60 hover:bg-black/80 transition-colors z-10"
+                  aria-label="Page suivante"
+                >
+                  <Icon name="chevron-right" className="h-6 w-6 text-white" />
+                </button>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Bottom bar */}
+        <div className="flex items-center justify-between px-4 py-3 bg-black/90 border-t border-white/10 flex-shrink-0">
+          <button
+            onClick={() => goToChapter("prev")}
+            disabled={!hasPrevChapter || loading}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <Icon name="chevron-left" className="h-3.5 w-3.5" />
+            Chapitre precedent
+          </button>
+
+          {/* Page slider / indicator */}
+          <div className="flex items-center gap-2 mx-4 flex-1 max-w-xs">
+            <input
+              type="range"
+              min={0}
+              max={Math.max(0, totalPages - 1)}
+              value={currentPage}
+              onChange={(e) => setMangaReaderPage(Number(e.target.value))}
+              className="w-full h-1 bg-white/20 rounded-full appearance-none cursor-pointer accent-purple-500"
+            />
+          </div>
+
+          <button
+            onClick={() => goToChapter("next")}
+            disabled={!hasNextChapter || loading}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            Chapitre suivant
+            <Icon name="chevron-right" className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
 // ==================== MAIN PAGE ====================
 
 export default function Page() {
@@ -2359,6 +2699,7 @@ export default function Page() {
       <Footer />
       <MobileBottomNav />
       <SearchOverlay />
+      <MangaReader />
     </div>
   );
 }
