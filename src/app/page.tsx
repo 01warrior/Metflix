@@ -326,7 +326,6 @@ function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [headerHovered, setHeaderHovered] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -355,14 +354,10 @@ function Header() {
   return (
     <header
       className={`sticky top-0 z-50 w-full border-b border-white/0 transition-all duration-300 ${
-        headerHovered
-          ? "bg-black/95 backdrop-blur-sm border-white/10"
-          : scrolled
-            ? "bg-gradient-to-b from-black/80 via-black/40 to-transparent"
-            : "bg-transparent"
+        scrolled
+          ? "bg-background/95 backdrop-blur-md border-white/10"
+          : "bg-gradient-to-b from-black/70 via-black/30 to-transparent"
       }`}
-      onMouseEnter={() => setHeaderHovered(true)}
-      onMouseLeave={() => setHeaderHovered(false)}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between h-14 px-4">
         {/* Logo */}
