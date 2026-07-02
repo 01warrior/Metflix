@@ -359,7 +359,7 @@ function Header() {
           : ""
       }`}
     >
-      <div className="max-w-7xl mx-auto flex items-center justify-between h-14 px-4">
+      <div className="max-w-7xl mx-auto flex items-center justify-between h-14 px-4 [text-shadow:0_1px_3px_rgba(0,0,0,0.8)]">
         {/* Logo */}
         <button
           onClick={() => setView("home")}
@@ -680,7 +680,7 @@ function HeroSection() {
   }
 
   return (
-    <div className="relative w-full h-[50vh] md:h-[65vh] overflow-hidden">
+    <div className="relative w-full h-[50vh] md:h-[65vh] overflow-hidden -mt-14">
       {/* Backdrop image */}
       <AnimatePresence mode="wait">
         <motion.div
@@ -701,8 +701,9 @@ function HeroSection() {
         </motion.div>
       </AnimatePresence>
       {/* Gradients */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
+      <div className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-black/30 to-transparent pointer-events-none" />
 
       {/* Content */}
       <div className="relative z-10 flex flex-col justify-end h-full max-w-7xl mx-auto px-4 md:px-8 pb-12 md:pb-16">
