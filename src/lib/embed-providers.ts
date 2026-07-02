@@ -4,7 +4,7 @@
  * CENTRALIZED CONFIG - All embed providers in ONE file.
  * To add/remove/modify a provider, edit ONLY this file.
  * 
- * VERIFIED: Tested on 2025-07-02 (v2)
+ * VERIFIED: Tested on 2025-07-03 (v3)
  * 
  * HOW TO UPDATE:
  * 1. Test the domain: curl -sI "https://DOMAIN/embed/movie/550" | head -1
@@ -93,6 +93,27 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     movieUrl: "https://embed.su/embed/movie/{tmdbId}",
     tvUrl: "https://embed.su/embed/tv/{tmdbId}/{season}/{episode}",
     note: "Working 2025-07-02. TV episodes select in-player.",
+  },
+
+  {
+    id: "smashystream",
+    name: "SmashyStream",
+    color: "#10b981",
+    quality: "1080p",
+    active: true,
+    movieUrl: "https://embed.smashystream.com/movie/{tmdbId}",
+    tvUrl: "https://embed.smashystream.com/tv/{tmdbId}/{season}/{episode}",
+    note: "Working 2025-07-03. Redirects to anyembed.xyz backend. Clean player.",
+  },
+  {
+    id: "anyembed",
+    name: "AnyEmbed",
+    color: "#14b8a6",
+    quality: "1080p",
+    active: true,
+    movieUrl: "https://anyembed.xyz/embed/tmdb-movie-{tmdbId}",
+    tvUrl: "https://anyembed.xyz/embed/tmdb-tv-{tmdbId}-{season}-{episode}",
+    note: "Working 2025-07-03. SmashyStream backend, direct access.",
   },
 
   // === TIER 2: Redirects (still usable, browser follows redirect) ===
