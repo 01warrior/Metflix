@@ -356,7 +356,7 @@ function Header() {
       className={`sticky top-0 z-50 w-full transition-all duration-300 ${
         scrolled
           ? "bg-background/95 backdrop-blur-md shadow-[0_1px_0_rgba(255,255,255,0.1)]"
-          : "bg-transparent shadow-[0_4px_30px_rgba(0,0,0,0.5)]"
+          : ""
       }`}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between h-14 px-4">
