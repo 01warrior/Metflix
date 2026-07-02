@@ -58,6 +58,9 @@ import {
   Shield01Icon,
   User02Icon,
   BellIcon,
+  VolumeHighIcon,
+  VolumeMute01Icon,
+  InformationCircleIcon,
 } from "@hugeicons/core-free-icons";
 
 // Icon name → icon data mapping
@@ -120,6 +123,9 @@ export const ICON_MAP: Record<string, IconSvgElement> = {
   shield: Shield01Icon,
   user: User02Icon,
   bell: BellIcon,
+  "volume-2": VolumeHighIcon,
+  "volume-x": VolumeMute01Icon,
+  info: InformationCircleIcon,
 };
 
 // Simple Icon component that mimics Lucide's API

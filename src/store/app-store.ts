@@ -110,6 +110,8 @@ interface AppState {
   mangaReaderCurrentPage: number;
   mangaReaderChapterTitle: string;
   mangaReaderChapters: { id: string; chapter: string | null; title: string | null; volume: string | null; pages: number; publishAt: string | null; readableAt: string | null }[];
+  previewItem: ContentItem | null;
+  showPreview: boolean;
 
   // Actions
   setView: (view: "home" | "browse" | "detail" | "favorites") => void;
@@ -143,6 +145,8 @@ interface AppState {
   openMangaReader: (pages: string[], title: string, chapters: { id: string; chapter: string | null; title: string | null; volume: string | null; pages: number; publishAt: string | null; readableAt: string | null }[]) => void;
   closeMangaReader: () => void;
   setMangaReaderPage: (page: number) => void;
+  openPreview: (item: ContentItem) => void;
+  closePreview: () => void;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -177,6 +181,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   mangaReaderCurrentPage: 0,
   mangaReaderChapterTitle: "",
   mangaReaderChapters: [],
+  previewItem: null,
+  showPreview: false,
 
   setView: (view) => set({ currentView: view }),
   setSelectedType: (type) => set({ selectedType: type, browsePage: 1, selectedCategory: null, browseContent: [] }),
@@ -223,4 +229,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   openMangaReader: (pages, title, chapters) => set({ mangaReaderOpen: true, mangaReaderPages: pages, mangaReaderCurrentPage: 0, mangaReaderChapterTitle: title, mangaReaderChapters: chapters || [] }),
   closeMangaReader: () => set({ mangaReaderOpen: false, mangaReaderPages: [], mangaReaderCurrentPage: 0, mangaReaderChapterTitle: "" }),
   setMangaReaderPage: (page) => set({ mangaReaderCurrentPage: page }),
+  openPreview: (item) => set({ previewItem: item, showPreview: true }),
+  closePreview: () => set({ previewItem: null, showPreview: false }),
 }));

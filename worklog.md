@@ -487,3 +487,26 @@ Stage Summary:
 - **27,822 embeds** in database (345 content items × 9 providers)
 - All features from previous sessions verified working
 - **Font fix**: Added missing `font-sans` class to `<body>` in layout.tsx — Nunito was configured as CSS variable but never applied. Now all elements render with Nunito (300-900 weights verified: H1=800, H3=500, p=400)
+---
+Task ID: 6
+Agent: Main Agent
+Task: Netflix-style Preview Modal with YouTube trailer
+
+Work Log:
+- Created API endpoint `/api/tmdb/videos` that fetches YouTube trailer keys from TMDB for movies and TV shows
+- Added `previewItem` and `showPreview` state to Zustand store with `openPreview`/`closePreview` actions
+- Built `PreviewModal` component with: YouTube iframe autoplay (muted by default), fallback to backdrop image, mute toggle, close button, content info (title, rating, year, runtime, seasons, genres), synopsis, action buttons (Regarder, Favoris, Plus d'infos)
+- Modified `ContentCard` to open preview modal on click instead of navigating directly to detail view
+- Modified `SearchOverlay` to also open preview modal on result click
+- Added 3 new icons to icons.tsx: volume-2 (VolumeHighIcon), volume-x (VolumeMute01Icon), info (InformationCircleIcon)
+- Fixed icon import error (SquareInfoIcon → InformationCircleIcon)
+- Verified with agent-browser + VLM: modal renders correctly with content details, trailer API call succeeds (200)
+
+Stage Summary:
+- Preview modal is fully functional - Netflix-style with trailer playback
+- Trailer starts autoplay muted, user can unmute
+- Clicking "Regarder" or "Plus d'infos" navigates to detail view
+- Favorite toggle works within the modal
+- ESC key and backdrop click close the modal
+- Responsive: bottom-sheet on mobile, centered on desktop
+- Spring animation with Framer Motion for smooth open/close

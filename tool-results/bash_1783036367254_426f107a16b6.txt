@@ -1,0 +1,1449 @@
+[info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[log] [HMR] connected
+[error] ./src/lib/icons.tsx:4:1
+Export SquareInfoIcon doesn't exist in target module
+   2 |
+   3 | import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+>  4 | import {
+     | ^^^^^^^^
+>  5 |   Search01Icon,
+     | ^^^^^^^^^^^^^^^
+>  6 |   PlayIcon,
+     | ^^^^^^^^^^^^^^^
+>  7 |   StarIcon,
+     | ^^^^^^^^^^^^^^^
+>  8 |   Film01Icon,
+     | ^^^^^^^^^^^^^^^
+>  9 |   Tv01Icon,
+     | ^^^^^^^^^^^^^^^
+> 10 |   BookOpen01Icon,
+     | ^^^^^^^^^^^^^^^
+> 11 |   HeartIcon,
+     | ^^^^^^^^^^^^^^^
+> 12 |   ChevronLeftIcon,
+     | ^^^^^^^^^^^^^^^
+> 13 |   ChevronRightIcon,
+     | ^^^^^^^^^^^^^^^
+> 14 |   Cancel01Icon,
+     | ^^^^^^^^^^^^^^^
+> 15 |   Home01Icon,
+     | ^^^^^^^^^^^^^^^
+> 16 |   ServerStack01Icon,
+     | ^^^^^^^^^^^^^^^
+> 17 |   Calendar01Icon,
+     | ^^^^^^^^^^^^^^^
+> 18 |   Menu01Icon,
+     | ^^^^^^^^^^^^^^^
+> 19 |   ArrowReloadHorizontalIcon,
+     | ^^^^^^^^^^^^^^^
+> 20 |   Clock01Icon,
+     | ^^^^^^^^^^^^^^^
+> 21 |   Loading02Icon,
+     | ^^^^^^^^^^^^^^^
+> 22 |   SparklesIcon,
+     | ^^^^^^^^^^^^^^^
+> 23 |   MonitorDotIcon,
+     | ^^^^^^^^^^^^^^^
+> 24 |   TrendingUpDownIcon,
+     | ^^^^^^^^^^^^^^^
+> 25 |   LayerIcon,
+     | ^^^^^^^^^^^^^^^
+> 26 |   Settings02Icon,
+     | ^^^^^^^^^^^^^^^
+> 27 |   RefreshIcon,
+     | ^^^^^^^^^^^^^^^
+> 28 |   DatabaseIcon,
+     | ^^^^^^^^^^^^^^^
+> 29 |   ZapIcon,
+     | ^^^^^^^^^^^^^^^
+> 30 |   Analytics01Icon,
+     | ^^^^^^^^^^^^^^^
+> 31 |   BookMarkedIcon,
+     | ^^^^^^^^^^^^^^^
+> 32 |   Books01Icon,
+     | ^^^^^^^^^^^^^^^
+> 33 |   Alert01Icon,
+     | ^^^^^^^^^^^^^^^
+> 34 |   Alert02Icon,
+     | ^^^^^^^^^^^^^^^
+> 35 |   BadgeCheckIcon,
+     | ^^^^^^^^^^^^^^^
+> 36 |   BadgeInfoIcon,
+     | ^^^^^^^^^^^^^^^
+> 37 |   Delete02Icon,
+     | ^^^^^^^^^^^^^^^
+> 38 |   Image01Icon,
+     | ^^^^^^^^^^^^^^^
+> 39 |   Loading01Icon,
+     | ^^^^^^^^^^^^^^^
+> 40 |   PlayCircleIcon,
+     | ^^^^^^^^^^^^^^^
+> 41 |   CheckIcon,
+     | ^^^^^^^^^^^^^^^
+> 42 |   Pulse01Icon,
+     | ^^^^^^^^^^^^^^^
+> 43 |   ArrowDown01Icon,
+     | ^^^^^^^^^^^^^^^
+> 44 |   ArrowUp01Icon,
+     | ^^^^^^^^^^^^^^^
+> 45 |   FilterIcon,
+     | ^^^^^^^^^^^^^^^
+> 46 |   Globe02Icon,
+     | ^^^^^^^^^^^^^^^
+> 47 |   Grid02Icon,
+     | ^^^^^^^^^^^^^^^
+> 48 |   Bookmark01Icon,
+     | ^^^^^^^^^^^^^^^
+> 49 |   Download01Icon,
+     | ^^^^^^^^^^^^^^^
+> 50 |   Share01Icon,
+     | ^^^^^^^^^^^^^^^
+> 51 |   Copy01Icon,
+     | ^^^^^^^^^^^^^^^
+> 52 |   Link01Icon,
+     | ^^^^^^^^^^^^^^^
+> 53 |   EyeIcon,
+     | ^^^^^^^^^^^^^^^
+> 54 |   Video01Icon,
+     | ^^^^^^^^^^^^^^^
+> 55 |   Camera01Icon,
+     | ^^^^^^^^^^^^^^^
+> 56 |   Activity01Icon,
+     | ^^^^^^^^^^^^^^^
+> 57 |   Notification01Icon,
+     | ^^^^^^^^^^^^^^^
+> 58 |   Shield01Icon,
+     | ^^^^^^^^^^^^^^^
+> 59 |   User02Icon,
+     | ^^^^^^^^^^^^^^^
+> 60 |   BellIcon,
+     | ^^^^^^^^^^^^^^^
+> 61 |   VolumeHighIcon,
+     | ^^^^^^^^^^^^^^^
+> 62 |   VolumeMute01Icon,
+     | ^^^^^^^^^^^^^^^
+> 63 |   SquareInfoIcon,
+     | ^^^^^^^^^^^^^^^
+> 64 | } from "@hugeicons/core-free-icons";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  65 |
+  66 | // Icon name → icon data mapping
+  67 | export const ICON_MAP: Record<string, IconSvgElement> = {
+
+The export SquareInfoIcon was not found in module [project]/node_modules/@hugeicons/core-free-icons/dist/esm/index.js [app-client] (ecmascript).
+Did you mean to import SquareIcon?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/lib/icons.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/lib/icons.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+[error] ./src/lib/icons.tsx:4:1
+Export SquareInfoIcon doesn't exist in target module
+   2 |
+   3 | import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+>  4 | import {
+     | ^^^^^^^^
+>  5 |   Search01Icon,
+     | ^^^^^^^^^^^^^^^
+>  6 |   PlayIcon,
+     | ^^^^^^^^^^^^^^^
+>  7 |   StarIcon,
+     | ^^^^^^^^^^^^^^^
+>  8 |   Film01Icon,
+     | ^^^^^^^^^^^^^^^
+>  9 |   Tv01Icon,
+     | ^^^^^^^^^^^^^^^
+> 10 |   BookOpen01Icon,
+     | ^^^^^^^^^^^^^^^
+> 11 |   HeartIcon,
+     | ^^^^^^^^^^^^^^^
+> 12 |   ChevronLeftIcon,
+     | ^^^^^^^^^^^^^^^
+> 13 |   ChevronRightIcon,
+     | ^^^^^^^^^^^^^^^
+> 14 |   Cancel01Icon,
+     | ^^^^^^^^^^^^^^^
+> 15 |   Home01Icon,
+     | ^^^^^^^^^^^^^^^
+> 16 |   ServerStack01Icon,
+     | ^^^^^^^^^^^^^^^
+> 17 |   Calendar01Icon,
+     | ^^^^^^^^^^^^^^^
+> 18 |   Menu01Icon,
+     | ^^^^^^^^^^^^^^^
+> 19 |   ArrowReloadHorizontalIcon,
+     | ^^^^^^^^^^^^^^^
+> 20 |   Clock01Icon,
+     | ^^^^^^^^^^^^^^^
+> 21 |   Loading02Icon,
+     | ^^^^^^^^^^^^^^^
+> 22 |   SparklesIcon,
+     | ^^^^^^^^^^^^^^^
+> 23 |   MonitorDotIcon,
+     | ^^^^^^^^^^^^^^^
+> 24 |   TrendingUpDownIcon,
+     | ^^^^^^^^^^^^^^^
+> 25 |   LayerIcon,
+     | ^^^^^^^^^^^^^^^
+> 26 |   Settings02Icon,
+     | ^^^^^^^^^^^^^^^
+> 27 |   RefreshIcon,
+     | ^^^^^^^^^^^^^^^
+> 28 |   DatabaseIcon,
+     | ^^^^^^^^^^^^^^^
+> 29 |   ZapIcon,
+     | ^^^^^^^^^^^^^^^
+> 30 |   Analytics01Icon,
+     | ^^^^^^^^^^^^^^^
+> 31 |   BookMarkedIcon,
+     | ^^^^^^^^^^^^^^^
+> 32 |   Books01Icon,
+     | ^^^^^^^^^^^^^^^
+> 33 |   Alert01Icon,
+     | ^^^^^^^^^^^^^^^
+> 34 |   Alert02Icon,
+     | ^^^^^^^^^^^^^^^
+> 35 |   BadgeCheckIcon,
+     | ^^^^^^^^^^^^^^^
+> 36 |   BadgeInfoIcon,
+     | ^^^^^^^^^^^^^^^
+> 37 |   Delete02Icon,
+     | ^^^^^^^^^^^^^^^
+> 38 |   Image01Icon,
+     | ^^^^^^^^^^^^^^^
+> 39 |   Loading01Icon,
+     | ^^^^^^^^^^^^^^^
+> 40 |   PlayCircleIcon,
+     | ^^^^^^^^^^^^^^^
+> 41 |   CheckIcon,
+     | ^^^^^^^^^^^^^^^
+> 42 |   Pulse01Icon,
+     | ^^^^^^^^^^^^^^^
+> 43 |   ArrowDown01Icon,
+     | ^^^^^^^^^^^^^^^
+> 44 |   ArrowUp01Icon,
+     | ^^^^^^^^^^^^^^^
+> 45 |   FilterIcon,
+     | ^^^^^^^^^^^^^^^
+> 46 |   Globe02Icon,
+     | ^^^^^^^^^^^^^^^
+> 47 |   Grid02Icon,
+     | ^^^^^^^^^^^^^^^
+> 48 |   Bookmark01Icon,
+     | ^^^^^^^^^^^^^^^
+> 49 |   Download01Icon,
+     | ^^^^^^^^^^^^^^^
+> 50 |   Share01Icon,
+     | ^^^^^^^^^^^^^^^
+> 51 |   Copy01Icon,
+     | ^^^^^^^^^^^^^^^
+> 52 |   Link01Icon,
+     | ^^^^^^^^^^^^^^^
+> 53 |   EyeIcon,
+     | ^^^^^^^^^^^^^^^
+> 54 |   Video01Icon,
+     | ^^^^^^^^^^^^^^^
+> 55 |   Camera01Icon,
+     | ^^^^^^^^^^^^^^^
+> 56 |   Activity01Icon,
+     | ^^^^^^^^^^^^^^^
+> 57 |   Notification01Icon,
+     | ^^^^^^^^^^^^^^^
+> 58 |   Shield01Icon,
+     | ^^^^^^^^^^^^^^^
+> 59 |   User02Icon,
+     | ^^^^^^^^^^^^^^^
+> 60 |   BellIcon,
+     | ^^^^^^^^^^^^^^^
+> 61 |   VolumeHighIcon,
+     | ^^^^^^^^^^^^^^^
+> 62 |   VolumeMute01Icon,
+     | ^^^^^^^^^^^^^^^
+> 63 |   SquareInfoIcon,
+     | ^^^^^^^^^^^^^^^
+> 64 | } from "@hugeicons/core-free-icons";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  65 |
+  66 | // Icon name → icon data mapping
+  67 | export const ICON_MAP: Record<string, IconSvgElement> = {
+
+The export SquareInfoIcon was not found in module [project]/node_modules/@hugeicons/core-free-icons/dist/esm/index.js [app-ssr] (ecmascript).
+Did you mean to import SquareIcon?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/lib/icons.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/lib/icons.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+[log] [Fast Refresh] rebuilding
+[clear] console.clear
+[error] ./src/lib/icons.tsx:4:1
+Export SquareInfoIcon doesn't exist in target module
+   2 |
+   3 | import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+>  4 | import {
+     | ^^^^^^^^
+>  5 |   Search01Icon,
+     | ^^^^^^^^^^^^^^^
+>  6 |   PlayIcon,
+     | ^^^^^^^^^^^^^^^
+>  7 |   StarIcon,
+     | ^^^^^^^^^^^^^^^
+>  8 |   Film01Icon,
+     | ^^^^^^^^^^^^^^^
+>  9 |   Tv01Icon,
+     | ^^^^^^^^^^^^^^^
+> 10 |   BookOpen01Icon,
+     | ^^^^^^^^^^^^^^^
+> 11 |   HeartIcon,
+     | ^^^^^^^^^^^^^^^
+> 12 |   ChevronLeftIcon,
+     | ^^^^^^^^^^^^^^^
+> 13 |   ChevronRightIcon,
+     | ^^^^^^^^^^^^^^^
+> 14 |   Cancel01Icon,
+     | ^^^^^^^^^^^^^^^
+> 15 |   Home01Icon,
+     | ^^^^^^^^^^^^^^^
+> 16 |   ServerStack01Icon,
+     | ^^^^^^^^^^^^^^^
+> 17 |   Calendar01Icon,
+     | ^^^^^^^^^^^^^^^
+> 18 |   Menu01Icon,
+     | ^^^^^^^^^^^^^^^
+> 19 |   ArrowReloadHorizontalIcon,
+     | ^^^^^^^^^^^^^^^
+> 20 |   Clock01Icon,
+     | ^^^^^^^^^^^^^^^
+> 21 |   Loading02Icon,
+     | ^^^^^^^^^^^^^^^
+> 22 |   SparklesIcon,
+     | ^^^^^^^^^^^^^^^
+> 23 |   MonitorDotIcon,
+     | ^^^^^^^^^^^^^^^
+> 24 |   TrendingUpDownIcon,
+     | ^^^^^^^^^^^^^^^
+> 25 |   LayerIcon,
+     | ^^^^^^^^^^^^^^^
+> 26 |   Settings02Icon,
+     | ^^^^^^^^^^^^^^^
+> 27 |   RefreshIcon,
+     | ^^^^^^^^^^^^^^^
+> 28 |   DatabaseIcon,
+     | ^^^^^^^^^^^^^^^
+> 29 |   ZapIcon,
+     | ^^^^^^^^^^^^^^^
+> 30 |   Analytics01Icon,
+     | ^^^^^^^^^^^^^^^
+> 31 |   BookMarkedIcon,
+     | ^^^^^^^^^^^^^^^
+> 32 |   Books01Icon,
+     | ^^^^^^^^^^^^^^^
+> 33 |   Alert01Icon,
+     | ^^^^^^^^^^^^^^^
+> 34 |   Alert02Icon,
+     | ^^^^^^^^^^^^^^^
+> 35 |   BadgeCheckIcon,
+     | ^^^^^^^^^^^^^^^
+> 36 |   BadgeInfoIcon,
+     | ^^^^^^^^^^^^^^^
+> 37 |   Delete02Icon,
+     | ^^^^^^^^^^^^^^^
+> 38 |   Image01Icon,
+     | ^^^^^^^^^^^^^^^
+> 39 |   Loading01Icon,
+     | ^^^^^^^^^^^^^^^
+> 40 |   PlayCircleIcon,
+     | ^^^^^^^^^^^^^^^
+> 41 |   CheckIcon,
+     | ^^^^^^^^^^^^^^^
+> 42 |   Pulse01Icon,
+     | ^^^^^^^^^^^^^^^
+> 43 |   ArrowDown01Icon,
+     | ^^^^^^^^^^^^^^^
+> 44 |   ArrowUp01Icon,
+     | ^^^^^^^^^^^^^^^
+> 45 |   FilterIcon,
+     | ^^^^^^^^^^^^^^^
+> 46 |   Globe02Icon,
+     | ^^^^^^^^^^^^^^^
+> 47 |   Grid02Icon,
+     | ^^^^^^^^^^^^^^^
+> 48 |   Bookmark01Icon,
+     | ^^^^^^^^^^^^^^^
+> 49 |   Download01Icon,
+     | ^^^^^^^^^^^^^^^
+> 50 |   Share01Icon,
+     | ^^^^^^^^^^^^^^^
+> 51 |   Copy01Icon,
+     | ^^^^^^^^^^^^^^^
+> 52 |   Link01Icon,
+     | ^^^^^^^^^^^^^^^
+> 53 |   EyeIcon,
+     | ^^^^^^^^^^^^^^^
+> 54 |   Video01Icon,
+     | ^^^^^^^^^^^^^^^
+> 55 |   Camera01Icon,
+     | ^^^^^^^^^^^^^^^
+> 56 |   Activity01Icon,
+     | ^^^^^^^^^^^^^^^
+> 57 |   Notification01Icon,
+     | ^^^^^^^^^^^^^^^
+> 58 |   Shield01Icon,
+     | ^^^^^^^^^^^^^^^
+> 59 |   User02Icon,
+     | ^^^^^^^^^^^^^^^
+> 60 |   BellIcon,
+     | ^^^^^^^^^^^^^^^
+> 61 |   VolumeHighIcon,
+     | ^^^^^^^^^^^^^^^
+> 62 |   VolumeMute01Icon,
+     | ^^^^^^^^^^^^^^^
+> 63 |   SquareInfoIcon,
+     | ^^^^^^^^^^^^^^^
+> 64 | } from "@hugeicons/core-free-icons";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  65 |
+  66 | // Icon name → icon data mapping
+  67 | export const ICON_MAP: Record<string, IconSvgElement> = {
+
+The export SquareInfoIcon was not found in module [project]/node_modules/@hugeicons/core-free-icons/dist/esm/index.js [app-client] (ecmascript).
+Did you mean to import SquareIcon?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/lib/icons.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/lib/icons.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+[error] ./src/lib/icons.tsx:4:1
+Export SquareInfoIcon doesn't exist in target module
+   2 |
+   3 | import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+>  4 | import {
+     | ^^^^^^^^
+>  5 |   Search01Icon,
+     | ^^^^^^^^^^^^^^^
+>  6 |   PlayIcon,
+     | ^^^^^^^^^^^^^^^
+>  7 |   StarIcon,
+     | ^^^^^^^^^^^^^^^
+>  8 |   Film01Icon,
+     | ^^^^^^^^^^^^^^^
+>  9 |   Tv01Icon,
+     | ^^^^^^^^^^^^^^^
+> 10 |   BookOpen01Icon,
+     | ^^^^^^^^^^^^^^^
+> 11 |   HeartIcon,
+     | ^^^^^^^^^^^^^^^
+> 12 |   ChevronLeftIcon,
+     | ^^^^^^^^^^^^^^^
+> 13 |   ChevronRightIcon,
+     | ^^^^^^^^^^^^^^^
+> 14 |   Cancel01Icon,
+     | ^^^^^^^^^^^^^^^
+> 15 |   Home01Icon,
+     | ^^^^^^^^^^^^^^^
+> 16 |   ServerStack01Icon,
+     | ^^^^^^^^^^^^^^^
+> 17 |   Calendar01Icon,
+     | ^^^^^^^^^^^^^^^
+> 18 |   Menu01Icon,
+     | ^^^^^^^^^^^^^^^
+> 19 |   ArrowReloadHorizontalIcon,
+     | ^^^^^^^^^^^^^^^
+> 20 |   Clock01Icon,
+     | ^^^^^^^^^^^^^^^
+> 21 |   Loading02Icon,
+     | ^^^^^^^^^^^^^^^
+> 22 |   SparklesIcon,
+     | ^^^^^^^^^^^^^^^
+> 23 |   MonitorDotIcon,
+     | ^^^^^^^^^^^^^^^
+> 24 |   TrendingUpDownIcon,
+     | ^^^^^^^^^^^^^^^
+> 25 |   LayerIcon,
+     | ^^^^^^^^^^^^^^^
+> 26 |   Settings02Icon,
+     | ^^^^^^^^^^^^^^^
+> 27 |   RefreshIcon,
+     | ^^^^^^^^^^^^^^^
+> 28 |   DatabaseIcon,
+     | ^^^^^^^^^^^^^^^
+> 29 |   ZapIcon,
+     | ^^^^^^^^^^^^^^^
+> 30 |   Analytics01Icon,
+     | ^^^^^^^^^^^^^^^
+> 31 |   BookMarkedIcon,
+     | ^^^^^^^^^^^^^^^
+> 32 |   Books01Icon,
+     | ^^^^^^^^^^^^^^^
+> 33 |   Alert01Icon,
+     | ^^^^^^^^^^^^^^^
+> 34 |   Alert02Icon,
+     | ^^^^^^^^^^^^^^^
+> 35 |   BadgeCheckIcon,
+     | ^^^^^^^^^^^^^^^
+> 36 |   BadgeInfoIcon,
+     | ^^^^^^^^^^^^^^^
+> 37 |   Delete02Icon,
+     | ^^^^^^^^^^^^^^^
+> 38 |   Image01Icon,
+     | ^^^^^^^^^^^^^^^
+> 39 |   Loading01Icon,
+     | ^^^^^^^^^^^^^^^
+> 40 |   PlayCircleIcon,
+     | ^^^^^^^^^^^^^^^
+> 41 |   CheckIcon,
+     | ^^^^^^^^^^^^^^^
+> 42 |   Pulse01Icon,
+     | ^^^^^^^^^^^^^^^
+> 43 |   ArrowDown01Icon,
+     | ^^^^^^^^^^^^^^^
+> 44 |   ArrowUp01Icon,
+     | ^^^^^^^^^^^^^^^
+> 45 |   FilterIcon,
+     | ^^^^^^^^^^^^^^^
+> 46 |   Globe02Icon,
+     | ^^^^^^^^^^^^^^^
+> 47 |   Grid02Icon,
+     | ^^^^^^^^^^^^^^^
+> 48 |   Bookmark01Icon,
+     | ^^^^^^^^^^^^^^^
+> 49 |   Download01Icon,
+     | ^^^^^^^^^^^^^^^
+> 50 |   Share01Icon,
+     | ^^^^^^^^^^^^^^^
+> 51 |   Copy01Icon,
+     | ^^^^^^^^^^^^^^^
+> 52 |   Link01Icon,
+     | ^^^^^^^^^^^^^^^
+> 53 |   EyeIcon,
+     | ^^^^^^^^^^^^^^^
+> 54 |   Video01Icon,
+     | ^^^^^^^^^^^^^^^
+> 55 |   Camera01Icon,
+     | ^^^^^^^^^^^^^^^
+> 56 |   Activity01Icon,
+     | ^^^^^^^^^^^^^^^
+> 57 |   Notification01Icon,
+     | ^^^^^^^^^^^^^^^
+> 58 |   Shield01Icon,
+     | ^^^^^^^^^^^^^^^
+> 59 |   User02Icon,
+     | ^^^^^^^^^^^^^^^
+> 60 |   BellIcon,
+     | ^^^^^^^^^^^^^^^
+> 61 |   VolumeHighIcon,
+     | ^^^^^^^^^^^^^^^
+> 62 |   VolumeMute01Icon,
+     | ^^^^^^^^^^^^^^^
+> 63 |   SquareInfoIcon,
+     | ^^^^^^^^^^^^^^^
+> 64 | } from "@hugeicons/core-free-icons";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  65 |
+  66 | // Icon name → icon data mapping
+  67 | export const ICON_MAP: Record<string, IconSvgElement> = {
+
+The export SquareInfoIcon was not found in module [project]/node_modules/@hugeicons/core-free-icons/dist/esm/index.js [app-ssr] (ecmascript).
+Did you mean to import SquareIcon?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/lib/icons.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/lib/icons.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+[clear] console.clear
+[error] ./src/lib/icons.tsx:4:1
+Export SquareInfoIcon doesn't exist in target module
+   2 |
+   3 | import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+>  4 | import {
+     | ^^^^^^^^
+>  5 |   Search01Icon,
+     | ^^^^^^^^^^^^^^^
+>  6 |   PlayIcon,
+     | ^^^^^^^^^^^^^^^
+>  7 |   StarIcon,
+     | ^^^^^^^^^^^^^^^
+>  8 |   Film01Icon,
+     | ^^^^^^^^^^^^^^^
+>  9 |   Tv01Icon,
+     | ^^^^^^^^^^^^^^^
+> 10 |   BookOpen01Icon,
+     | ^^^^^^^^^^^^^^^
+> 11 |   HeartIcon,
+     | ^^^^^^^^^^^^^^^
+> 12 |   ChevronLeftIcon,
+     | ^^^^^^^^^^^^^^^
+> 13 |   ChevronRightIcon,
+     | ^^^^^^^^^^^^^^^
+> 14 |   Cancel01Icon,
+     | ^^^^^^^^^^^^^^^
+> 15 |   Home01Icon,
+     | ^^^^^^^^^^^^^^^
+> 16 |   ServerStack01Icon,
+     | ^^^^^^^^^^^^^^^
+> 17 |   Calendar01Icon,
+     | ^^^^^^^^^^^^^^^
+> 18 |   Menu01Icon,
+     | ^^^^^^^^^^^^^^^
+> 19 |   ArrowReloadHorizontalIcon,
+     | ^^^^^^^^^^^^^^^
+> 20 |   Clock01Icon,
+     | ^^^^^^^^^^^^^^^
+> 21 |   Loading02Icon,
+     | ^^^^^^^^^^^^^^^
+> 22 |   SparklesIcon,
+     | ^^^^^^^^^^^^^^^
+> 23 |   MonitorDotIcon,
+     | ^^^^^^^^^^^^^^^
+> 24 |   TrendingUpDownIcon,
+     | ^^^^^^^^^^^^^^^
+> 25 |   LayerIcon,
+     | ^^^^^^^^^^^^^^^
+> 26 |   Settings02Icon,
+     | ^^^^^^^^^^^^^^^
+> 27 |   RefreshIcon,
+     | ^^^^^^^^^^^^^^^
+> 28 |   DatabaseIcon,
+     | ^^^^^^^^^^^^^^^
+> 29 |   ZapIcon,
+     | ^^^^^^^^^^^^^^^
+> 30 |   Analytics01Icon,
+     | ^^^^^^^^^^^^^^^
+> 31 |   BookMarkedIcon,
+     | ^^^^^^^^^^^^^^^
+> 32 |   Books01Icon,
+     | ^^^^^^^^^^^^^^^
+> 33 |   Alert01Icon,
+     | ^^^^^^^^^^^^^^^
+> 34 |   Alert02Icon,
+     | ^^^^^^^^^^^^^^^
+> 35 |   BadgeCheckIcon,
+     | ^^^^^^^^^^^^^^^
+> 36 |   BadgeInfoIcon,
+     | ^^^^^^^^^^^^^^^
+> 37 |   Delete02Icon,
+     | ^^^^^^^^^^^^^^^
+> 38 |   Image01Icon,
+     | ^^^^^^^^^^^^^^^
+> 39 |   Loading01Icon,
+     | ^^^^^^^^^^^^^^^
+> 40 |   PlayCircleIcon,
+     | ^^^^^^^^^^^^^^^
+> 41 |   CheckIcon,
+     | ^^^^^^^^^^^^^^^
+> 42 |   Pulse01Icon,
+     | ^^^^^^^^^^^^^^^
+> 43 |   ArrowDown01Icon,
+     | ^^^^^^^^^^^^^^^
+> 44 |   ArrowUp01Icon,
+     | ^^^^^^^^^^^^^^^
+> 45 |   FilterIcon,
+     | ^^^^^^^^^^^^^^^
+> 46 |   Globe02Icon,
+     | ^^^^^^^^^^^^^^^
+> 47 |   Grid02Icon,
+     | ^^^^^^^^^^^^^^^
+> 48 |   Bookmark01Icon,
+     | ^^^^^^^^^^^^^^^
+> 49 |   Download01Icon,
+     | ^^^^^^^^^^^^^^^
+> 50 |   Share01Icon,
+     | ^^^^^^^^^^^^^^^
+> 51 |   Copy01Icon,
+     | ^^^^^^^^^^^^^^^
+> 52 |   Link01Icon,
+     | ^^^^^^^^^^^^^^^
+> 53 |   EyeIcon,
+     | ^^^^^^^^^^^^^^^
+> 54 |   Video01Icon,
+     | ^^^^^^^^^^^^^^^
+> 55 |   Camera01Icon,
+     | ^^^^^^^^^^^^^^^
+> 56 |   Activity01Icon,
+     | ^^^^^^^^^^^^^^^
+> 57 |   Notification01Icon,
+     | ^^^^^^^^^^^^^^^
+> 58 |   Shield01Icon,
+     | ^^^^^^^^^^^^^^^
+> 59 |   User02Icon,
+     | ^^^^^^^^^^^^^^^
+> 60 |   BellIcon,
+     | ^^^^^^^^^^^^^^^
+> 61 |   VolumeHighIcon,
+     | ^^^^^^^^^^^^^^^
+> 62 |   VolumeMute01Icon,
+     | ^^^^^^^^^^^^^^^
+> 63 |   SquareInfoIcon,
+     | ^^^^^^^^^^^^^^^
+> 64 | } from "@hugeicons/core-free-icons";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  65 |
+  66 | // Icon name → icon data mapping
+  67 | export const ICON_MAP: Record<string, IconSvgElement> = {
+
+The export SquareInfoIcon was not found in module [project]/node_modules/@hugeicons/core-free-icons/dist/esm/index.js [app-client] (ecmascript).
+Did you mean to import SquareIcon?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/lib/icons.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/lib/icons.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+[error] ./src/lib/icons.tsx:4:1
+Export SquareInfoIcon doesn't exist in target module
+   2 |
+   3 | import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+>  4 | import {
+     | ^^^^^^^^
+>  5 |   Search01Icon,
+     | ^^^^^^^^^^^^^^^
+>  6 |   PlayIcon,
+     | ^^^^^^^^^^^^^^^
+>  7 |   StarIcon,
+     | ^^^^^^^^^^^^^^^
+>  8 |   Film01Icon,
+     | ^^^^^^^^^^^^^^^
+>  9 |   Tv01Icon,
+     | ^^^^^^^^^^^^^^^
+> 10 |   BookOpen01Icon,
+     | ^^^^^^^^^^^^^^^
+> 11 |   HeartIcon,
+     | ^^^^^^^^^^^^^^^
+> 12 |   ChevronLeftIcon,
+     | ^^^^^^^^^^^^^^^
+> 13 |   ChevronRightIcon,
+     | ^^^^^^^^^^^^^^^
+> 14 |   Cancel01Icon,
+     | ^^^^^^^^^^^^^^^
+> 15 |   Home01Icon,
+     | ^^^^^^^^^^^^^^^
+> 16 |   ServerStack01Icon,
+     | ^^^^^^^^^^^^^^^
+> 17 |   Calendar01Icon,
+     | ^^^^^^^^^^^^^^^
+> 18 |   Menu01Icon,
+     | ^^^^^^^^^^^^^^^
+> 19 |   ArrowReloadHorizontalIcon,
+     | ^^^^^^^^^^^^^^^
+> 20 |   Clock01Icon,
+     | ^^^^^^^^^^^^^^^
+> 21 |   Loading02Icon,
+     | ^^^^^^^^^^^^^^^
+> 22 |   SparklesIcon,
+     | ^^^^^^^^^^^^^^^
+> 23 |   MonitorDotIcon,
+     | ^^^^^^^^^^^^^^^
+> 24 |   TrendingUpDownIcon,
+     | ^^^^^^^^^^^^^^^
+> 25 |   LayerIcon,
+     | ^^^^^^^^^^^^^^^
+> 26 |   Settings02Icon,
+     | ^^^^^^^^^^^^^^^
+> 27 |   RefreshIcon,
+     | ^^^^^^^^^^^^^^^
+> 28 |   DatabaseIcon,
+     | ^^^^^^^^^^^^^^^
+> 29 |   ZapIcon,
+     | ^^^^^^^^^^^^^^^
+> 30 |   Analytics01Icon,
+     | ^^^^^^^^^^^^^^^
+> 31 |   BookMarkedIcon,
+     | ^^^^^^^^^^^^^^^
+> 32 |   Books01Icon,
+     | ^^^^^^^^^^^^^^^
+> 33 |   Alert01Icon,
+     | ^^^^^^^^^^^^^^^
+> 34 |   Alert02Icon,
+     | ^^^^^^^^^^^^^^^
+> 35 |   BadgeCheckIcon,
+     | ^^^^^^^^^^^^^^^
+> 36 |   BadgeInfoIcon,
+     | ^^^^^^^^^^^^^^^
+> 37 |   Delete02Icon,
+     | ^^^^^^^^^^^^^^^
+> 38 |   Image01Icon,
+     | ^^^^^^^^^^^^^^^
+> 39 |   Loading01Icon,
+     | ^^^^^^^^^^^^^^^
+> 40 |   PlayCircleIcon,
+     | ^^^^^^^^^^^^^^^
+> 41 |   CheckIcon,
+     | ^^^^^^^^^^^^^^^
+> 42 |   Pulse01Icon,
+     | ^^^^^^^^^^^^^^^
+> 43 |   ArrowDown01Icon,
+     | ^^^^^^^^^^^^^^^
+> 44 |   ArrowUp01Icon,
+     | ^^^^^^^^^^^^^^^
+> 45 |   FilterIcon,
+     | ^^^^^^^^^^^^^^^
+> 46 |   Globe02Icon,
+     | ^^^^^^^^^^^^^^^
+> 47 |   Grid02Icon,
+     | ^^^^^^^^^^^^^^^
+> 48 |   Bookmark01Icon,
+     | ^^^^^^^^^^^^^^^
+> 49 |   Download01Icon,
+     | ^^^^^^^^^^^^^^^
+> 50 |   Share01Icon,
+     | ^^^^^^^^^^^^^^^
+> 51 |   Copy01Icon,
+     | ^^^^^^^^^^^^^^^
+> 52 |   Link01Icon,
+     | ^^^^^^^^^^^^^^^
+> 53 |   EyeIcon,
+     | ^^^^^^^^^^^^^^^
+> 54 |   Video01Icon,
+     | ^^^^^^^^^^^^^^^
+> 55 |   Camera01Icon,
+     | ^^^^^^^^^^^^^^^
+> 56 |   Activity01Icon,
+     | ^^^^^^^^^^^^^^^
+> 57 |   Notification01Icon,
+     | ^^^^^^^^^^^^^^^
+> 58 |   Shield01Icon,
+     | ^^^^^^^^^^^^^^^
+> 59 |   User02Icon,
+     | ^^^^^^^^^^^^^^^
+> 60 |   BellIcon,
+     | ^^^^^^^^^^^^^^^
+> 61 |   VolumeHighIcon,
+     | ^^^^^^^^^^^^^^^
+> 62 |   VolumeMute01Icon,
+     | ^^^^^^^^^^^^^^^
+> 63 |   SquareInfoIcon,
+     | ^^^^^^^^^^^^^^^
+> 64 | } from "@hugeicons/core-free-icons";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  65 |
+  66 | // Icon name → icon data mapping
+  67 | export const ICON_MAP: Record<string, IconSvgElement> = {
+
+The export SquareInfoIcon was not found in module [project]/node_modules/@hugeicons/core-free-icons/dist/esm/index.js [app-ssr] (ecmascript).
+Did you mean to import SquareIcon?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/lib/icons.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/lib/icons.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+[clear] console.clear
+[error] ./src/lib/icons.tsx:4:1
+Export SquareInfoIcon doesn't exist in target module
+   2 |
+   3 | import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+>  4 | import {
+     | ^^^^^^^^
+>  5 |   Search01Icon,
+     | ^^^^^^^^^^^^^^^
+>  6 |   PlayIcon,
+     | ^^^^^^^^^^^^^^^
+>  7 |   StarIcon,
+     | ^^^^^^^^^^^^^^^
+>  8 |   Film01Icon,
+     | ^^^^^^^^^^^^^^^
+>  9 |   Tv01Icon,
+     | ^^^^^^^^^^^^^^^
+> 10 |   BookOpen01Icon,
+     | ^^^^^^^^^^^^^^^
+> 11 |   HeartIcon,
+     | ^^^^^^^^^^^^^^^
+> 12 |   ChevronLeftIcon,
+     | ^^^^^^^^^^^^^^^
+> 13 |   ChevronRightIcon,
+     | ^^^^^^^^^^^^^^^
+> 14 |   Cancel01Icon,
+     | ^^^^^^^^^^^^^^^
+> 15 |   Home01Icon,
+     | ^^^^^^^^^^^^^^^
+> 16 |   ServerStack01Icon,
+     | ^^^^^^^^^^^^^^^
+> 17 |   Calendar01Icon,
+     | ^^^^^^^^^^^^^^^
+> 18 |   Menu01Icon,
+     | ^^^^^^^^^^^^^^^
+> 19 |   ArrowReloadHorizontalIcon,
+     | ^^^^^^^^^^^^^^^
+> 20 |   Clock01Icon,
+     | ^^^^^^^^^^^^^^^
+> 21 |   Loading02Icon,
+     | ^^^^^^^^^^^^^^^
+> 22 |   SparklesIcon,
+     | ^^^^^^^^^^^^^^^
+> 23 |   MonitorDotIcon,
+     | ^^^^^^^^^^^^^^^
+> 24 |   TrendingUpDownIcon,
+     | ^^^^^^^^^^^^^^^
+> 25 |   LayerIcon,
+     | ^^^^^^^^^^^^^^^
+> 26 |   Settings02Icon,
+     | ^^^^^^^^^^^^^^^
+> 27 |   RefreshIcon,
+     | ^^^^^^^^^^^^^^^
+> 28 |   DatabaseIcon,
+     | ^^^^^^^^^^^^^^^
+> 29 |   ZapIcon,
+     | ^^^^^^^^^^^^^^^
+> 30 |   Analytics01Icon,
+     | ^^^^^^^^^^^^^^^
+> 31 |   BookMarkedIcon,
+     | ^^^^^^^^^^^^^^^
+> 32 |   Books01Icon,
+     | ^^^^^^^^^^^^^^^
+> 33 |   Alert01Icon,
+     | ^^^^^^^^^^^^^^^
+> 34 |   Alert02Icon,
+     | ^^^^^^^^^^^^^^^
+> 35 |   BadgeCheckIcon,
+     | ^^^^^^^^^^^^^^^
+> 36 |   BadgeInfoIcon,
+     | ^^^^^^^^^^^^^^^
+> 37 |   Delete02Icon,
+     | ^^^^^^^^^^^^^^^
+> 38 |   Image01Icon,
+     | ^^^^^^^^^^^^^^^
+> 39 |   Loading01Icon,
+     | ^^^^^^^^^^^^^^^
+> 40 |   PlayCircleIcon,
+     | ^^^^^^^^^^^^^^^
+> 41 |   CheckIcon,
+     | ^^^^^^^^^^^^^^^
+> 42 |   Pulse01Icon,
+     | ^^^^^^^^^^^^^^^
+> 43 |   ArrowDown01Icon,
+     | ^^^^^^^^^^^^^^^
+> 44 |   ArrowUp01Icon,
+     | ^^^^^^^^^^^^^^^
+> 45 |   FilterIcon,
+     | ^^^^^^^^^^^^^^^
+> 46 |   Globe02Icon,
+     | ^^^^^^^^^^^^^^^
+> 47 |   Grid02Icon,
+     | ^^^^^^^^^^^^^^^
+> 48 |   Bookmark01Icon,
+     | ^^^^^^^^^^^^^^^
+> 49 |   Download01Icon,
+     | ^^^^^^^^^^^^^^^
+> 50 |   Share01Icon,
+     | ^^^^^^^^^^^^^^^
+> 51 |   Copy01Icon,
+     | ^^^^^^^^^^^^^^^
+> 52 |   Link01Icon,
+     | ^^^^^^^^^^^^^^^
+> 53 |   EyeIcon,
+     | ^^^^^^^^^^^^^^^
+> 54 |   Video01Icon,
+     | ^^^^^^^^^^^^^^^
+> 55 |   Camera01Icon,
+     | ^^^^^^^^^^^^^^^
+> 56 |   Activity01Icon,
+     | ^^^^^^^^^^^^^^^
+> 57 |   Notification01Icon,
+     | ^^^^^^^^^^^^^^^
+> 58 |   Shield01Icon,
+     | ^^^^^^^^^^^^^^^
+> 59 |   User02Icon,
+     | ^^^^^^^^^^^^^^^
+> 60 |   BellIcon,
+     | ^^^^^^^^^^^^^^^
+> 61 |   VolumeHighIcon,
+     | ^^^^^^^^^^^^^^^
+> 62 |   VolumeMute01Icon,
+     | ^^^^^^^^^^^^^^^
+> 63 |   SquareInfoIcon,
+     | ^^^^^^^^^^^^^^^
+> 64 | } from "@hugeicons/core-free-icons";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  65 |
+  66 | // Icon name → icon data mapping
+  67 | export const ICON_MAP: Record<string, IconSvgElement> = {
+
+The export SquareInfoIcon was not found in module [project]/node_modules/@hugeicons/core-free-icons/dist/esm/index.js [app-client] (ecmascript).
+Did you mean to import SquareIcon?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/lib/icons.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/lib/icons.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+[error] ./src/lib/icons.tsx:4:1
+Export SquareInfoIcon doesn't exist in target module
+   2 |
+   3 | import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+>  4 | import {
+     | ^^^^^^^^
+>  5 |   Search01Icon,
+     | ^^^^^^^^^^^^^^^
+>  6 |   PlayIcon,
+     | ^^^^^^^^^^^^^^^
+>  7 |   StarIcon,
+     | ^^^^^^^^^^^^^^^
+>  8 |   Film01Icon,
+     | ^^^^^^^^^^^^^^^
+>  9 |   Tv01Icon,
+     | ^^^^^^^^^^^^^^^
+> 10 |   BookOpen01Icon,
+     | ^^^^^^^^^^^^^^^
+> 11 |   HeartIcon,
+     | ^^^^^^^^^^^^^^^
+> 12 |   ChevronLeftIcon,
+     | ^^^^^^^^^^^^^^^
+> 13 |   ChevronRightIcon,
+     | ^^^^^^^^^^^^^^^
+> 14 |   Cancel01Icon,
+     | ^^^^^^^^^^^^^^^
+> 15 |   Home01Icon,
+     | ^^^^^^^^^^^^^^^
+> 16 |   ServerStack01Icon,
+     | ^^^^^^^^^^^^^^^
+> 17 |   Calendar01Icon,
+     | ^^^^^^^^^^^^^^^
+> 18 |   Menu01Icon,
+     | ^^^^^^^^^^^^^^^
+> 19 |   ArrowReloadHorizontalIcon,
+     | ^^^^^^^^^^^^^^^
+> 20 |   Clock01Icon,
+     | ^^^^^^^^^^^^^^^
+> 21 |   Loading02Icon,
+     | ^^^^^^^^^^^^^^^
+> 22 |   SparklesIcon,
+     | ^^^^^^^^^^^^^^^
+> 23 |   MonitorDotIcon,
+     | ^^^^^^^^^^^^^^^
+> 24 |   TrendingUpDownIcon,
+     | ^^^^^^^^^^^^^^^
+> 25 |   LayerIcon,
+     | ^^^^^^^^^^^^^^^
+> 26 |   Settings02Icon,
+     | ^^^^^^^^^^^^^^^
+> 27 |   RefreshIcon,
+     | ^^^^^^^^^^^^^^^
+> 28 |   DatabaseIcon,
+     | ^^^^^^^^^^^^^^^
+> 29 |   ZapIcon,
+     | ^^^^^^^^^^^^^^^
+> 30 |   Analytics01Icon,
+     | ^^^^^^^^^^^^^^^
+> 31 |   BookMarkedIcon,
+     | ^^^^^^^^^^^^^^^
+> 32 |   Books01Icon,
+     | ^^^^^^^^^^^^^^^
+> 33 |   Alert01Icon,
+     | ^^^^^^^^^^^^^^^
+> 34 |   Alert02Icon,
+     | ^^^^^^^^^^^^^^^
+> 35 |   BadgeCheckIcon,
+     | ^^^^^^^^^^^^^^^
+> 36 |   BadgeInfoIcon,
+     | ^^^^^^^^^^^^^^^
+> 37 |   Delete02Icon,
+     | ^^^^^^^^^^^^^^^
+> 38 |   Image01Icon,
+     | ^^^^^^^^^^^^^^^
+> 39 |   Loading01Icon,
+     | ^^^^^^^^^^^^^^^
+> 40 |   PlayCircleIcon,
+     | ^^^^^^^^^^^^^^^
+> 41 |   CheckIcon,
+     | ^^^^^^^^^^^^^^^
+> 42 |   Pulse01Icon,
+     | ^^^^^^^^^^^^^^^
+> 43 |   ArrowDown01Icon,
+     | ^^^^^^^^^^^^^^^
+> 44 |   ArrowUp01Icon,
+     | ^^^^^^^^^^^^^^^
+> 45 |   FilterIcon,
+     | ^^^^^^^^^^^^^^^
+> 46 |   Globe02Icon,
+     | ^^^^^^^^^^^^^^^
+> 47 |   Grid02Icon,
+     | ^^^^^^^^^^^^^^^
+> 48 |   Bookmark01Icon,
+     | ^^^^^^^^^^^^^^^
+> 49 |   Download01Icon,
+     | ^^^^^^^^^^^^^^^
+> 50 |   Share01Icon,
+     | ^^^^^^^^^^^^^^^
+> 51 |   Copy01Icon,
+     | ^^^^^^^^^^^^^^^
+> 52 |   Link01Icon,
+     | ^^^^^^^^^^^^^^^
+> 53 |   EyeIcon,
+     | ^^^^^^^^^^^^^^^
+> 54 |   Video01Icon,
+     | ^^^^^^^^^^^^^^^
+> 55 |   Camera01Icon,
+     | ^^^^^^^^^^^^^^^
+> 56 |   Activity01Icon,
+     | ^^^^^^^^^^^^^^^
+> 57 |   Notification01Icon,
+     | ^^^^^^^^^^^^^^^
+> 58 |   Shield01Icon,
+     | ^^^^^^^^^^^^^^^
+> 59 |   User02Icon,
+     | ^^^^^^^^^^^^^^^
+> 60 |   BellIcon,
+     | ^^^^^^^^^^^^^^^
+> 61 |   VolumeHighIcon,
+     | ^^^^^^^^^^^^^^^
+> 62 |   VolumeMute01Icon,
+     | ^^^^^^^^^^^^^^^
+> 63 |   SquareInfoIcon,
+     | ^^^^^^^^^^^^^^^
+> 64 | } from "@hugeicons/core-free-icons";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  65 |
+  66 | // Icon name → icon data mapping
+  67 | export const ICON_MAP: Record<string, IconSvgElement> = {
+
+The export SquareInfoIcon was not found in module [project]/node_modules/@hugeicons/core-free-icons/dist/esm/index.js [app-ssr] (ecmascript).
+Did you mean to import SquareIcon?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/lib/icons.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/lib/icons.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+[log] [Fast Refresh] rebuilding
+[clear] console.clear
+[error] ./src/lib/icons.tsx:4:1
+Export SquareInfoIcon doesn't exist in target module
+   2 |
+   3 | import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+>  4 | import {
+     | ^^^^^^^^
+>  5 |   Search01Icon,
+     | ^^^^^^^^^^^^^^^
+>  6 |   PlayIcon,
+     | ^^^^^^^^^^^^^^^
+>  7 |   StarIcon,
+     | ^^^^^^^^^^^^^^^
+>  8 |   Film01Icon,
+     | ^^^^^^^^^^^^^^^
+>  9 |   Tv01Icon,
+     | ^^^^^^^^^^^^^^^
+> 10 |   BookOpen01Icon,
+     | ^^^^^^^^^^^^^^^
+> 11 |   HeartIcon,
+     | ^^^^^^^^^^^^^^^
+> 12 |   ChevronLeftIcon,
+     | ^^^^^^^^^^^^^^^
+> 13 |   ChevronRightIcon,
+     | ^^^^^^^^^^^^^^^
+> 14 |   Cancel01Icon,
+     | ^^^^^^^^^^^^^^^
+> 15 |   Home01Icon,
+     | ^^^^^^^^^^^^^^^
+> 16 |   ServerStack01Icon,
+     | ^^^^^^^^^^^^^^^
+> 17 |   Calendar01Icon,
+     | ^^^^^^^^^^^^^^^
+> 18 |   Menu01Icon,
+     | ^^^^^^^^^^^^^^^
+> 19 |   ArrowReloadHorizontalIcon,
+     | ^^^^^^^^^^^^^^^
+> 20 |   Clock01Icon,
+     | ^^^^^^^^^^^^^^^
+> 21 |   Loading02Icon,
+     | ^^^^^^^^^^^^^^^
+> 22 |   SparklesIcon,
+     | ^^^^^^^^^^^^^^^
+> 23 |   MonitorDotIcon,
+     | ^^^^^^^^^^^^^^^
+> 24 |   TrendingUpDownIcon,
+     | ^^^^^^^^^^^^^^^
+> 25 |   LayerIcon,
+     | ^^^^^^^^^^^^^^^
+> 26 |   Settings02Icon,
+     | ^^^^^^^^^^^^^^^
+> 27 |   RefreshIcon,
+     | ^^^^^^^^^^^^^^^
+> 28 |   DatabaseIcon,
+     | ^^^^^^^^^^^^^^^
+> 29 |   ZapIcon,
+     | ^^^^^^^^^^^^^^^
+> 30 |   Analytics01Icon,
+     | ^^^^^^^^^^^^^^^
+> 31 |   BookMarkedIcon,
+     | ^^^^^^^^^^^^^^^
+> 32 |   Books01Icon,
+     | ^^^^^^^^^^^^^^^
+> 33 |   Alert01Icon,
+     | ^^^^^^^^^^^^^^^
+> 34 |   Alert02Icon,
+     | ^^^^^^^^^^^^^^^
+> 35 |   BadgeCheckIcon,
+     | ^^^^^^^^^^^^^^^
+> 36 |   BadgeInfoIcon,
+     | ^^^^^^^^^^^^^^^
+> 37 |   Delete02Icon,
+     | ^^^^^^^^^^^^^^^
+> 38 |   Image01Icon,
+     | ^^^^^^^^^^^^^^^
+> 39 |   Loading01Icon,
+     | ^^^^^^^^^^^^^^^
+> 40 |   PlayCircleIcon,
+     | ^^^^^^^^^^^^^^^
+> 41 |   CheckIcon,
+     | ^^^^^^^^^^^^^^^
+> 42 |   Pulse01Icon,
+     | ^^^^^^^^^^^^^^^
+> 43 |   ArrowDown01Icon,
+     | ^^^^^^^^^^^^^^^
+> 44 |   ArrowUp01Icon,
+     | ^^^^^^^^^^^^^^^
+> 45 |   FilterIcon,
+     | ^^^^^^^^^^^^^^^
+> 46 |   Globe02Icon,
+     | ^^^^^^^^^^^^^^^
+> 47 |   Grid02Icon,
+     | ^^^^^^^^^^^^^^^
+> 48 |   Bookmark01Icon,
+     | ^^^^^^^^^^^^^^^
+> 49 |   Download01Icon,
+     | ^^^^^^^^^^^^^^^
+> 50 |   Share01Icon,
+     | ^^^^^^^^^^^^^^^
+> 51 |   Copy01Icon,
+     | ^^^^^^^^^^^^^^^
+> 52 |   Link01Icon,
+     | ^^^^^^^^^^^^^^^
+> 53 |   EyeIcon,
+     | ^^^^^^^^^^^^^^^
+> 54 |   Video01Icon,
+     | ^^^^^^^^^^^^^^^
+> 55 |   Camera01Icon,
+     | ^^^^^^^^^^^^^^^
+> 56 |   Activity01Icon,
+     | ^^^^^^^^^^^^^^^
+> 57 |   Notification01Icon,
+     | ^^^^^^^^^^^^^^^
+> 58 |   Shield01Icon,
+     | ^^^^^^^^^^^^^^^
+> 59 |   User02Icon,
+     | ^^^^^^^^^^^^^^^
+> 60 |   BellIcon,
+     | ^^^^^^^^^^^^^^^
+> 61 |   VolumeHighIcon,
+     | ^^^^^^^^^^^^^^^
+> 62 |   VolumeMute01Icon,
+     | ^^^^^^^^^^^^^^^
+> 63 |   SquareInfoIcon,
+     | ^^^^^^^^^^^^^^^
+> 64 | } from "@hugeicons/core-free-icons";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  65 |
+  66 | // Icon name → icon data mapping
+  67 | export const ICON_MAP: Record<string, IconSvgElement> = {
+
+The export SquareInfoIcon was not found in module [project]/node_modules/@hugeicons/core-free-icons/dist/esm/index.js [app-client] (ecmascript).
+Did you mean to import SquareIcon?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/lib/icons.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/lib/icons.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+[error] ./src/lib/icons.tsx:4:1
+Export SquareInfoIcon doesn't exist in target module
+   2 |
+   3 | import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+>  4 | import {
+     | ^^^^^^^^
+>  5 |   Search01Icon,
+     | ^^^^^^^^^^^^^^^
+>  6 |   PlayIcon,
+     | ^^^^^^^^^^^^^^^
+>  7 |   StarIcon,
+     | ^^^^^^^^^^^^^^^
+>  8 |   Film01Icon,
+     | ^^^^^^^^^^^^^^^
+>  9 |   Tv01Icon,
+     | ^^^^^^^^^^^^^^^
+> 10 |   BookOpen01Icon,
+     | ^^^^^^^^^^^^^^^
+> 11 |   HeartIcon,
+     | ^^^^^^^^^^^^^^^
+> 12 |   ChevronLeftIcon,
+     | ^^^^^^^^^^^^^^^
+> 13 |   ChevronRightIcon,
+     | ^^^^^^^^^^^^^^^
+> 14 |   Cancel01Icon,
+     | ^^^^^^^^^^^^^^^
+> 15 |   Home01Icon,
+     | ^^^^^^^^^^^^^^^
+> 16 |   ServerStack01Icon,
+     | ^^^^^^^^^^^^^^^
+> 17 |   Calendar01Icon,
+     | ^^^^^^^^^^^^^^^
+> 18 |   Menu01Icon,
+     | ^^^^^^^^^^^^^^^
+> 19 |   ArrowReloadHorizontalIcon,
+     | ^^^^^^^^^^^^^^^
+> 20 |   Clock01Icon,
+     | ^^^^^^^^^^^^^^^
+> 21 |   Loading02Icon,
+     | ^^^^^^^^^^^^^^^
+> 22 |   SparklesIcon,
+     | ^^^^^^^^^^^^^^^
+> 23 |   MonitorDotIcon,
+     | ^^^^^^^^^^^^^^^
+> 24 |   TrendingUpDownIcon,
+     | ^^^^^^^^^^^^^^^
+> 25 |   LayerIcon,
+     | ^^^^^^^^^^^^^^^
+> 26 |   Settings02Icon,
+     | ^^^^^^^^^^^^^^^
+> 27 |   RefreshIcon,
+     | ^^^^^^^^^^^^^^^
+> 28 |   DatabaseIcon,
+     | ^^^^^^^^^^^^^^^
+> 29 |   ZapIcon,
+     | ^^^^^^^^^^^^^^^
+> 30 |   Analytics01Icon,
+     | ^^^^^^^^^^^^^^^
+> 31 |   BookMarkedIcon,
+     | ^^^^^^^^^^^^^^^
+> 32 |   Books01Icon,
+     | ^^^^^^^^^^^^^^^
+> 33 |   Alert01Icon,
+     | ^^^^^^^^^^^^^^^
+> 34 |   Alert02Icon,
+     | ^^^^^^^^^^^^^^^
+> 35 |   BadgeCheckIcon,
+     | ^^^^^^^^^^^^^^^
+> 36 |   BadgeInfoIcon,
+     | ^^^^^^^^^^^^^^^
+> 37 |   Delete02Icon,
+     | ^^^^^^^^^^^^^^^
+> 38 |   Image01Icon,
+     | ^^^^^^^^^^^^^^^
+> 39 |   Loading01Icon,
+     | ^^^^^^^^^^^^^^^
+> 40 |   PlayCircleIcon,
+     | ^^^^^^^^^^^^^^^
+> 41 |   CheckIcon,
+     | ^^^^^^^^^^^^^^^
+> 42 |   Pulse01Icon,
+     | ^^^^^^^^^^^^^^^
+> 43 |   ArrowDown01Icon,
+     | ^^^^^^^^^^^^^^^
+> 44 |   ArrowUp01Icon,
+     | ^^^^^^^^^^^^^^^
+> 45 |   FilterIcon,
+     | ^^^^^^^^^^^^^^^
+> 46 |   Globe02Icon,
+     | ^^^^^^^^^^^^^^^
+> 47 |   Grid02Icon,
+     | ^^^^^^^^^^^^^^^
+> 48 |   Bookmark01Icon,
+     | ^^^^^^^^^^^^^^^
+> 49 |   Download01Icon,
+     | ^^^^^^^^^^^^^^^
+> 50 |   Share01Icon,
+     | ^^^^^^^^^^^^^^^
+> 51 |   Copy01Icon,
+     | ^^^^^^^^^^^^^^^
+> 52 |   Link01Icon,
+     | ^^^^^^^^^^^^^^^
+> 53 |   EyeIcon,
+     | ^^^^^^^^^^^^^^^
+> 54 |   Video01Icon,
+     | ^^^^^^^^^^^^^^^
+> 55 |   Camera01Icon,
+     | ^^^^^^^^^^^^^^^
+> 56 |   Activity01Icon,
+     | ^^^^^^^^^^^^^^^
+> 57 |   Notification01Icon,
+     | ^^^^^^^^^^^^^^^
+> 58 |   Shield01Icon,
+     | ^^^^^^^^^^^^^^^
+> 59 |   User02Icon,
+     | ^^^^^^^^^^^^^^^
+> 60 |   BellIcon,
+     | ^^^^^^^^^^^^^^^
+> 61 |   VolumeHighIcon,
+     | ^^^^^^^^^^^^^^^
+> 62 |   VolumeMute01Icon,
+     | ^^^^^^^^^^^^^^^
+> 63 |   SquareInfoIcon,
+     | ^^^^^^^^^^^^^^^
+> 64 | } from "@hugeicons/core-free-icons";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  65 |
+  66 | // Icon name → icon data mapping
+  67 | export const ICON_MAP: Record<string, IconSvgElement> = {
+
+The export SquareInfoIcon was not found in module [project]/node_modules/@hugeicons/core-free-icons/dist/esm/index.js [app-ssr] (ecmascript).
+Did you mean to import SquareIcon?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/lib/icons.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/lib/icons.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+[log] [Fast Refresh] rebuilding
