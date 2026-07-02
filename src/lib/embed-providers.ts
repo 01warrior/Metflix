@@ -4,7 +4,7 @@
  * CENTRALIZED CONFIG - All embed providers in ONE file.
  * To add/remove/modify a provider, edit ONLY this file.
  * 
- * VERIFIED: Tested on 2025-06-27 from sandbox
+ * VERIFIED: Tested on 2025-07-02 (v2)
  * 
  * HOW TO UPDATE:
  * 1. Test the domain: curl -sI "https://DOMAIN/embed/movie/550" | head -1
@@ -43,7 +43,7 @@ export interface EmbedProvider {
  *     tvUrl: "https://example.com/embed/tv/{tmdbId}/{season}/{episode}" }
  */
 export const EMBED_PROVIDERS: EmbedProvider[] = [
-  // === TIER 1: Verified Working (2025-06-27) ===
+  // === TIER 1: Verified Working (2025-07-02) ===
   {
     id: "vidsrc_pm",
     name: "VidSrc PM",
@@ -52,7 +52,7 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     active: true,
     movieUrl: "https://vidsrc.pm/embed/movie/{tmdbId}",
     tvUrl: "https://vidsrc.pm/embed/tv/{tmdbId}/{season}/{episode}",
-    note: "Working 2025-06-27. Reliable VidSrc fork.",
+    note: "Working 2025-07-02. Reliable VidSrc fork.",
   },
   {
     id: "vidsrc_in",
@@ -62,7 +62,27 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     active: true,
     movieUrl: "https://vidsrc.in/embed/movie/{tmdbId}",
     tvUrl: "https://vidsrc.in/embed/tv/{tmdbId}/{season}/{episode}",
-    note: "Working 2025-06-27. Has Cloudflare ads but works.",
+    note: "Working 2025-07-02. Has Cloudflare ads but works.",
+  },
+  {
+    id: "vidsrc_dev",
+    name: "VidSrc Dev",
+    color: "#f97316",
+    quality: "1080p",
+    active: true,
+    movieUrl: "https://vidsrc.dev/embed/movie/{tmdbId}",
+    tvUrl: "https://vidsrc.dev/embed/tv/{tmdbId}/{season}/{episode}",
+    note: "Working 2025-07-02. Clean, fast.",
+  },
+  {
+    id: "vidsrc_io",
+    name: "VidSrc IO",
+    color: "#ef4444",
+    quality: "1080p",
+    active: true,
+    movieUrl: "https://vidsrc.io/embed/movie/{tmdbId}",
+    tvUrl: "https://vidsrc.io/embed/tv/{tmdbId}/{season}/{episode}",
+    note: "Working 2025-07-02.",
   },
   {
     id: "embed_su",
@@ -72,7 +92,7 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     active: true,
     movieUrl: "https://embed.su/embed/movie/{tmdbId}",
     tvUrl: "https://embed.su/embed/tv/{tmdbId}/{season}/{episode}",
-    note: "Working 2025-06-27. TV episodes select in-player.",
+    note: "Working 2025-07-02. TV episodes select in-player.",
   },
 
   // === TIER 2: Redirects (still usable, browser follows redirect) ===
@@ -84,19 +104,29 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     active: true,
     movieUrl: "https://vidsrc.pro/embed/movie/{tmdbId}",
     tvUrl: "https://vidsrc.pro/embed/tv/{tmdbId}/{season}/{episode}",
-    note: "301 → embed.su. Works but adds a redirect hop.",
+    note: "Working 2025-07-02. 301 → embed.su.",
+  },
+  {
+    id: "vidsrc_me",
+    name: "VidSrc ME",
+    color: "#a855f7",
+    quality: "1080p",
+    active: true,
+    movieUrl: "https://vidsrcme.ru/embed/movie/{tmdbId}",
+    tvUrl: "https://vidsrcme.ru/embed/tv/{tmdbId}/{season}/{episode}",
+    note: "Working 2025-07-02. Redirects to vidsrcme.ru.",
   },
 
   // === TIER 3: Currently Down (keep as reference, re-enable when back) ===
   {
     id: "vidsrc_xyz",
     name: "VidSrc XYZ",
-    color: "#a855f7",
+    color: "#6366f1",
     quality: "1080p",
     active: false,
     movieUrl: "https://vidsrc.xyz/embed/movie/{tmdbId}",
     tvUrl: "https://vidsrc.xyz/embed/tv/{tmdbId}/{season}/{episode}",
-    note: "DEAD 2025-06-27. Domain offline. Re-check periodically.",
+    note: "DEAD 2025-07-02. Domain offline.",
   },
   {
     id: "vidsrc_cc",
@@ -106,7 +136,7 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     active: false,
     movieUrl: "https://vidsrc.cc/embed/movie/{tmdbId}",
     tvUrl: "https://vidsrc.cc/embed/tv/{tmdbId}/{season}/{episode}",
-    note: "BLOCKED 2025-06-27. Returns 403. May need specific referer.",
+    note: "BLOCKED 2025-07-02. Returns 403.",
   },
   {
     id: "vidsrc_to",
@@ -116,7 +146,7 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     active: false,
     movieUrl: "https://vidsrc.to/embed/movie/{tmdbId}",
     tvUrl: "https://vidsrc.to/embed/tv/{tmdbId}/{season}/{episode}",
-    note: "BLOCKED 2025-06-27. Returns 403.",
+    note: "BLOCKED 2025-07-02. Returns 403.",
   },
   {
     id: "autoembed",
@@ -126,7 +156,7 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     active: false,
     movieUrl: "https://autoembed.cc/embed/movie/{tmdbId}",
     tvUrl: "https://autoembed.cc/embed/tv/{tmdbId}/{season}/{episode}",
-    note: "DEAD 2025-06-27. Domain offline.",
+    note: "DEAD 2025-07-02. Domain offline.",
   },
   {
     id: "twoembed",
@@ -136,7 +166,7 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     active: false,
     movieUrl: "https://2embed.cc/embed/{tmdbId}",
     tvUrl: "https://2embed.cc/embed/{tmdbId}?s={season}&e={episode}",
-    note: "DEAD 2025-06-27. Domain offline.",
+    note: "DEAD 2025-07-02. Domain offline.",
   },
   {
     id: "superembed",
@@ -146,7 +176,7 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     active: false,
     movieUrl: "https://superembed.stream/movie/{tmdbId}",
     tvUrl: "https://superembed.stream/tv/{tmdbId}/{season}/{episode}",
-    note: "DEAD 2025-06-27. Returns 404. Was one of the best.",
+    note: "DEAD 2025-07-02. Returns 404.",
   },
 ];
 

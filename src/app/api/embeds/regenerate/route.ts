@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { generateAllEmbeds } from "@/lib/embed-providers";
+import { generateAllEmbeds, getActiveProviders } from "@/lib/embed-providers";
 
 /**
  * POST /api/embeds/regenerate
