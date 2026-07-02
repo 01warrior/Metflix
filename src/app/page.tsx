@@ -1655,47 +1655,48 @@ function Footer() {
 // ==================== ADMIN PANEL ====================
 
 const ADMIN_GENRES = [
-  "Action",
-  "Adventure",
-  "Comedy",
-  "Drama",
-  "Fantasy",
-  "Romance",
-  "Sci-Fi",
-  "Horror",
-  "Thriller",
-  "Sports",
-  "Supernatural",
-  "Mystery",
-  "Slice of Life",
+  "Action", "Adventure", "Comedy", "Drama", "Fantasy",
+  "Romance", "Sci-Fi", "Horror", "Thriller", "Sports",
+  "Supernatural", "Mystery", "Slice of Life",
 ];
 
-interface AnimeStatsData {
+interface AdminStats {
   totalContent: number;
   anime: { total: number; withEmbeds: number; totalEmbeds: number };
   movies: { total: number };
   series: { total: number };
   manga: { total: number };
-  recentAnime: {
-    id: string;
-    title: string;
-    anilistId: number | null;
-    rating: number;
-    year: number | null;
-    posterPath: string | null;
-  }[];
 }
 
-interface SyncResultData {
-  fetched: number;
-  created: number;
-  updated: number;
-  skipped: number;
-  withEmbeds: number;
-  tmdbResolved: number;
-  totalAnime: number;
-  totalAnimeEmbeds: number;
-  elapsed: string;
+interface MatchStats {
+  anime: { total: number; matched: number; unmatched: number };
+  movies: { total: number; matched: number; unmatched: number };
+  series: { total: number; matched: number; unmatched: number };
+  manga: { total: number };
+  total: { content: number; embeds: number };
+  hasTmdbKey: boolean;
+  tmdbKeyValid: boolean;
+}
+
+interface ImageFixStats {
+  total: number;
+  withTmdbId: number;
+  brokenPosters: number;
+  noPosters: number;
+  needsFix: number;
+  tmdbKeyValid: boolean;
+}
+
+function StatCard({ label, value, sub, color = "text-foreground" }: {
+  label: string; value: number | string; sub?: string; color?: string;
+}) {
+  return (
+    <div className="rounded-lg border border-border bg-card p-3">
+      <p className="text-[11px] text-muted-foreground">{label}</p>
+      <p className={`text-xl font-bold ${color}`}>{value}</p>
+      {sub && <p className="text-[10px] text-muted-foreground">{sub}</p>}
+    </div>
+  );
 }
 
 function AdminPanel({
@@ -1706,6 +1707,8 @@ function AdminPanel({
   onOpenChange: (open: boolean) => void;
 }) {
   const { toast } = useToast();
+
+  // AniList sync state
   const [trendingPages, setTrendingPages] = useState(2);
   const [popularPages, setPopularPages] = useState(2);
   const [topRatedPages, setTopRatedPages] = useState(2);
@@ -1714,53 +1717,56 @@ function AdminPanel({
   const [maxEpsPerSeason, setMaxEpsPerSeason] = useState(3);
   const [perPage, setPerPage] = useState(50);
   const [syncLoading, setSyncLoading] = useState(false);
-  const [statsLoading, setStatsLoading] = useState(false);
-  const [stats, setStats] = useState<AnimeStatsData | null>(null);
-  const [syncResult, setSyncResult] = useState<SyncResultData | null>(null);
-  const [tmdbKey, setTmdbKey] = useState("");
+  const [syncResult, setSyncResult] = useState<any>(null);
+
+  // TMDB sync state
+  const [tmdbSyncLoading, setTmdbSyncLoading] = useState(false);
+  const [tmdbSyncResult, setTmdbSyncResult] = useState<any>(null);
+  const [tmdbPages, setTmdbPages] = useState(3);
+  const [tmdbSource, setTmdbSource] = useState("all");
+
+  // Match state
   const [matchLoading, setMatchLoading] = useState(false);
-  const [matchResult, setMatchResult] = useState<{ matched: number; processed: number; remaining: number } | null>(null);
-  const [matchStats, setMatchStats] = useState<{ anime: { total: number; matched: number; unmatched: number }; manga: { total: number; matched: number; unmatched: number } } | null>(null);
+  const [matchResult, setMatchResult] = useState<any>(null);
+
+  // Image fix state
+  const [fixLoading, setFixLoading] = useState(false);
+  const [fixResult, setFixResult] = useState<any>(null);
+
+  // Stats
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [matchStats, setMatchStats] = useState<MatchStats | null>(null);
+  const [imageFixStats, setImageFixStats] = useState<ImageFixStats | null>(null);
+
+  // Admin tab
+  const [adminTab, setAdminTab] = useState<"overview" | "anime" | "tmdb" | "images">("overview");
 
   const fetchStats = useCallback(async () => {
     setStatsLoading(true);
     try {
-      const res = await fetch("/api/anime/stats");
-      const data = await res.json();
-      setStats(data);
+      const [statsRes, matchRes, fixRes] = await Promise.all([
+        fetch("/api/anime/stats").then((r) => r.json()).catch(() => null),
+        fetch("/api/anime/match-tmdb").then((r) => r.json()).catch(() => null),
+        fetch("/api/tmdb/fix-images").then((r) => r.json()).catch(() => null),
+      ]);
+      if (statsRes) setStats(statsRes);
+      if (matchRes && matchRes.anime) setMatchStats(matchRes);
+      if (fixRes && fixRes.total !== undefined) setImageFixStats(fixRes);
     } catch {
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger les statistiques",
-        variant: "destructive",
-      });
+      toast({ title: "Erreur", description: "Impossible de charger les stats", variant: "destructive" });
     } finally {
       setStatsLoading(false);
     }
   }, [toast]);
 
-  const fetchMatchStats = useCallback(async () => {
-    try {
-      const res = await fetch("/api/anime/match-tmdb");
-      const data = await res.json();
-      setMatchStats(data);
-    } catch {}
-  }, []);
-
   useEffect(() => {
-    if (open) {
-      fetchStats();
-      fetchMatchStats();
-    }
-  }, [open, fetchStats, fetchMatchStats]);
+    if (open) fetchStats();
+  }, [open, fetchStats]);
 
-  const estimatedCount =
-    (trendingPages + popularPages + topRatedPages + selectedGenres.length) * perPage;
-
+  const estimatedCount = (trendingPages + popularPages + topRatedPages + selectedGenres.length) * perPage;
   const toggleGenre = (genre: string) => {
-    setSelectedGenres((prev) =>
-      prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre]
-    );
+    setSelectedGenres((prev) => prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre]);
   };
 
   const handleSync = async () => {
@@ -1768,478 +1774,410 @@ function AdminPanel({
     setSyncResult(null);
     try {
       const params = new URLSearchParams({
-        trendingPages: String(trendingPages),
-        popularPages: String(popularPages),
-        topRatedPages: String(topRatedPages),
-        maxSeasons: String(maxSeasons),
-        maxEpsPerSeason: String(maxEpsPerSeason),
-        perplexity: String(perPage),
+        trendingPages: String(trendingPages), popularPages: String(popularPages),
+        topRatedPages: String(topRatedPages), maxSeasons: String(maxSeasons),
+        maxEpsPerSeason: String(maxEpsPerSeason), perplexity: String(perPage),
       });
-      if (selectedGenres.length > 0) {
-        params.set("genres", selectedGenres.join(","));
-      }
-
+      if (selectedGenres.length > 0) params.set("genres", selectedGenres.join(","));
       const res = await fetch(`/api/anime/sync?${params.toString()}`);
       const data = await res.json();
-
       if (data.success) {
         setSyncResult(data.stats);
-        toast({
-          title: "Sync réussi !",
-          description: `${data.stats.created} anime ajoutés, ${data.stats.updated} mis à jour`,
-        });
+        toast({ title: "Sync AniList réussi !", description: `${data.stats.created} créés, ${data.stats.updated} mis à jour` });
         fetchStats();
       } else {
-        toast({
-          title: "Erreur de sync",
-          description: data.error || "Échec inconnu",
-          variant: "destructive",
-        });
+        toast({ title: "Erreur", description: data.error || "Échec", variant: "destructive" });
       }
-    } catch {
-      toast({
-        title: "Erreur réseau",
-        description: "Impossible de contacter le serveur",
-        variant: "destructive",
-      });
-    } finally {
-      setSyncLoading(false);
-    }
+    } catch { toast({ title: "Erreur réseau", variant: "destructive" }); }
+    finally { setSyncLoading(false); }
   };
 
-  const handleReset = async () => {
-    if (
-      window.confirm(
-        "⚠️ Supprimer TOUS les anime de la base de données ? Cette action est irréversible."
-      )
-    ) {
-      try {
-        const res = await fetch("/api/anime/reset", { method: "DELETE" });
-        const data = await res.json();
-        if (data.success) {
-          toast({ title: "Réinitialisé", description: `${data.deleted} anime supprimés` });
-          fetchStats();
-          fetchMatchStats();
-        } else {
-          toast({ title: "Erreur", description: data.error || "Échec", variant: "destructive" });
-        }
-      } catch {
-        toast({ title: "Erreur réseau", variant: "destructive" });
+  const handleTmdbSync = async (type: "movies" | "series") => {
+    setTmdbSyncLoading(true);
+    setTmdbSyncResult(null);
+    try {
+      const params = new URLSearchParams({ type, source: tmdbSource, pages: String(tmdbPages), limit: "500" });
+      const res = await fetch(`/api/tmdb/sync?${params.toString()}`, { method: "POST" });
+      const data = await res.json();
+      if (data.success) {
+        setTmdbSyncResult(data.stats);
+        toast({ title: `TMDB ${type === "movies" ? "Films" : "Séries"} réussi !`, description: `${data.stats.created} créés, ${data.stats.updated} mis à jour` });
+        fetchStats();
+      } else {
+        toast({ title: "Erreur TMDB", description: data.error || "Échec", variant: "destructive" });
       }
-    }
+    } catch { toast({ title: "Erreur réseau", variant: "destructive" }); }
+    finally { setTmdbSyncLoading(false); }
   };
 
   const handleMatchTmdb = async () => {
-    if (!tmdbKey.trim()) {
-      toast({ title: "Clé TMDB requise", description: "Entrez votre clé API TMDB", variant: "destructive" });
+    if (!matchStats?.tmdbKeyValid) {
+      toast({ title: "TMDB non configuré", description: "Clé TMDB non valide", variant: "destructive" });
       return;
     }
     setMatchLoading(true);
     setMatchResult(null);
     try {
-      const res = await fetch("/api/anime/match-tmdb?limit=50", {
-        method: "POST",
-        headers: { "X-TMDB-Key": tmdbKey.trim() },
-      });
+      const res = await fetch("/api/anime/match-tmdb?limit=100", { method: "POST" });
       const data = await res.json();
       if (data.error) {
         toast({ title: "Erreur", description: data.error, variant: "destructive" });
       } else {
         setMatchResult(data.stats);
-        toast({
-          title: "Matching terminé !",
-          description: `${data.stats.matched}/${data.stats.processed} anime matchés. ${data.stats.remainingUnmatched} restants.`,
-        });
+        toast({ title: "Matching terminé !", description: `${data.stats.matched}/${data.stats.processed} matchés. ${data.stats.remainingUnmatched} restants.` });
         fetchStats();
-        fetchMatchStats();
       }
-    } catch {
-      toast({ title: "Erreur réseau", variant: "destructive" });
-    } finally {
-      setMatchLoading(false);
-    }
+    } catch { toast({ title: "Erreur réseau", variant: "destructive" }); }
+    finally { setMatchLoading(false); }
   };
 
-  const tmdbRate =
-    stats && stats.anime.total > 0
-      ? Math.round((stats.anime.withEmbeds / stats.anime.total) * 100)
-      : 0;
+  const handleFixImages = async () => {
+    setFixLoading(true);
+    setFixResult(null);
+    try {
+      const res = await fetch("/api/tmdb/fix-images?limit=200", { method: "POST" });
+      const data = await res.json();
+      if (data.success) {
+        setFixResult(data.stats);
+        toast({ title: "Images corrigées !", description: `${data.stats.fixed} images mises à jour` });
+        fetchStats();
+      } else {
+        toast({ title: "Erreur", description: data.error || "Échec", variant: "destructive" });
+      }
+    } catch { toast({ title: "Erreur réseau", variant: "destructive" }); }
+    finally { setFixLoading(false); }
+  };
+
+  const handleReset = async () => {
+    if (!window.confirm("⚠️ Supprimer TOUS les anime ? Irréversible.")) return;
+    try {
+      const res = await fetch("/api/anime/reset", { method: "DELETE" });
+      const data = await res.json();
+      if (data.success) { toast({ title: "Réinitialisé", description: `${data.deleted} anime supprimés` }); fetchStats(); }
+    } catch { toast({ title: "Erreur réseau", variant: "destructive" }); }
+  };
+
+  const tmdbRate = stats && stats.anime.total > 0
+    ? Math.round(((stats.anime.total - (matchStats?.anime.unmatched || 0)) / stats.anime.total) * 100) : 0;
+
+  const TABS = [
+    { id: "overview" as const, label: "Vue d'ensemble", icon: <Database className="h-3.5 w-3.5" /> },
+    { id: "anime" as const, label: "Anime", icon: <Sparkles className="h-3.5 w-3.5" /> },
+    { id: "tmdb" as const, label: "Films & Séries", icon: <Film className="h-3.5 w-3.5" /> },
+    { id: "images" as const, label: "Images", icon: <Monitor className="h-3.5 w-3.5" /> },
+  ];
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="right"
-        className="w-full sm:w-[440px] bg-background border-border overflow-y-auto"
-      >
-        <SheetHeader className="px-4 pt-6 pb-2">
+      <SheetContent side="left" className="w-full sm:w-[460px] overflow-y-auto">
+        <SheetHeader className="mb-4">
           <SheetTitle className="flex items-center gap-2 text-lg">
-            <Settings className="h-5 w-5" />
-            Administration AniList
+            <Settings className="h-5 w-5 text-red-500" /> Administration
           </SheetTitle>
-          <SheetDescription>
-            Synchronisation et statistiques anime
-          </SheetDescription>
+          <SheetDescription>Gérer le contenu, les syncs et les paramètres</SheetDescription>
         </SheetHeader>
 
-        <div className="px-4 pb-6 space-y-6 mt-2">
-          {/* ===== Stats Section ===== */}
-          <section>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                <Database className="h-4 w-4 text-muted-foreground" />
-                Statistiques
-              </h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={fetchStats}
-                disabled={statsLoading}
-                className="h-7 text-xs"
-              >
-                <RefreshCw
-                  className={`h-3 w-3 mr-1 ${statsLoading ? "animate-spin" : ""}`}
-                />
-                Actualiser
-              </Button>
-            </div>
-            {stats ? (
-              <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-lg border border-border bg-card p-3">
-                  <p className="text-xs text-muted-foreground">Total Anime</p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {stats.anime.total}
-                  </p>
-                </div>
-                <div className="rounded-lg border border-border bg-card p-3">
-                  <p className="text-xs text-muted-foreground">Avec Embeds</p>
-                  <p className="text-2xl font-bold text-green-400">
-                    {stats.anime.withEmbeds}
-                  </p>
-                </div>
-                <div className="rounded-lg border border-border bg-card p-3">
-                  <p className="text-xs text-muted-foreground">Total Embeds</p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {stats.anime.totalEmbeds}
-                  </p>
-                </div>
-                <div className="rounded-lg border border-border bg-card p-3">
-                  <p className="text-xs text-muted-foreground">TMDB Match</p>
-                  <p className="text-2xl font-bold text-red-400">{tmdbRate}%</p>
-                </div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-2">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <Skeleton key={i} className="h-16 rounded-lg" />
-                ))}
-              </div>
-            )}
-          </section>
+        <div className="flex gap-1 mb-5 bg-muted/50 rounded-lg p-1">
+          {TABS.map((tab) => (
+            <button key={tab.id} onClick={() => setAdminTab(tab.id)}
+              className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-md text-xs font-medium transition-all ${
+                adminTab === tab.id ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}>
+              {tab.icon}<span className="hidden sm:inline">{tab.label}</span>
+            </button>
+          ))}
+        </div>
 
-          <Separator />
-
-          {/* ===== Sync Controls ===== */}
-          <section>
-            <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5 mb-3">
-              <Zap className="h-4 w-4 text-muted-foreground" />
-              Contrôles de Sync
-            </h3>
-
-            <div className="space-y-3">
-              {/* Pages inputs */}
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">
-                    <TrendingUp className="h-3 w-3 inline mr-1" />
-                    Trending
-                  </label>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={20}
-                    value={trendingPages}
-                    onChange={(e) =>
-                      setTrendingPages(
-                        Math.max(1, Math.min(20, Number(e.target.value) || 1))
-                      )
-                    }
-                    className="h-8 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">
-                    <ArrowDownUp className="h-3 w-3 inline mr-1" />
-                    Populaire
-                  </label>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={20}
-                    value={popularPages}
-                    onChange={(e) =>
-                      setPopularPages(
-                        Math.max(1, Math.min(20, Number(e.target.value) || 1))
-                      )
-                    }
-                    className="h-8 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">
-                    <Star className="h-3 w-3 inline mr-1" />
-                    Top Notes
-                  </label>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={20}
-                    value={topRatedPages}
-                    onChange={(e) =>
-                      setTopRatedPages(
-                        Math.max(1, Math.min(20, Number(e.target.value) || 1))
-                      )
-                    }
-                    className="h-8 text-sm"
-                  />
-                </div>
+        <div className="space-y-4 pb-6">
+          {adminTab === "overview" && (
+            <>
+              <div className={`rounded-lg border p-3 ${matchStats?.tmdbKeyValid ? "border-green-500/30 bg-green-500/5" : "border-red-500/30 bg-red-500/5"}`}>
+                <p className="text-xs font-medium flex items-center gap-1.5 mb-2">
+                  <span className={`w-2 h-2 rounded-full ${matchStats?.tmdbKeyValid ? "bg-green-400" : "bg-red-400"} animate-pulse`} />
+                  TMDB API
+                </p>
+                <p className="text-sm font-semibold">
+                  {matchStats?.tmdbKeyValid ? "✅ Clé TMDB configurée et valide" : "❌ Clé TMDB non configurée"}
+                </p>
               </div>
 
-              {/* Genres */}
-              <div>
-                <label className="text-xs text-muted-foreground mb-1.5 block">
-                  Genres
-                </label>
-                <div className="flex flex-wrap gap-1.5">
-                  {ADMIN_GENRES.map((genre) => (
-                    <Badge
-                      key={genre}
-                      variant={
-                        selectedGenres.includes(genre) ? "default" : "outline"
-                      }
-                      className={`cursor-pointer text-xs transition-colors ${
-                        selectedGenres.includes(genre)
-                          ? "bg-red-600 text-white hover:bg-red-700 border-red-600"
-                          : "border-border text-muted-foreground hover:border-red-400 hover:text-red-400"
-                      }`}
-                      onClick={() => toggleGenre(genre)}
-                    >
-                      {genre}
-                    </Badge>
-                  ))}
+              {stats ? (
+                <div className="grid grid-cols-2 gap-2">
+                  <StatCard label="Films" value={stats.movies.total} />
+                  <StatCard label="Séries" value={stats.series.total} />
+                  <StatCard label="Anime" value={stats.anime.total} sub={`${stats.anime.withEmbeds} avec streams`} />
+                  <StatCard label="Manga" value={stats.manga.total} />
+                  <StatCard label="Total Embeds" value={matchStats?.total.embeds || 0} color="text-blue-400" />
+                  <StatCard label="TMDB Match" value={`${tmdbRate}%`} color={tmdbRate > 80 ? "text-green-400" : tmdbRate > 40 ? "text-yellow-400" : "text-red-400"} />
                 </div>
-              </div>
-
-              {/* Embed generation settings */}
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">
-                    Max Saisons
-                  </label>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={20}
-                    value={maxSeasons}
-                    onChange={(e) =>
-                      setMaxSeasons(
-                        Math.max(1, Math.min(20, Number(e.target.value) || 1))
-                      )
-                    }
-                    className="h-8 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">
-                    Max Eps/Saison
-                  </label>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={50}
-                    value={maxEpsPerSeason}
-                    onChange={(e) =>
-                      setMaxEpsPerSeason(
-                        Math.max(1, Math.min(50, Number(e.target.value) || 1))
-                      )
-                    }
-                    className="h-8 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">
-                    Items/page
-                  </label>
-                  <Select
-                    value={String(perPage)}
-                    onValueChange={(v) => setPerPage(Number(v))}
-                  >
-                    <SelectTrigger className="h-8 text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="25">25</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* ===== Estimated Count ===== */}
-          <div className="rounded-lg border border-dashed border-border bg-card/50 p-3 text-center">
-            <p className="text-xs text-muted-foreground mb-1">Estimation</p>
-            <p className="text-sm sm:text-base font-bold text-foreground">
-              ({trendingPages} + {popularPages} + {topRatedPages}
-              {selectedGenres.length > 0 && ` + ${selectedGenres.length}`}) ×{" "}
-              {perPage}
-              <span className="mx-1.5 text-muted-foreground">≈</span>
-              <span className="text-red-400 text-lg">{estimatedCount}</span>
-              <span className="text-sm text-muted-foreground ml-1">anime</span>
-            </p>
-          </div>
-
-          <Separator />
-
-          {/* ===== Action Buttons ===== */}
-          <section className="space-y-2">
-            <Button
-              onClick={handleSync}
-              disabled={syncLoading}
-              className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold h-11"
-            >
-              {syncLoading ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
-                <Play className="h-4 w-4 mr-2" />
-              )}
-              {syncLoading ? "Synchronisation..." : "▶ Lancer le Sync"}
-            </Button>
-
-            {syncResult && (
-              <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm space-y-1">
-                <p className="font-medium text-green-400">
-                  ✓ Sync terminé en {syncResult.elapsed}
-                </p>
-                <p className="text-muted-foreground">
-                  Récupérés:{" "}
-                  <span className="text-foreground font-medium">
-                    {syncResult.fetched}
-                  </span>{" "}
-                  · Créés:{" "}
-                  <span className="text-green-400 font-medium">
-                    {syncResult.created}
-                  </span>{" "}
-                  · Mis à jour:{" "}
-                  <span className="text-yellow-400 font-medium">
-                    {syncResult.updated}
-                  </span>{" "}
-                  · Embeds:{" "}
-                  <span className="text-blue-400 font-medium">
-                    {syncResult.withEmbeds}
-                  </span>
-                </p>
-                <p className="text-muted-foreground">
-                  TMDB résolus:{" "}
-                  <span className="text-red-400 font-medium">
-                    {syncResult.tmdbResolved}
-                  </span>{" "}
-                  · Ignorés:{" "}
-                  <span className="text-muted-foreground font-medium">
-                    {syncResult.skipped}
-                  </span>
-                </p>
-              </div>
-            )}
-
-            <Button
-              variant="outline"
-              onClick={handleReset}
-              className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 h-9 text-sm"
-            >
-              🗑 Réinitialiser les Anime
-            </Button>
-          </section>
-
-          <Separator />
-
-          {/* ===== TMDB Auto-Match ===== */}
-          <section>
-            <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5 mb-3">
-              <Search className="h-4 w-4 text-muted-foreground" />
-              Auto-Match TMDB
-              <span className="new-badge-shimmer px-1.5 py-0.5 rounded-full text-[9px] font-bold text-white uppercase tracking-wider ml-1">
-                NEW
-              </span>
-            </h3>
-            {matchStats && (
-              <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3 mb-3 text-sm space-y-1">
-                <p className="text-yellow-400 font-medium">
-                  ⚠️ {matchStats.anime.unmatched} anime sans TMDB ID
-                </p>
-                <p className="text-muted-foreground text-xs">
-                  Ces anime n'ont pas de liens streaming. Utilisez votre clé TMDB pour les matcher automatiquement.
-                </p>
-              </div>
-            )}
-            <div className="space-y-2">
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">
-                  Clé API TMDB <span className="text-red-400">*</span>
-                </label>
-                <Input
-                  type="password"
-                  placeholder="Votre clé TMDB (gratuite)"
-                  value={tmdbKey}
-                  onChange={(e) => setTmdbKey(e.target.value)}
-                  className="h-9 text-sm font-mono"
-                />
-                <p className="text-[10px] text-muted-foreground mt-1">
-                  Gratuit sur{" "}
-                  <a
-                    href="https://www.themoviedb.org/settings/api"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-red-400 underline hover:text-red-300"
-                  >
-                    themoviedb.org/settings/api
-                  </a>
-                </p>
-              </div>
-              <Button
-                onClick={handleMatchTmdb}
-                disabled={matchLoading || !tmdbKey.trim()}
-                variant="outline"
-                className="w-full border-blue-500/30 text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 h-10 font-semibold"
-              >
-                {matchLoading ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Zap className="h-4 w-4 mr-2" />
-                )}
-                {matchLoading ? "Matching en cours..." : "⚡ Matcher 50 anime"}
-              </Button>
-              {matchResult && (
-                <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm space-y-1">
-                  <p className="font-medium text-green-400">
-                    ✓ {matchResult.matched}/{matchResult.processed} matchés
-                  </p>
-                  <p className="text-muted-foreground text-xs">
-                    Encore {matchResult.remaining} sans TMDB ID. Relancez pour continuer.
-                  </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-lg" />)}
                 </div>
               )}
-            </div>
-          </section>
 
-          <Separator />
+              {imageFixStats && imageFixStats.needsFix > 0 && (
+                <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3">
+                  <p className="text-xs text-yellow-400 font-medium mb-1">⚠️ {imageFixStats.needsFix} images cassées</p>
+                  <p className="text-[11px] text-muted-foreground">Onglet &quot;Images&quot; pour corriger</p>
+                </div>
+              )}
 
-          {/* ===== Info ===== */}
-          <p className="text-[11px] text-muted-foreground/70 leading-relaxed">
-            <strong className="text-muted-foreground">AniList API</strong> : 100%
-            gratuit, illimité. Chaque page = ~{perPage} anime. Sur un vrai
-            serveur, vous pouvez monter à 5000+ anime.
-          </p>
+              {matchStats && matchStats.anime.unmatched > 0 && (
+                <div className="rounded-lg border border-orange-500/30 bg-orange-500/5 p-3">
+                  <p className="text-xs text-orange-400 font-medium mb-1">⚡ {matchStats.anime.unmatched} anime sans TMDB ID</p>
+                  <p className="text-[11px] text-muted-foreground">Onglet &quot;Anime&quot; → Matcher</p>
+                </div>
+              )}
+
+              <Separator />
+              <section className="space-y-2">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions rapides</h3>
+                <Button onClick={() => setAdminTab("tmdb")} variant="outline" className="w-full h-9 text-sm border-blue-500/20 text-blue-400 hover:bg-blue-500/10">
+                  <Film className="h-4 w-4 mr-2" /> Ajouter des Films via TMDB
+                </Button>
+                <Button onClick={() => setAdminTab("anime")} variant="outline" className="w-full h-9 text-sm border-orange-500/20 text-orange-400 hover:bg-orange-500/10">
+                  <Sparkles className="h-4 w-4 mr-2" /> Synchroniser les Anime (AniList)
+                </Button>
+                <Button onClick={() => setAdminTab("images")} variant="outline" className="w-full h-9 text-sm border-purple-500/20 text-purple-400 hover:bg-purple-500/10">
+                  <Monitor className="h-4 w-4 mr-2" /> Corriger les images cassées
+                </Button>
+              </section>
+            </>
+          )}
+
+          {adminTab === "anime" && (
+            <>
+              {matchStats && (
+                <div className="grid grid-cols-2 gap-2">
+                  <StatCard label="Total Anime" value={matchStats.anime.total} />
+                  <StatCard label="Avec TMDB" value={matchStats.anime.matched} color="text-green-400" />
+                  <StatCard label="Sans streams" value={matchStats.anime.unmatched} color="text-red-400" />
+                  <StatCard label="Embeds anime" value={stats?.anime.totalEmbeds || 0} color="text-blue-400" />
+                </div>
+              )}
+
+              <Separator />
+
+              <section>
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5 mb-3">
+                  <Zap className="h-4 w-4 text-muted-foreground" /> Sync AniList
+                </h3>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-1 block"><TrendingUp className="h-3 w-3 inline mr-1" />Trending</label>
+                      <Input type="number" min={1} max={20} value={trendingPages}
+                        onChange={(e) => setTrendingPages(Math.max(1, Math.min(20, Number(e.target.value) || 1)))} className="h-8 text-sm" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-1 block"><ArrowDownUp className="h-3 w-3 inline mr-1" />Populaire</label>
+                      <Input type="number" min={1} max={20} value={popularPages}
+                        onChange={(e) => setPopularPages(Math.max(1, Math.min(20, Number(e.target.value) || 1)))} className="h-8 text-sm" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-1 block"><Star className="h-3 w-3 inline mr-1" />Top Notes</label>
+                      <Input type="number" min={1} max={20} value={topRatedPages}
+                        onChange={(e) => setTopRatedPages(Math.max(1, Math.min(20, Number(e.target.value) || 1)))} className="h-8 text-sm" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1.5 block">Genres</label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {ADMIN_GENRES.map((genre) => (
+                        <Badge key={genre} variant={selectedGenres.includes(genre) ? "default" : "outline"}
+                          className={`cursor-pointer text-xs transition-colors ${selectedGenres.includes(genre) ? "bg-red-600 text-white hover:bg-red-700 border-red-600" : "border-border text-muted-foreground hover:border-red-400 hover:text-red-400"}`}
+                          onClick={() => toggleGenre(genre)}>{genre}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-1 block">Max Saisons</label>
+                      <Input type="number" min={1} max={20} value={maxSeasons}
+                        onChange={(e) => setMaxSeasons(Math.max(1, Math.min(20, Number(e.target.value) || 1)))} className="h-8 text-sm" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-1 block">Max Eps/Saison</label>
+                      <Input type="number" min={1} max={50} value={maxEpsPerSeason}
+                        onChange={(e) => setMaxEpsPerSeason(Math.max(1, Math.min(50, Number(e.target.value) || 1)))} className="h-8 text-sm" />
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <div className="rounded-lg border border-dashed border-border bg-card/50 p-3 text-center">
+                <p className="text-xs text-muted-foreground mb-1">Estimation</p>
+                <p className="text-sm font-bold">≈ <span className="text-red-400 text-lg">{estimatedCount}</span> <span className="text-sm text-muted-foreground">anime</span></p>
+              </div>
+
+              <Button onClick={handleSync} disabled={syncLoading} className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold h-11">
+                {syncLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Play className="h-4 w-4 mr-2" />}
+                {syncLoading ? "Synchronisation..." : "▶ Sync AniList"}
+              </Button>
+
+              {syncResult && (
+                <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm space-y-1">
+                  <p className="font-medium text-green-400">✓ Sync terminé en {syncResult.elapsed}</p>
+                  <p className="text-muted-foreground">Créés: <span className="text-green-400">{syncResult.created}</span> · MAJ: <span className="text-yellow-400">{syncResult.updated}</span> · Embeds: <span className="text-blue-400">{syncResult.withEmbeds}</span></p>
+                </div>
+              )}
+
+              <Separator />
+
+              <section>
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5 mb-3">
+                  <Search className="h-4 w-4 text-muted-foreground" /> Auto-Match TMDB
+                  {matchStats?.tmdbKeyValid && <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-green-500/20 text-green-400 uppercase ml-1">AUTO</span>}
+                </h3>
+                <Button onClick={handleMatchTmdb} disabled={matchLoading || !matchStats?.tmdbKeyValid}
+                  variant="outline" className="w-full border-orange-500/30 text-orange-400 hover:bg-orange-500/10 h-10 font-semibold">
+                  {matchLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Zap className="h-4 w-4 mr-2" />}
+                  {matchLoading ? "Matching..." : `⚡ Matcher 100 anime (${matchStats?.anime.unmatched || "?"} restants)`}
+                </Button>
+                {matchResult && (
+                  <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm space-y-1 mt-2">
+                    <p className="font-medium text-green-400">✓ {matchResult.matched}/{matchResult.processed} matchés</p>
+                    {matchResult.remainingUnmatched > 0 && <p className="text-muted-foreground text-xs">Encore {matchResult.remainingUnmatched} restants. Relancez !</p>}
+                  </div>
+                )}
+              </section>
+
+              <Separator />
+              <Button variant="outline" onClick={handleReset}
+                className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 h-9 text-sm">
+                🗑 Réinitialiser les Anime
+              </Button>
+            </>
+          )}
+
+          {adminTab === "tmdb" && (
+            <>
+              {!matchStats?.tmdbKeyValid ? (
+                <div className="rounded-lg border border-red-500/30 bg-red-500/5 p-4 text-center">
+                  <p className="text-red-400 font-medium mb-1">❌ TMDB non configuré</p>
+                  <p className="text-xs text-muted-foreground">Ajoutez TMDB_API_KEY dans le fichier .env</p>
+                </div>
+              ) : (
+                <>
+                  <div className="rounded-lg border border-green-500/30 bg-green-500/5 p-3 mb-3">
+                    <p className="text-xs text-green-400 font-medium">✅ TMDB connecté — Prêt à importer</p>
+                  </div>
+
+                  <div className="space-y-3 mb-4">
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-1.5 block">Source</label>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {[
+                          { id: "all", label: "Tout" }, { id: "trending", label: "Trending" },
+                          { id: "popular", label: "Populaire" }, { id: "top_rated", label: "Top Notes" },
+                          { id: "now_playing", label: "Au cinéma" }, { id: "upcoming", label: "À venir" },
+                        ].map((s) => (
+                          <button key={s.id} onClick={() => setTmdbSource(s.id)}
+                            className={`px-2 py-1.5 rounded-md text-xs font-medium transition-all ${tmdbSource === s.id ? "bg-red-600 text-white shadow-sm" : "bg-muted text-muted-foreground hover:text-foreground"}`}>
+                            {s.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-1 block">Pages</label>
+                        <Input type="number" min={1} max={20} value={tmdbPages}
+                          onChange={(e) => setTmdbPages(Math.max(1, Math.min(20, Number(e.target.value) || 1)))} className="h-8 text-sm" />
+                      </div>
+                      <div className="flex items-end">
+                        <div className="rounded-lg border border-dashed border-border bg-card/50 p-2 text-center w-full">
+                          <p className="text-[10px] text-muted-foreground">Estimation</p>
+                          <p className="text-sm font-bold text-red-400">≈ {tmdbPages * 20}+ items</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <section className="space-y-2">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                      <Film className="h-3.5 w-3.5" /> Films
+                    </h3>
+                    <Button onClick={() => handleTmdbSync("movies")} disabled={tmdbSyncLoading}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold h-10">
+                      {tmdbSyncLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Film className="h-4 w-4 mr-2" />}
+                      {tmdbSyncLoading ? "Import..." : "🎬 Importer des Films"}
+                    </Button>
+                  </section>
+
+                  <Separator />
+
+                  <section className="space-y-2">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                      <Tv className="h-3.5 w-3.5" /> Séries
+                    </h3>
+                    <Button onClick={() => handleTmdbSync("series")} disabled={tmdbSyncLoading}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold h-10">
+                      {tmdbSyncLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Tv className="h-4 w-4 mr-2" />}
+                      {tmdbSyncLoading ? "Import..." : "📺 Importer des Séries"}
+                    </Button>
+                  </section>
+
+                  {tmdbSyncResult && (
+                    <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm space-y-1">
+                      <p className="font-medium text-green-400">✓ {tmdbSyncResult.type === "movie" ? "Films" : "Séries"} terminé</p>
+                      <p className="text-muted-foreground">
+                        Créés: <span className="text-green-400">{tmdbSyncResult.created}</span> ·
+                        MAJ: <span className="text-yellow-400">{tmdbSyncResult.updated}</span> ·
+                        Embeds: <span className="text-blue-400">{tmdbSyncResult.withEmbeds}</span> ·
+                        Images: <span className="text-purple-400">{tmdbSyncResult.imagesFixed || 0}</span>
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+            </>
+          )}
+
+          {adminTab === "images" && (
+            <>
+              {imageFixStats ? (
+                <div className="grid grid-cols-2 gap-2 mb-4">
+                  <StatCard label="Total contenus" value={imageFixStats.total} />
+                  <StatCard label="Avec TMDB ID" value={imageFixStats.withTmdbId} color="text-green-400" />
+                  <StatCard label="Posters cassés" value={imageFixStats.brokenPosters} color="text-red-400" />
+                  <StatCard label="Sans poster" value={imageFixStats.noPosters} color="text-orange-400" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2 mb-4">
+                  {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-lg" />)}
+                </div>
+              )}
+
+              {imageFixStats && imageFixStats.needsFix > 0 && (
+                <>
+                  <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3 mb-3">
+                    <p className="text-xs text-yellow-400 font-medium mb-1">⚠️ {imageFixStats.needsFix} images à corriger</p>
+                    <p className="text-[11px] text-muted-foreground">Télécharge les vrais posters/backdrops depuis TMDB.</p>
+                  </div>
+                  <Button onClick={handleFixImages} disabled={fixLoading}
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold h-10">
+                    {fixLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Monitor className="h-4 w-4 mr-2" />}
+                    {fixLoading ? "Correction..." : "🖼 Corriger les images"}
+                  </Button>
+                </>
+              )}
+
+              {fixResult && (
+                <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm space-y-1 mt-2">
+                  <p className="font-medium text-green-400">✓ Images corrigées</p>
+                  <p className="text-muted-foreground">Fixées: <span className="text-green-400">{fixResult.fixed}</span> · OK: <span>{fixResult.alreadyGood}</span> · NF: <span className="text-red-400">{fixResult.notFound}</span></p>
+                </div>
+              )}
+
+              {imageFixStats && imageFixStats.needsFix === 0 && (
+                <div className="rounded-lg border border-green-500/30 bg-green-500/5 p-4 text-center">
+                  <p className="text-green-400 font-medium">✅ Toutes les images sont OK !</p>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </SheetContent>
     </Sheet>

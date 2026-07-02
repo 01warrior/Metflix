@@ -330,3 +330,31 @@ Stage Summary:
 - **TMDB Auto-Match system**: User gets free TMDB API key → clicks "Matcher 50 anime" → auto-matches + generates embeds
 - **Admin Panel improved**: Reset button works, TMDB matching section with stats
 - User needs to: 1) Get free TMDB key at themoviedb.org/settings/api, 2) Run matcher 8-9 times (50 per batch) to match all 418 anime
+
+---
+Task ID: 2-a
+Agent: Frontend Developer
+Task: Rewrite AdminPanel with 4-tab layout, remove manual TMDB key input, add TMDB sync and image fix tabs
+
+Work Log:
+- Replaced entire AdminPanel component (lines 1655-2247) with new 4-tab version
+- New tabs: Vue d'ensemble (Overview), Anime (AniList), Films & Séries (TMDB), Images
+- Removed manual TMDB key input - key now comes from .env (TMDB_API_KEY)
+- Added new interfaces: AdminStats, MatchStats (with movies/series/manga/total/hasTmdbKey/tmdbKeyValid), ImageFixStats
+- Added StatCard helper component for consistent stat display
+- Overview tab: TMDB status indicator, 6 stat cards (Films/Séries/Anime/Manga/Embeds/TMDB Match%), broken image warnings, unmatched anime warnings, quick action buttons
+- Anime tab: Anime stats grid, AniList sync controls (pages, genres, seasons, eps), TMDB auto-match (no header, uses env key), reset button
+- TMDB tab: Source selector (all/trending/popular/top_rated/now_playing/upcoming), pages input, separate Film/Series import buttons, TMDB key validation via env
+- Images tab: Image fix stats (total/withTmdbId/brokenPosters/noPosters), fix button calling /api/tmdb/fix-images, result display
+- New API calls: POST /api/tmdb/sync, POST /api/tmdb/fix-images, POST /api/anime/match-tmdb (no header), GET /api/anime/match-tmdb, GET /api/tmdb/fix-images
+- fetchStats now fetches 3 endpoints in parallel (anime/stats, anime/match-tmdb, tmdb/fix-images)
+- Sheet changed from side="right" to side="left", width 460px
+- Lint passes clean (0 errors, 0 warnings)
+
+Stage Summary:
+- AdminPanel completely rewritten with 4-tab architecture
+- TMDB key no longer manually entered - uses TMDB_API_KEY from .env
+- New TMDB import tab for movies and series with source/pagination controls
+- New Images tab for fixing broken posters/backdrops via TMDB
+- All API calls updated to new endpoint patterns (no X-TMDB-Key header needed)
+- Zero lint errors

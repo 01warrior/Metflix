@@ -1,33 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { findBestTmdbMatch, validateTmdbApiKey } from "@/lib/tmdb";
+import { findBestTmdbMatch, tmdbPosterUrl, tmdbBackdropUrl, validateTmdbApiKey } from "@/lib/tmdb";
 import { generateAllEmbeds } from "@/lib/embed-providers";
 
 /**
  * POST /api/anime/match-tmdb
  * 
  * Bulk-matches anime without TMDB IDs by searching TMDB API.
- * 
- * Headers:
- *   X-TMDB-Key: Your TMDB API key (free from themoviedb.org/settings/api)
+ * Also updates poster/backdrop images with TMDB versions.
  * 
  * Query params:
- *   limit: Max items to process (default: 50, max: 200)
+ *   limit: Max items to process (default 50, max 200)
  *   dryRun: "true" to preview without writing
  *   type: "anime" | "manga" | "all" (default: "anime")
+ *   updateImages: "true" to also update poster/backdrop for already-matched anime
  */
 export async function POST(request: NextRequest) {
   try {
-    const apiKey = request.headers.get("X-TMDB-Key");
+    const apiKey = process.env.TMDB_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
-        { error: "Missing X-TMDB-Key header. Get a free key at https://www.themoviedb.org/settings/api" },
+        { error: "TMDB_API_KEY not set in .env. Add it to your environment." },
         { status: 400 }
       );
     }
 
-    // Validate API key
-    const isValid = await validateTmdbApiKey(apiKey);
+    const isValid = await validateTmdbApiKey();
     if (!isValid) {
       return NextResponse.json(
         { error: "Invalid TMDB API key" },
@@ -39,6 +37,7 @@ export async function POST(request: NextRequest) {
     const limit = Math.min(Number(searchParams.get("limit") || 50), 200);
     const dryRun = searchParams.get("dryRun") === "true";
     const type = searchParams.get("type") || "anime";
+    const updateImages = searchParams.get("updateImages") === "true";
 
     // Build where clause
     const where: Record<string, unknown> = {
@@ -47,7 +46,7 @@ export async function POST(request: NextRequest) {
     };
     if (type !== "all") where.type = type;
 
-    // Get anime without TMDB IDs
+    // Get items without TMDB IDs
     const items = await db.content.findMany({
       where,
       select: { id: true, title: true, titleFr: true, type: true, seasons: true, year: true },
@@ -65,24 +64,39 @@ export async function POST(request: NextRequest) {
 
     let matched = 0;
     let errors = 0;
+    let imagesUpdated = 0;
     const results: { title: string; tmdbId: number | null; status: string }[] = [];
 
     for (const item of items) {
       try {
-        // Search with English title first, fall back to any title
         const match = await findBestTmdbMatch(item.title, apiKey, item.year);
-        
+
         if (match) {
           results.push({ title: item.title, tmdbId: match.tmdbId, status: "matched" });
-          
+
           if (!dryRun) {
-            // Update the content with TMDB ID
+            // Update content with TMDB ID + poster/backdrop from TMDB
+            const updateData: Record<string, any> = { tmdbId: match.tmdbId };
+            if (match.overview) updateData.overview = match.overview;
+            if (match.genres) updateData.genres = match.genres;
+            if (match.rating) updateData.rating = match.rating;
+            if (match.year) updateData.year = match.year;
+
+            // Use TMDB poster if available (higher quality than AniList)
+            if (match.posterPath) {
+              updateData.posterPath = tmdbPosterUrl(match.posterPath);
+              imagesUpdated++;
+            }
+            if (match.backdropPath) {
+              updateData.backdropPath = tmdbBackdropUrl(match.backdropPath);
+            }
+
             await db.content.update({
               where: { id: item.id },
-              data: { tmdbId: match.tmdbId },
+              data: updateData,
             });
 
-            // Generate embeds for this content
+            // Generate embeds
             const contentType = item.type as "movie" | "series" | "anime";
             const embeds = generateAllEmbeds(
               match.tmdbId,
@@ -104,8 +118,7 @@ export async function POST(request: NextRequest) {
           results.push({ title: item.title, tmdbId: null, status: "not_found" });
         }
 
-        // Rate limit: TMDB free tier allows ~40 req/sec, we do 2 per item (tv+movie)
-        // Be safe with 300ms delay
+        // Rate limit: 300ms between items (TMDB allows 50/sec but be safe)
         await new Promise((r) => setTimeout(r, 300));
       } catch (err) {
         errors++;
@@ -126,11 +139,12 @@ export async function POST(request: NextRequest) {
         matched,
         notFound: items.length - matched - errors,
         errors,
+        imagesUpdated: dryRun ? 0 : imagesUpdated,
         remainingUnmatched: remaining,
       },
       message: dryRun
         ? `Preview: would match ${matched}/${items.length} items`
-        : `Matched ${matched}/${items.length} items. ${remaining} still unmatched.`,
+        : `Matched ${matched}/${items.length} items (${imagesUpdated} images updated). ${remaining} still unmatched.`,
       results,
     });
   } catch (error) {
@@ -151,19 +165,36 @@ export async function GET() {
     const animeTotal = await db.content.count({
       where: { type: "anime", status: "published" },
     });
-    const animeMatched = animeTotal - animeUnmatched;
 
-    const mangaUnmatched = await db.content.count({
-      where: { type: "manga", tmdbId: null, status: "published" },
+    const movieUnmatched = await db.content.count({
+      where: { type: "movie", tmdbId: null, status: "published" },
     });
+    const movieTotal = await db.content.count({
+      where: { type: "movie", status: "published" },
+    });
+
+    const seriesUnmatched = await db.content.count({
+      where: { type: "series", tmdbId: null, status: "published" },
+    });
+    const seriesTotal = await db.content.count({
+      where: { type: "series", status: "published" },
+    });
+
     const mangaTotal = await db.content.count({
       where: { type: "manga", status: "published" },
     });
 
+    const totalEmbeds = await db.embedSource.count();
+    const totalContent = await db.content.count({ where: { status: "published" } });
+
     return NextResponse.json({
-      anime: { total: animeTotal, matched: animeMatched, unmatched: animeUnmatched },
-      manga: { total: mangaTotal, matched: mangaTotal - mangaUnmatched, unmatched: mangaUnmatched },
+      anime: { total: animeTotal, matched: animeTotal - animeUnmatched, unmatched: animeUnmatched },
+      movies: { total: movieTotal, matched: movieTotal - movieUnmatched, unmatched: movieUnmatched },
+      series: { total: seriesTotal, matched: seriesTotal - seriesUnmatched, unmatched: seriesUnmatched },
+      manga: { total: mangaTotal },
+      total: { content: totalContent, embeds: totalEmbeds },
       hasTmdbKey: !!process.env.TMDB_API_KEY,
+      tmdbKeyValid: await validateTmdbApiKey().catch(() => false),
     });
   } catch (error) {
     console.error("[API /anime/match-tmdb] Stats error:", error);
