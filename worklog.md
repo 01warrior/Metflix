@@ -299,3 +299,34 @@ Stage Summary:
 - Browser QA verified: film detail shows 7 colored server buttons, series shows episode selector + 7 servers
 - Zero console errors
 - Providers verified: vidsrc.pm, vidsrc.in, vidsrc.dev, vidsrc.io, embed.su, vidsrc.pro, vidsrcme.ru
+
+---
+Task ID: 11
+Agent: Main Agent
+Task: Fix anime/manga - 418 anime without streams, 14 manga with 404 images
+
+Work Log:
+- Diagnosed root cause: 418/585 anime have no TMDB ID → no embed URLs possible
+- 14 manga had fake TMDB poster paths → 404 on all images
+- Fetched MAL IDs from AniList for all 418 unmatched anime (415/418 have MAL IDs)
+- Created src/lib/tmdb.ts - TMDB search client (search, match, validate API key)
+- Created POST /api/anime/match-tmdb - bulk TMDB matching endpoint
+  - Takes X-TMDB-Key header, searches TMDB for each unmatched anime
+  - Auto-generates embeds for matched items
+  - Supports dryRun, limit, type query params
+- Created GET /api/anime/match-tmdb - stats endpoint (no key needed)
+- Added TMDB Auto-Match section to Admin Panel:
+  - Shows warning "418 anime sans TMDB ID"
+  - Input for TMDB API key (with link to get free key)
+  - "Matcher 50 anime" button with progress/results
+  - Fixed reset button (was showing "not implemented", now calls DELETE /api/anime/reset)
+- Deleted 14 fake manga, replaced with 75 real manga from AniList (proper poster URLs, descriptions, ratings)
+- Added "Aucun serveur disponible" message for anime without embeds (instead of empty player)
+- Zero lint errors, zero console errors
+
+Stage Summary:
+- **Manga FIXED**: 75 real manga with AniList poster URLs (was 14 fake with broken TMDB paths)
+- **Anime without embeds**: Clear UI message directing to Admin → Auto-Match TMDB
+- **TMDB Auto-Match system**: User gets free TMDB API key → clicks "Matcher 50 anime" → auto-matches + generates embeds
+- **Admin Panel improved**: Reset button works, TMDB matching section with stats
+- User needs to: 1) Get free TMDB key at themoviedb.org/settings/api, 2) Run matcher 8-9 times (50 per batch) to match all 418 anime

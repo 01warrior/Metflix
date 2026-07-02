@@ -1236,6 +1236,18 @@ function DetailView() {
               <p className="text-muted-foreground">Sélectionnez un chapitre ci-dessous</p>
             </div>
           </div>
+        ) : contentDetail.embedGroups.length === 0 ? (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center px-4">
+              <Server className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
+              <p className="text-muted-foreground font-medium mb-1">Aucun serveur disponible</p>
+              <p className="text-muted-foreground/70 text-sm">
+                {contentDetail.type === "anime"
+                  ? "Cet anime n'a pas encore été matché avec TMDB. Utilisez l'Administration → Auto-Match TMDB pour ajouter des liens."
+                  : "Ce contenu n'a pas de liens streaming disponibles."}
+              </p>
+            </div>
+          </div>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
@@ -1705,6 +1717,10 @@ function AdminPanel({
   const [statsLoading, setStatsLoading] = useState(false);
   const [stats, setStats] = useState<AnimeStatsData | null>(null);
   const [syncResult, setSyncResult] = useState<SyncResultData | null>(null);
+  const [tmdbKey, setTmdbKey] = useState("");
+  const [matchLoading, setMatchLoading] = useState(false);
+  const [matchResult, setMatchResult] = useState<{ matched: number; processed: number; remaining: number } | null>(null);
+  const [matchStats, setMatchStats] = useState<{ anime: { total: number; matched: number; unmatched: number }; manga: { total: number; matched: number; unmatched: number } } | null>(null);
 
   const fetchStats = useCallback(async () => {
     setStatsLoading(true);
@@ -1723,9 +1739,20 @@ function AdminPanel({
     }
   }, [toast]);
 
+  const fetchMatchStats = useCallback(async () => {
+    try {
+      const res = await fetch("/api/anime/match-tmdb");
+      const data = await res.json();
+      setMatchStats(data);
+    } catch {}
+  }, []);
+
   useEffect(() => {
-    if (open) fetchStats();
-  }, [open, fetchStats]);
+    if (open) {
+      fetchStats();
+      fetchMatchStats();
+    }
+  }, [open, fetchStats, fetchMatchStats]);
 
   const estimatedCount =
     (trendingPages + popularPages + topRatedPages + selectedGenres.length) * perPage;
@@ -1780,16 +1807,56 @@ function AdminPanel({
     }
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     if (
       window.confirm(
         "⚠️ Supprimer TOUS les anime de la base de données ? Cette action est irréversible."
       )
     ) {
-      toast({
-        title: "Info",
-        description: "La réinitialisation n'est pas encore implémentée via l'API.",
+      try {
+        const res = await fetch("/api/anime/reset", { method: "DELETE" });
+        const data = await res.json();
+        if (data.success) {
+          toast({ title: "Réinitialisé", description: `${data.deleted} anime supprimés` });
+          fetchStats();
+          fetchMatchStats();
+        } else {
+          toast({ title: "Erreur", description: data.error || "Échec", variant: "destructive" });
+        }
+      } catch {
+        toast({ title: "Erreur réseau", variant: "destructive" });
+      }
+    }
+  };
+
+  const handleMatchTmdb = async () => {
+    if (!tmdbKey.trim()) {
+      toast({ title: "Clé TMDB requise", description: "Entrez votre clé API TMDB", variant: "destructive" });
+      return;
+    }
+    setMatchLoading(true);
+    setMatchResult(null);
+    try {
+      const res = await fetch("/api/anime/match-tmdb?limit=50", {
+        method: "POST",
+        headers: { "X-TMDB-Key": tmdbKey.trim() },
       });
+      const data = await res.json();
+      if (data.error) {
+        toast({ title: "Erreur", description: data.error, variant: "destructive" });
+      } else {
+        setMatchResult(data.stats);
+        toast({
+          title: "Matching terminé !",
+          description: `${data.stats.matched}/${data.stats.processed} anime matchés. ${data.stats.remainingUnmatched} restants.`,
+        });
+        fetchStats();
+        fetchMatchStats();
+      }
+    } catch {
+      toast({ title: "Erreur réseau", variant: "destructive" });
+    } finally {
+      setMatchLoading(false);
     }
   };
 
@@ -2092,6 +2159,77 @@ function AdminPanel({
             >
               🗑 Réinitialiser les Anime
             </Button>
+          </section>
+
+          <Separator />
+
+          {/* ===== TMDB Auto-Match ===== */}
+          <section>
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5 mb-3">
+              <Search className="h-4 w-4 text-muted-foreground" />
+              Auto-Match TMDB
+              <span className="new-badge-shimmer px-1.5 py-0.5 rounded-full text-[9px] font-bold text-white uppercase tracking-wider ml-1">
+                NEW
+              </span>
+            </h3>
+            {matchStats && (
+              <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3 mb-3 text-sm space-y-1">
+                <p className="text-yellow-400 font-medium">
+                  ⚠️ {matchStats.anime.unmatched} anime sans TMDB ID
+                </p>
+                <p className="text-muted-foreground text-xs">
+                  Ces anime n'ont pas de liens streaming. Utilisez votre clé TMDB pour les matcher automatiquement.
+                </p>
+              </div>
+            )}
+            <div className="space-y-2">
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">
+                  Clé API TMDB <span className="text-red-400">*</span>
+                </label>
+                <Input
+                  type="password"
+                  placeholder="Votre clé TMDB (gratuite)"
+                  value={tmdbKey}
+                  onChange={(e) => setTmdbKey(e.target.value)}
+                  className="h-9 text-sm font-mono"
+                />
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Gratuit sur{" "}
+                  <a
+                    href="https://www.themoviedb.org/settings/api"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-red-400 underline hover:text-red-300"
+                  >
+                    themoviedb.org/settings/api
+                  </a>
+                </p>
+              </div>
+              <Button
+                onClick={handleMatchTmdb}
+                disabled={matchLoading || !tmdbKey.trim()}
+                variant="outline"
+                className="w-full border-blue-500/30 text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 h-10 font-semibold"
+              >
+                {matchLoading ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Zap className="h-4 w-4 mr-2" />
+                )}
+                {matchLoading ? "Matching en cours..." : "⚡ Matcher 50 anime"}
+              </Button>
+              {matchResult && (
+                <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm space-y-1">
+                  <p className="font-medium text-green-400">
+                    ✓ {matchResult.matched}/{matchResult.processed} matchés
+                  </p>
+                  <p className="text-muted-foreground text-xs">
+                    Encore {matchResult.remaining} sans TMDB ID. Relancez pour continuer.
+                  </p>
+                </div>
+              )}
+            </div>
           </section>
 
           <Separator />
