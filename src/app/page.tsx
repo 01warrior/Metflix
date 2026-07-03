@@ -1841,7 +1841,7 @@ function Footer() {
         <div className="rounded-xl bg-white/90 dark:bg-zinc-900/90 border border-zinc-200 dark:border-zinc-700/50 p-6 text-center">
           <div className="flex items-center justify-center gap-2 mb-3">
             <Icon name="heart" className="h-5 w-5 text-red-500" />
-            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+            <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
               Vous êtes chez vous
             </h3>
           </div>
