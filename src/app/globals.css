@@ -477,8 +477,20 @@
 }
 
 /* Smooth scroll behavior */
-html {
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
   scroll-behavior: smooth;
+}
+
+/* Remove any top space */
+[data-nextjs-route-announcer] {
+  display: none !important;
+}
+
+/* Next.js dev tools can create a gap - ensure header stays at top */
+header {
+  top: 0 !important;
 }
 
 /* Better focus styles */

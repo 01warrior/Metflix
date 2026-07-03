@@ -25,9 +25,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" suppressHydrationWarning>
+    <html lang="fr" suppressHydrationWarning className="m-0 p-0">
       <body
-        className={`${nunito.variable} font-sans antialiased bg-background text-foreground`}
+        className={`${nunito.variable} font-sans antialiased bg-background text-foreground m-0 p-0`}
       >
         <ThemeProvider
           attribute="class"
