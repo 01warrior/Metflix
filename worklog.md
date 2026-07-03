@@ -581,3 +581,26 @@ Work Log:
 Stage Summary:
 - Footer support section now uses emotionally-driven copy: interruptions frustration → contrast with ad-free experience → voluntary support CTA
 - No code errors, server stable
+
+---
+Task ID: netflix-series-layout
+Agent: main
+Task: Redesign series detail page with Netflix-style layout (episodes on right, season dropdown)
+
+Work Log:
+- Analyzed current series detail layout: flat episode grid buttons + separate info section
+- Added `selectedSeason` state and `useMemo` hooks for season grouping (moved before early returns to satisfy rules-of-hooks)
+- Created Netflix-style two-column layout for series/anime: left (info + servers), right (season dropdown + vertical episode list)
+- Used shadcn Select component for season dropdown (shows only when multiple seasons)
+- Episode list features: number, title, server count, play/pause icon, active state with red left border
+- Movies keep original layout (server buttons + info section) unchanged
+- Season change auto-selects first episode of new season
+- Verified via browser: Breaking Bad loads with 5 seasons in dropdown, episode list works, season switching works, server buttons update per episode
+- Verified movies still render correctly with server buttons (no episode list)
+
+Stage Summary:
+- Series/anime detail view now has Netflix-style two-column layout (info left, episodes right)
+- Season dropdown allows switching between seasons
+- Episode list is scrollable (max-h-500px) with active state highlighting
+- Movies unaffected, still use the original layout
+- Lint passes clean, no runtime errors

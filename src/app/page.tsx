@@ -1124,6 +1124,7 @@ function DetailView() {
   const [loading, setLoading] = useState(true);
   const [playerLoading, setPlayerLoading] = useState(false);
   const [selectedEpisode, setSelectedEpisode] = useState<string | null>(null);
+  const [selectedSeason, setSelectedSeason] = useState<number>(1);
   const [iframeKey, setIframeKey] = useState(0);
   // MangaDex state
   const [mangadexId, setMangadexId] = useState<string | null>(null);
@@ -1131,9 +1132,35 @@ function DetailView() {
   const [mangadexLoading, setMangadexLoading] = useState(false);
   const [mangadexError, setMangadexError] = useState<string | null>(null);
 
+  // Group episodes by season (before any early returns to satisfy rules-of-hooks)
+  const seasonMap = useMemo(() => {
+    if (!contentDetail?.embedGroups) return new Map<number, EmbedGroup[]>();
+    const map = new Map<number, typeof contentDetail.embedGroups>();
+    contentDetail.embedGroups.forEach((group) => {
+      const s = group.season ?? 1;
+      if (!map.has(s)) map.set(s, []);
+      map.get(s)!.push(group);
+    });
+    map.forEach((groups) => {
+      groups.sort((a, b) => (a.episode ?? 0) - (b.episode ?? 0));
+    });
+    return map;
+  }, [contentDetail?.embedGroups]);
+
+  const availableSeasons = useMemo(
+    () => Array.from(seasonMap.keys()).sort((a, b) => a - b),
+    [seasonMap]
+  );
+
+  const currentSeasonEpisodes = useMemo(
+    () => seasonMap.get(selectedSeason) || [],
+    [seasonMap, selectedSeason]
+  );
+
   // Fetch detail on mount or ID change
   const fetchDetail = useCallback(async (id: string) => {
     setSelectedEpisode(null);
+    setSelectedSeason(1);
     setCurrentEmbed(null);
     setLoading(true);
     try {
@@ -1159,7 +1186,7 @@ function DetailView() {
     } finally {
       setLoading(false);
     }
-  }, [setContentDetail, setCurrentEmbed, setSelectedEpisode, toast]);
+  }, [setContentDetail, setCurrentEmbed, setSelectedEpisode, setSelectedSeason, toast]);
 
   // Search MangaDex when manga detail loads
   const fetchMangaDexChapters = useCallback(async (mangaTitle: string) => {
@@ -1274,6 +1301,20 @@ function DetailView() {
       title: isFav ? "Retiré des favoris" : "Ajouté aux favoris",
       description: getDisplayTitle(contentDetail),
     });
+  };
+
+  // Auto-select first episode of season when season changes
+  const handleSeasonChange = (season: number) => {
+    setSelectedSeason(season);
+    const eps = seasonMap.get(season);
+    if (eps?.length) {
+      const firstEp = eps[0];
+      const epKey = `S${firstEp.season}E${firstEp.episode}`;
+      setSelectedEpisode(epKey);
+      if (firstEp.embeds.length > 0) {
+        handleEmbedClick(firstEp.embeds[0], epKey);
+      }
+    }
   };
 
   return (
@@ -1506,69 +1547,113 @@ function DetailView() {
           </div>
         )}
 
-        {/* For series/anime: episode selector + server buttons per episode */}
-        {isSeriesOrAnime && (
-          <div>
-            <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-              <Icon name="tv" className="h-4 w-4" />
-              Épisodes
-            </h3>
+        {/* For series/anime: Netflix-style layout (handled below with info) */}
+      </div>}
 
-            {/* Episode grid */}
-            <div className="flex flex-wrap gap-2 mb-4">
-              {contentDetail.embedGroups.map((group) => {
-                const epKey =
-                  group.season != null && group.episode != null
-                    ? `S${group.season}E${group.episode}`
-                    : "all";
-                return (
+      {/* ========== SERIES/ANIME: Netflix-style two-column layout ========== */}
+      {isSeriesOrAnime && (
+        <div className="grid lg:grid-cols-[1fr_380px] gap-6 mb-8">
+          {/* Left column: Info + Servers */}
+          <div>
+            <div className="grid md:grid-cols-[180px_1fr] gap-5 mb-6">
+              {/* Poster */}
+              <div className="hidden md:block">
+                <img
+                  src={contentDetail.posterUrl}
+                  alt={getDisplayTitle(contentDetail)}
+                  className="w-full aspect-[2/3] rounded-lg object-cover shadow-xl"
+                  onError={(e) => handleImgError(e)}
+                />
+              </div>
+
+              <div>
+                <div className="flex items-start justify-between gap-4 mb-3">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${TYPE_CONFIG[contentDetail.type]?.badgeClass || ""}`}
+                      >
+                        {TYPE_CONFIG[contentDetail.type]?.label || contentDetail.type}
+                      </span>
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-600/90 text-white">
+                        1080p
+                      </span>
+                    </div>
+                    <h1 className="text-2xl md:text-3xl font-extrabold text-foreground leading-tight">
+                      {getDisplayTitle(contentDetail)}
+                    </h1>
+                  </div>
                   <button
-                    key={epKey}
-                    onClick={() => {
-                      setSelectedEpisode(epKey);
-                      // Auto-select first embed for this episode
-                      if (group.embeds.length > 0) {
-                        handleEmbedClick(group.embeds[0], epKey);
-                      }
-                    }}
-                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                      selectedEpisode === epKey
-                        ? "bg-red-600 text-white shadow-lg shadow-red-600/20"
-                        : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
-                    }`}
+                    onClick={handleFav}
+                    className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors"
+                    aria-label={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
                   >
-                    {group.label.replace("Saison ", "S").replace(" - Épisode ", "E")}
+                    <Icon
+                      name="heart"
+                      className={`h-5 w-5 transition-all ${isFav ? "fill-red-500 text-red-500" : "text-muted-foreground"}`}
+                    />
                   </button>
-                );
-              })}
+                </div>
+
+                {/* Meta */}
+                <div className="flex flex-wrap items-center gap-3 mb-4 text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Icon name="star" className="h-4 w-4 fill-amber-500 text-amber-500" />
+                    <span className="text-foreground font-semibold">
+                      {contentDetail.rating?.toFixed(1)}
+                    </span>
+                  </span>
+                  {contentDetail.year && (
+                    <span className="flex items-center gap-1">
+                      <Icon name="calendar" className="h-3.5 w-3.5" />
+                      {contentDetail.year}
+                    </span>
+                  )}
+                  {contentDetail.seasons && (
+                    <span className="flex items-center gap-1">
+                      <Icon name="layers" className="h-3.5 w-3.5" />
+                      {contentDetail.seasons} saison{contentDetail.seasons > 1 ? "s" : ""}
+                    </span>
+                  )}
+                </div>
+
+                {/* Genres */}
+                {contentDetail.genres && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {contentDetail.genres.split(",").map((g) => g.trim()).filter(Boolean).map((genre) => (
+                      <Badge
+                        key={genre}
+                        variant="secondary"
+                        className="text-xs bg-muted text-muted-foreground"
+                      >
+                        {genre}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+
+                {/* Overview */}
+                {contentDetail.overviewFr && (
+                  <p className="text-sm text-muted-foreground leading-relaxed line-clamp-4">
+                    {contentDetail.overviewFr}
+                  </p>
+                )}
+              </div>
             </div>
 
-            {/* Server buttons for selected episode */}
+            {/* Server buttons for current episode */}
             {selectedEpisode && (
               <div>
-                <h4 className="text-xs font-medium text-muted-foreground/70 mb-2 ml-1">
-                  Serveurs pour{" "}
-                  {contentDetail.embedGroups.find(
-                    (g) => {
-                      const k =
-                        g.season != null && g.episode != null
-                          ? `S${g.season}E${g.episode}`
-                          : "all";
-                      return k === selectedEpisode;
-                    }
-                  )?.label || selectedEpisode}
+                <h4 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+                  <Icon name="server" className="h-4 w-4" />
+                  Serveurs — Épisode {currentSeasonEpisodes.find((g) => `S${g.season}E${g.episode}` === selectedEpisode)?.episode || ""}
                 </h4>
                 <div className="flex flex-wrap gap-2">
                   {contentDetail.embedGroups
-                    .find(
-                      (g) => {
-                        const k =
-                          g.season != null && g.episode != null
-                            ? `S${g.season}E${g.episode}`
-                            : "all";
-                        return k === selectedEpisode;
-                      }
-                    )
+                    .find((g) => {
+                      const k = g.season != null && g.episode != null ? `S${g.season}E${g.episode}` : "all";
+                      return k === selectedEpisode;
+                    })
                     ?.embeds.map((embed) => (
                       <ServerButton
                         key={embed.id}
@@ -1581,11 +1666,97 @@ function DetailView() {
               </div>
             )}
           </div>
-        )}
-      </div>}
 
-      {/* Content info (not for manga - already shown in reading section) */}
-      {!isManga && <div className="grid md:grid-cols-[220px_1fr] gap-6 mb-8">
+          {/* Right column: Season dropdown + Episode list */}
+          <div className="rounded-xl border border-border/60 bg-card/50 overflow-hidden">
+            {/* Season dropdown */}
+            <div className="p-4 border-b border-border/50">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-foreground">Épisodes</h3>
+                {availableSeasons.length > 1 && (
+                  <Select
+                    value={String(selectedSeason)}
+                    onValueChange={(val) => handleSeasonChange(Number(val))}
+                  >
+                    <SelectTrigger className="w-[140px] h-9 text-xs bg-muted/50 border-border/50">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableSeasons.map((s) => (
+                        <SelectItem key={s} value={String(s)} className="text-xs">
+                          Saison {s}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+            </div>
+
+            {/* Episode list */}
+            <div className="max-h-[500px] overflow-y-auto custom-scrollbar">
+              {currentSeasonEpisodes.length === 0 ? (
+                <div className="p-6 text-center text-sm text-muted-foreground">
+                  Aucun épisode disponible pour cette saison
+                </div>
+              ) : (
+                currentSeasonEpisodes.map((group) => {
+                  const epKey = group.season != null && group.episode != null ? `S${group.season}E${group.episode}` : "all";
+                  const isActive = selectedEpisode === epKey;
+                  const epNum = group.episode ?? 0;
+                  return (
+                    <button
+                      key={epKey}
+                      onClick={() => {
+                        setSelectedEpisode(epKey);
+                        if (group.embeds.length > 0) {
+                          handleEmbedClick(group.embeds[0], epKey);
+                        }
+                      }}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-all border-b border-border/30 last:border-b-0 group ${
+                        isActive
+                          ? "bg-red-600/10 border-l-[3px] border-l-red-500"
+                          : "hover:bg-muted/50 border-l-[3px] border-l-transparent"
+                      }`}
+                    >
+                      {/* Episode number */}
+                      <span className={`text-lg font-bold min-w-[2rem] text-center transition-colors ${
+                        isActive ? "text-red-500" : "text-muted-foreground/40 group-hover:text-muted-foreground/70"
+                      }`}>
+                        {epNum}
+                      </span>
+
+                      {/* Episode info */}
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-medium truncate transition-colors ${
+                          isActive ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"
+                        }`}>
+                          Épisode {epNum}
+                        </p>
+                        <p className="text-xs text-muted-foreground/60 mt-0.5">
+                          {group.embeds.length} serveur{group.embeds.length > 1 ? "s" : ""} disponible{group.embeds.length > 1 ? "s" : ""}
+                        </p>
+                      </div>
+
+                      {/* Play icon */}
+                      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                        isActive
+                          ? "bg-red-600 text-white shadow-lg shadow-red-600/20"
+                          : "bg-muted/80 text-muted-foreground opacity-0 group-hover:opacity-100"
+                      }`}>
+                        <Icon name={isActive ? "pause" : "play"} className="h-3.5 w-3.5" />
+                      </div>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========== MOVIES: Info section (existing layout) ========== */}
+      {!isManga && !isSeriesOrAnime && <div className="grid md:grid-cols-[220px_1fr] gap-6 mb-8">
         {/* Poster */}
         <div className="hidden md:block">
           <img
