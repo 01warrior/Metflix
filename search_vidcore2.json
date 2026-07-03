@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://www.vidcore.org/vidsrc-alternative",
+    "name": "VidSrc Alternative for TMDB Movie & TV Embeds | VidCore API",
+    "snippet": "Yes. VidCore is designed as a VidSrc alternative for developers who want TMDB embed URLs, HLS playback, subtitles, multi-server fallback, and player events.",
+    "host_name": "www.vidcore.org",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://emby.media/community/topic/121967-retrieve-all-existing-subtitles-for-an-item",
+    "name": "Retrieve all existing subtitles for an item - Developer API - Emby",
+    "snippet": "Using the API, i am trying retrieve all existing subtitles for an item (i.e not embedded subtitles, but .srt that have been downloaded).",
+    "host_name": "emby.media",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=XUUnIsQdEw4",
+    "name": "Movie Database API Search Movies and TV Shows Tutorial - YouTube",
+    "snippet": "How to Generate Movie DB API Key: https://youtu.be/FlFyrOEz2S4?t=21 Movie DB Search Movie API Documentation: https://developer.themoviedb.org ...",
+    "host_name": "www.youtube.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://developer.themoviedb.org/reference/intro/getting-started",
+    "name": "Getting Started - TMDB API key",
+    "snippet": "This is where you will find the definitive list of currently available methods for our movie, tv, actor and image API. 1Pick a language.",
+    "host_name": "developer.themoviedb.org",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/Inside4ndroid/TMDB-Embed-API",
+    "name": "Inside4ndroid/TMDB-Embed-API - GitHub",
+    "snippet": "An api to get embed sources using tmdb id. Contribute to Inside4ndroid/TMDB-Embed-API development by creating an account on GitHub.",
+    "host_name": "github.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  }
+]

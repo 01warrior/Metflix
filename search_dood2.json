@@ -1,0 +1,92 @@
+[
+  {
+    "url": "https://community.mybb.com/thread-228371.html",
+    "name": "Embed doodstream - MyBB Community Forums",
+    "snippet": "There is no relation between the url and the iframe src, it's impossible with a MyCode to determine the src to apply based on the initial url.",
+    "host_name": "community.mybb.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.reddit.com/r/DataHoarder/comments/jkuf5t/how_to_download_doodstream_videos",
+    "name": "How to download doodstream videos? : r/DataHoarder - Reddit",
+    "snippet": "Open developer tools · Click on the network tab · Go to Doodstream and play what you want to download · Right click it, select Copy Value, then ...",
+    "host_name": "www.reddit.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.blackhatworld.com/seo/help-doodstream-player-not-working-only-on-mobile-phone.1518276",
+    "name": "Help - Doodstream player not working only on mobile phone",
+    "snippet": "You'll need to use a file host that lets you easily adjust the width and height of the iframe video. I don't know every single setting available ...",
+    "host_name": "www.blackhatworld.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.wjunction.com/threads/doodstream-videos-not-showing.267342",
+    "name": "Doodstream videos not showing | WJunction - Webmaster Forum",
+    "snippet": "It looks like Dood might be blocking embeds or there's a glitch. Try refreshing the iframe or use a backup link.",
+    "host_name": "www.wjunction.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=npnp--SSx_8",
+    "name": "How To Embed YouTube Videos with iframe Tag in HTML",
+    "snippet": "With the HTML iframe Tag, you can embed a YouTube Video or another website into your HTML Document and Website. The iframe tag is another ...",
+    "host_name": "www.youtube.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/yt-dlp/yt-dlp/issues/3808",
+    "name": "Issue with doodstream #3808 - yt-dlp/yt-dlp - GitHub",
+    "snippet": "Now the way the Doodstream media ips appear seem to be in a pattern it is typically dood followed by a tld the path e or d and then the id of ...",
+    "host_name": "github.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://play.google.com/store/apps/details?id=th74dev.doodstream.video.player.dood.url.downloader&hl=en_US",
+    "name": "Dood Video Player & Downloader - Apps on Google Play",
+    "snippet": "1. Enter DoodStream url you need to play or download (ex: https://dood.wf/d/abcxyz,...) · 2. Click \"Get Link\" and wait a little for app get direct link for you.",
+    "host_name": "play.google.com",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.scribd.com/document/854105207/Ultimate-Master-Workflow-Vidproject",
+    "name": "DoodStream Video Site Deployment Guide | PDF | Word Press - Scribd",
+    "snippet": "The document outlines a comprehensive workflow for deploying a monetized and legally compliant video hosting website on goonwith.me using various tools and ...",
+    "host_name": "www.scribd.com",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://stackoverflow.com/questions/37664896/play-videos-with-iframe-in-html",
+    "name": "Play videos with iframe in html - Stack Overflow",
+    "snippet": "An iframe tag is used to display another page, not used to play video. You can not play a video with that tag.",
+    "host_name": "stackoverflow.com",
+    "rank": 8,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.mooveagency.com/wordpress/embed-videos-html5",
+    "name": "Embed videos into your website with HTML5 - Moove Agency",
+    "snippet": "You simply use the <iframe> tag. This specifies an inline frame, which contains an independent HTML. With this frame, you can embed a form, a webpage or a video ...",
+    "host_name": "www.mooveagency.com",
+    "rank": 9,
+    "date": "",
+    "favicon": ""
+  }
+]

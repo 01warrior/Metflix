@@ -1,0 +1,92 @@
+[
+  {
+    "url": "https://www.youtube.com/watch?v=rCA3JTwppc8&vl=en",
+    "name": "oEmbed - the secret public API for content metadata #227 - YouTube",
+    "snippet": "... embed code or parse content! Users should provide an URL to content, not an HTML block! My oembed app: https://oembed.superails.com/ Oembed ...",
+    "host_name": "www.youtube.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://microlink.io/embed",
+    "name": "Embed API for Any URL — oEmbed for 300+ Providers - Microlink",
+    "snippet": "Embed API for any URL — get a ready-to-paste iframe and oEmbed payload in one HTTPS call. 300+ providers including YouTube, Spotify, Twitter, TikTok, Figma.",
+    "host_name": "microlink.io",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.mux.com/articles/video-streaming-api-how-to-build-live-and-on-demand-video-into-your-app",
+    "name": "Video Streaming API Guide: Build Live & VOD in 2025 - Mux",
+    "snippet": "This guide covers how video streaming APIs work, what to look for when choosing one, and how to integrate live and on-demand video into your application.\nLearn how video streaming APIs work, compare providers, and build live and on-demand video features. Includes code examples, pricing models, and scaling ...",
+    "host_name": "www.mux.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://developers.frontstream.com/introducing-our-embedded-form/compare-embedded-form-and-direct-api-integration",
+    "name": "Compare Embedded Form and Direct API integration",
+    "snippet": "Both embedded payment forms and direct API integrations offer benefits. The choice between them primarily depends on factors such as technical expertise, user ...",
+    "host_name": "developers.frontstream.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.wistia.com/docs/wistia-and-oembed",
+    "name": "Wistia and oEmbed",
+    "snippet": "Grab embed codes using your video's URL with oEmbed, an easy API to implement with Wistia. The Endpoint. Our oEmbed endpoint is: https://fast.wistia.com/oembed.",
+    "host_name": "docs.wistia.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://stackoverflow.com/questions/19295665/setting-up-oembed-provider-to-enable-embedding-site-content-on-pinterest",
+    "name": "Setting up oEmbed provider to enable embedding site content on",
+    "snippet": "Configuration for oEmbed is very simple. Providers must specify one or more URL scheme and API endpoint pairs. The URL scheme describes which ...",
+    "host_name": "stackoverflow.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/Inside4ndroid/TMDB-Embed-API/blob/main/CHANGELOG.md",
+    "name": "TMDB-Embed-API/CHANGELOG.md at main - GitHub",
+    "snippet": "An api to get embed sources using tmdb id. Contribute to Inside4ndroid/TMDB-Embed-API development by creating an account on GitHub.",
+    "host_name": "github.com",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://mimsr.edu.in/downloads",
+    "name": "WPDoods Review: How to Use Doodstream API to Remote Upload",
+    "snippet": "This plugin simplifies the process of embedding videos, managing video content, and enhancing overall site functionality with minimal effort.\nBy utilizing the Doodstream Official API, WPDoods fetches video data using either video ID or URL, streamlining content creation and publication ...",
+    "host_name": "mimsr.edu.in",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://support.transistor.fm/en/article/using-the-oembed-api-with-transistor-audio-embeds-1wpqib3",
+    "name": "Using the oEmbed API with Transistor audio embeds",
+    "snippet": "This guide will walk you through how to use the oEmbed API with Transistor URLs to embed content dynamically. What is oEmbed? oEmbed is a ...",
+    "host_name": "support.transistor.fm",
+    "rank": 8,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.cinesend.com/api-overview",
+    "name": "API Overview - CineSend",
+    "snippet": "The ultimate toolkit for secure online video. An elegant API for developers to build secure live and on-demand video experiences. Book a call.",
+    "host_name": "www.cinesend.com",
+    "rank": 9,
+    "date": "",
+    "favicon": ""
+  }
+]

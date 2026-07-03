@@ -1,0 +1,92 @@
+[
+  {
+    "url": "https://www.reddit.com/r/French/comments/5iiuwu/french_subtitles_with_original_audio_not_dubbed",
+    "name": "French subtitles with original audio, not dubbed (VOSTFR) is great",
+    "snippet": "I've actually found French subtitles to be incredibly useful for learning, since it's very easy to remember the French text that you read and associate it with ...",
+    "host_name": "www.reddit.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://stackoverflow.com/questions/12685280/youtube-embed-force-subtitles-in-specific-language-with-default",
+    "name": "youtube embed - force subtitles in specific language with default",
+    "snippet": "You can force the captions and language using cc_load_policy & cc_lang_pref options via. URL:.",
+    "host_name": "stackoverflow.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.flexicontent.org/forum/20-general-support/57774-videos-youtube-be-seen-with-subtitles-translated-into-the-browser-language.html",
+    "name": "videos Youtube be seen with subtitles translated into the browser",
+    "snippet": "This is the challenge: That the videos be seen with subtitles translated into the browser language. For the subtitles to appear, add this code ...",
+    "host_name": "www.flexicontent.org",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/Sonarr/Sonarr/issues/2275",
+    "name": "[SUGGESTION] French language detection with subs and audio",
+    "snippet": "Currently, VOSTFR is considered as French since it's English audio and French subtitles. In this logic, there is a lot of [French?] trackers ...",
+    "host_name": "github.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=u6SL57cOUrU",
+    "name": "French Subtitles- Comment activer les sous-titres - YouTube",
+    "snippet": "CHAPTERS BELOW All Videos available in Left and Right Handed Etsy Shop: https://crochetwithtara.etsy.com Join this channel to get access to ...",
+    "host_name": "www.youtube.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://developers.google.com/youtube/player_parameters",
+    "name": "YouTube Embedded Players and Player Parameters",
+    "snippet": "This document explains how to embed a YouTube player in your application and also defines the parameters that are available in the YouTube embedded player.",
+    "host_name": "developers.google.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=UhWyvCI7D4Y",
+    "name": "How to Add Subtitles in Multiple Languages (In Under a Minute)",
+    "snippet": "Try HappyScribe: https://www.happyscribe.com/subtitle-generator?utm_source=youtube,titok,instagram ...",
+    "host_name": "www.youtube.com",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.drupal.org/project/video_embed_field/issues/2746591",
+    "name": "Passing Youtube parameters such as language preference and sub",
+    "snippet": "Is it possible to pass through parameters that can be set by the providers url? For example, I'm trying to set the sub titles to be turned on and in a chosen ...",
+    "host_name": "www.drupal.org",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://forum.videohelp.com/threads/408482-Select-right-subtitles-in-video",
+    "name": "Select \"right\" subtitles in video - VideoHelp Forum",
+    "snippet": "There are subtitle files where (1) all conversations are subtitled (both German and French) and (2) only German",
+    "host_name": "forum.videohelp.com",
+    "rank": 8,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://wayin.ai/tools/french-subtitles",
+    "name": "Add French Subtitles to Your Videos for Free - WayinVideo",
+    "snippet": "Here's how: 1. Paste a video link or upload your video file. 2. Select \"French\" as the target language for the translation. 3. Click \"Generate\", and our AI will ...",
+    "host_name": "wayin.ai",
+    "rank": 9,
+    "date": "",
+    "favicon": ""
+  }
+]

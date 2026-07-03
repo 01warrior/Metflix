@@ -1,0 +1,92 @@
+[
+  {
+    "url": "https://github.com/ytdl-org/youtube-dl/issues/29232",
+    "name": "Site support request: voe.sx · Issue #29232 · ytdl-org/youtube-dl",
+    "snippet": "Some videos on VOE are restricted to embed view, but I didn't find any of that kind by search, that would comply with the beforementioned rules for links.",
+    "host_name": "github.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.wjunction.com/threads/voe-sx-1-premium-video-hosting-ultra-fast-reliable-premium-statistics-auto-payouts-api-anti-adblock.250463/page-61",
+    "name": "VOE.SX / #1 PREMIUM VIDEO-HOSTING / ULTRA  - WJunction",
+    "snippet": "A high performance video hosting cloud & Content Delivery Network (CDN). Below you will find our amazing conditions & all important information.",
+    "host_name": "www.wjunction.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.bunny.net/stream/embedding",
+    "name": "Embedding videos - bunny.net Documentation",
+    "snippet": "Once a video has finished processing, you can embed it on any page using the Bunny Stream player. This page covers the iframe URL pattern, sizing tips, and code ...",
+    "host_name": "docs.bunny.net",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://w3techs.com/sites/info/voe.sx",
+    "name": "Web Technologies used by Voe.sx - W3Techs",
+    "snippet": "VOE | Content Delivery Network (CDN) & Video Cloud Host, share, and watch private videos with VOE, the video hosting provider. Sign up now for easy ...",
+    "host_name": "w3techs.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://player.support.brightcove.com/playback/static-url-delivery.html",
+    "name": "Static URL Delivery - Brightcove Player Documentation",
+    "snippet": "In this topic, you will learn how to use static URLs from the Brightcove Playback API. Introduction. Brightcove provides static URLs to video manifest files for ...",
+    "host_name": "player.support.brightcove.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=pynwWQgOg1E",
+    "name": "Embedding a Video vs. Hosting Video on Your Site - YouTube",
+    "snippet": "In this video, we will talk about the two main ways to add a video to your website; embedding it from a video party video platform like ...",
+    "host_name": "www.youtube.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.reddit.com/r/uBlockOrigin/comments/1oigxxm/voesx_new_adblock_blocker",
+    "name": "Voe.sx new adblock blocker : r/uBlockOrigin - Reddit",
+    "snippet": "​When I try to watch a video with uBlock Origin enabled, the video player is blocked, and a message about disabling adblock appears. ​I have ...",
+    "host_name": "www.reddit.com",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.umbraco.com/umbraco-cms/extend-your-project/server-side-extensions/embedded-media-providers",
+    "name": "Embedded Media Providers | CMS - Umbraco Documentation",
+    "snippet": "The task of an EmbedProvider is to accept the pasted URL and write out the appropriate markup for the third-party provider associated with the ...",
+    "host_name": "docs.umbraco.com",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://fastpix.com/docs/playback-and-delivery/embed-a-video-in-your-app",
+    "name": "Embed a video in your app | FastPix Developer Documentation",
+    "snippet": "In the left navigation, click Integrate to open the Embed video panel. You'll see: A copyable iframe embed code; The direct .m3u8 streaming URL; The raw ...",
+    "host_name": "fastpix.com",
+    "rank": 8,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.mux.com/articles/video-streaming-api-how-to-build-live-and-on-demand-video-into-your-app",
+    "name": "Video Streaming API Guide: Build Live & VOD in 2025 - Mux",
+    "snippet": "This guide covers how video streaming APIs work, what to look for when choosing one, and how to integrate live and on-demand video into your application.",
+    "host_name": "www.mux.com",
+    "rank": 9,
+    "date": "",
+    "favicon": ""
+  }
+]
