@@ -2169,7 +2169,7 @@ function AdminPanel({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="left" className="w-full sm:w-[560px] overflow-y-auto">
+      <SheetContent side="left" className="w-full sm:w-1/2 overflow-y-auto">
         <SheetHeader className="mb-4">
           <SheetTitle className="flex items-center gap-2 text-lg">
             <Icon name="settings" className="h-5 w-5 text-red-500" /> Administration
