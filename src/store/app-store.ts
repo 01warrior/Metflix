@@ -63,7 +63,7 @@ export interface ContentDetail extends ContentItem {
 function loadFavorites(): string[] {
   if (typeof window === "undefined") return [];
   try {
-    const stored = localStorage.getItem("streamvibe-favorites");
+    const stored = localStorage.getItem("metflix-favorites");
     return stored ? JSON.parse(stored) : [];
   } catch {
     return [];
@@ -73,7 +73,7 @@ function loadFavorites(): string[] {
 function saveFavorites(favorites: string[]) {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem("streamvibe-favorites", JSON.stringify(favorites));
+    localStorage.setItem("metflix-favorites", JSON.stringify(favorites));
   } catch {
     // ignore
   }

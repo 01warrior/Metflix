@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
     const res = await fetch(`${MANGADEX_BASE}/at-home/server/${chapterId}`, {
       headers: {
-        "User-Agent": "StreamVibe/1.0",
+        "User-Agent": "METFLIX/1.0",
       },
     });
 

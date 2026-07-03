@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       `${MANGADEX_BASE}/manga/${mangadexId}/feed?translatedLanguage[]=${lang}&limit=100&order[chapter]=asc`,
       {
         headers: {
-          "User-Agent": "StreamVibe/1.0",
+          "User-Agent": "METFLIX/1.0",
         },
         next: { revalidate: 60 },
       }

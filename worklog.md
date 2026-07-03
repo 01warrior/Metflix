@@ -628,3 +628,29 @@ Stage Summary:
 - Total active providers: 11 (was 9)
 - Total embeds in DB: 46,596 (was ~38,133)
 - All providers verified working via curl and browser
+---
+Task ID: 3-a
+Agent: Main Agent
+Task: Fix critical runtime errors and rebrand to METFLIX
+
+Work Log:
+- Fixed `useTheme` ReferenceError: Added missing `import { useTheme } from "next-themes"` in page.tsx
+- Fixed ThemeProvider missing: Added `ThemeProvider` wrapper in layout.tsx (was using `className="dark"` on html, now uses proper next-themes ThemeProvider)
+- Fixed header nav colors for light mode: Replaced hardcoded `text-white/70`, `hover:text-white`, `hover:bg-white/10` with theme-aware `text-muted-foreground`, `hover:text-foreground`, `hover:bg-muted`
+- Fixed header action buttons (theme toggle, settings, search, menu) for light mode: Same color fixes
+- Fixed header shadow: Changed from `rgba(255,255,255,0.1)` to `var(--border)` for theme-awareness
+- Fixed text-shadow: Moved from inline style to CSS class `.header-text` that only applies in dark mode
+- Rebranded from StreamVibe to METFLIX:
+  - Generated AI logo based on user's uploaded image (red M with play button, MET in white, FLIX in red)
+  - Updated all text references (header, footer, legal modal, mobile menu)
+  - Updated User-Agent strings in manga API routes
+  - Updated localStorage key from `streamvibe-favorites` to `metflix-favorites`
+  - Updated page title and metadata in layout.tsx
+  - Changed tagline from "Streaming en streaming gratuit" to "Streaming Libre"
+- Verified with agent-browser: page loads, theme toggle works (dark ↔ light), no runtime errors
+
+Stage Summary:
+- useTheme crash: FIXED (import + ThemeProvider)
+- Light mode header: FIXED (theme-aware Tailwind classes)
+- Rebranding: COMPLETE (all references updated to METFLIX)
+- Zero lint errors

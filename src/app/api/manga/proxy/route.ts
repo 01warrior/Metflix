@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
   try {
     const res = await fetch(targetUrl, {
       headers: {
-        "User-Agent": "StreamVibe/1.0",
+        "User-Agent": "METFLIX/1.0",
         Referer: "https://mangadex.org/",
       },
     });

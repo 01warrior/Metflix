@@ -40,6 +40,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Icon } from "@/lib/icons";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "next-themes";
 
 // ==================== CONSTANTS ====================
 
@@ -364,17 +365,17 @@ function Header() {
     <header
       className={`sticky top-0 z-50 w-full transition-all duration-300 ${
         scrolled
-          ? "bg-background/95 backdrop-blur-md shadow-[0_1px_0_rgba(255,255,255,0.1)]"
+          ? "bg-background/95 backdrop-blur-md shadow-[0_1px_0_var(--border)]"
           : ""
       }`}
     >
-      <div className="max-w-7xl mx-auto flex items-center justify-between h-16 px-4 [text-shadow:0_1px_3px_rgba(0,0,0,0.8)]">
+      <div className="max-w-7xl mx-auto flex items-center justify-between h-16 px-4 header-text">
         {/* Logo */}
         <button
           onClick={() => setView("home")}
           className="flex items-center"
         >
-          <img src="/logo.png" alt="StreamVibe" className="h-10 w-auto rounded-lg" />
+          <img src="/logo.png" alt="METFLIX" className="h-10 w-auto" />
         </button>
 
         {/* Desktop nav */}
@@ -386,8 +387,8 @@ function Header() {
               className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                 (item.view && currentView === item.view) ||
                 (item.type && currentView === "browse" && selectedType === item.type)
-                  ? "text-red-400 bg-red-400/10"
-                  : "text-white/70 hover:text-white hover:bg-white/10"
+                  ? "text-red-500 bg-red-500/10"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
               }`}
             >
               {item.label}
@@ -400,8 +401,8 @@ function Header() {
             }}
             className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5 ${
               currentView === "favorites"
-                ? "text-red-400 bg-red-400/10"
-                : "text-white/70 hover:text-white hover:bg-white/10"
+                ? "text-red-500 bg-red-500/10"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
             }`}
           >
             <Icon name="heart" className="h-3.5 w-3.5" />
@@ -418,32 +419,32 @@ function Header() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
             aria-label={theme === "dark" ? "Thème clair" : "Thème sombre"}
           >
-            <Icon name={theme === "dark" ? "sun" : "moon"} className="h-5 w-5 text-white/70" />
+            <Icon name={theme === "dark" ? "sun" : "moon"} className="h-5 w-5 text-muted-foreground" />
           </button>
           <button
             onClick={() => setAdminOpen(true)}
-            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
             aria-label="Administration"
           >
-            <Icon name="settings" className="h-5 w-5 text-white/70" />
+            <Icon name="settings" className="h-5 w-5 text-muted-foreground" />
           </button>
           <button
             onClick={() => setShowSearch(true)}
-            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
             aria-label="Rechercher"
           >
-            <Icon name="search" className="h-5 w-5 text-white/70" />
+            <Icon name="search" className="h-5 w-5 text-muted-foreground" />
           </button>
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileOpen(true)}
-            className="md:hidden w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+            className="md:hidden w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
             aria-label="Menu"
           >
-            <Icon name="menu" className="h-5.5 w-5.5 text-white/70" />
+            <Icon name="menu" className="h-5.5 w-5.5 text-muted-foreground" />
           </button>
         </div>
       </div>
@@ -454,11 +455,11 @@ function Header() {
           <SheetHeader className="px-4 pt-6 pb-4">
             <SheetTitle className="flex items-center gap-2">
               <span className="text-xl font-extrabold">
-                <span className="text-red-500">Stream</span>
-                <span>Vibe</span>
+                <span className="text-foreground">MET</span>
+                <span className="text-red-500">FLIX</span>
               </span>
             </SheetTitle>
-            <SheetDescription>Streaming en streaming gratuit</SheetDescription>
+            <SheetDescription>Streaming Libre</SheetDescription>
           </SheetHeader>
           <Separator />
           <nav className="flex flex-col p-2 gap-0.5">
@@ -2272,7 +2273,7 @@ function Footer() {
       {/* Footer links */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <img src="/logo.png" alt="StreamVibe" className="h-7 w-auto rounded-md opacity-60" />
+          <img src="/logo.png" alt="METFLIX" className="h-7 w-auto opacity-60" />
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
             <button
               onClick={() => setShowLegal(true)}
@@ -2285,7 +2286,7 @@ function Footer() {
             <span>Conditions d&apos;utilisation</span>
           </div>
           <p className="text-xs text-muted-foreground/50">
-            &copy; {new Date().getFullYear()} StreamVibe. Tous droits réservés.
+            &copy; {new Date().getFullYear()} METFLIX. Tous droits réservés.
           </p>
         </div>
       </div>
@@ -2299,7 +2300,7 @@ function Footer() {
               Informations Légales
             </DialogTitle>
             <DialogDescription className="sr-only">
-              Mentions légales et politique de StreamVibe
+              Mentions légales et politique de METFLIX
             </DialogDescription>
           </DialogHeader>
 
@@ -2310,7 +2311,7 @@ function Footer() {
                 Plateforme de découverte
               </h4>
               <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                StreamVibe fonctionne comme une plateforme de découverte et d&apos;indexation de contenu.
+                METFLIX fonctionne comme une plateforme de découverte et d&apos;indexation de contenu.
               </p>
             </div>
 
@@ -2322,7 +2323,7 @@ function Footer() {
                 Politique de non-hébergement
               </h4>
               <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                StreamVibe fonctionne strictement comme un moteur de recherche et agrégateur qui indexe du contenu
+                METFLIX fonctionne strictement comme un moteur de recherche et agrégateur qui indexe du contenu
                 publiquement disponible sur internet. Nous ne téléchargeons, n&apos;hébergeons et ne stockons
                 aucun fichier média.
               </p>

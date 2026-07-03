@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from "next-themes";
 
 const nunito = Nunito({
   variable: "--font-nunito",
@@ -10,9 +11,9 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: "StreamVibe - Films, Séries, Anime & Manga en Streaming",
+  title: "METFLIX - Streaming Libre | Films, Séries, Anime & Manga",
   description: "Regardez vos films, séries, anime et manga préférés en streaming gratuit. Nouveautés, tendances et classiques en VOSTFR et VF.",
-  keywords: ["streaming", "films", "séries", "anime", "manga", "VOSTFR", "VF", "gratuit"],
+  keywords: ["streaming", "films", "séries", "anime", "manga", "VOSTFR", "VF", "gratuit", "METFLIX"],
   icons: {
     icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
   },
@@ -24,12 +25,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" className="dark" suppressHydrationWarning>
+    <html lang="fr" suppressHydrationWarning>
       <body
         className={`${nunito.variable} font-sans antialiased bg-background text-foreground`}
       >
-        {children}
-        <Toaster />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
+          {children}
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
       `${MANGADEX_BASE}/manga?title=${encodeURIComponent(q.trim())}&limit=5&includes[]=cover_art`,
       {
         headers: {
-          "User-Agent": "StreamVibe/1.0",
+          "User-Agent": "METFLIX/1.0",
         },
         next: { revalidate: 300 },
       }
