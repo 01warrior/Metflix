@@ -2188,7 +2188,7 @@ function AdminPanel({
           ))}
         </div>
 
-        <div className="space-y-4 pb-6">
+        <div className="space-y-4 pb-6 px-4">
           {adminTab === "overview" && (
             <>
               <div className={`rounded-lg border p-3 ${matchStats?.tmdbKeyValid ? "border-green-500/30 bg-green-500/5" : "border-red-500/30 bg-red-500/5"}`}>
