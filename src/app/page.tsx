@@ -1838,25 +1838,25 @@ function Footer() {
     <footer className="mt-auto border-t border-border/50 pb-20 md:pb-0">
       {/* Support section */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
-        <div className="rounded-xl bg-gradient-to-r from-red-950/30 via-red-900/10 to-red-950/30 border border-red-900/20 p-6 text-center">
+        <div className="rounded-xl bg-white/90 dark:bg-zinc-900/90 border border-zinc-200 dark:border-zinc-700/50 p-6 text-center">
           <div className="flex items-center justify-center gap-2 mb-3">
-            <Icon name="heart" className="h-5 w-5 text-red-400" />
-            <h3 className="text-lg font-bold text-foreground">
+            <Icon name="heart" className="h-5 w-5 text-red-500" />
+            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
               Vous êtes chez vous
             </h3>
           </div>
-          <p className="text-sm text-muted-foreground mb-2 max-w-lg mx-auto leading-relaxed">
+          <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-2 max-w-lg mx-auto leading-relaxed">
             Les interruptions finissent par gâcher les meilleurs moments.
           </p>
-          <p className="text-sm text-muted-foreground mb-2 max-w-lg mx-auto leading-relaxed">
+          <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-2 max-w-lg mx-auto leading-relaxed">
             Une publicité qui apparaît au pire instant, une fenêtre à fermer, un compte à rebours qui casse le rythme…
-            <span className="text-foreground font-medium"> À force, l&apos;envie de continuer disparaît.</span>
+            <span className="text-zinc-900 dark:text-zinc-100 font-medium"> À force, l&apos;envie de continuer disparaît.</span>
           </p>
-          <p className="text-sm text-muted-foreground mb-5 max-w-lg mx-auto leading-relaxed">
-            Ici, <span className="text-foreground font-medium">rien ne s&apos;interpose.</span> Vous choisissez, vous regardez, vous gardez le contrôle.
+          <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-5 max-w-lg mx-auto leading-relaxed">
+            Ici, <span className="text-zinc-900 dark:text-zinc-100 font-medium">rien ne s&apos;interpose.</span> Vous choisissez, vous regardez, vous gardez le contrôle.
           </p>
-          <p className="text-xs text-muted-foreground/70 mb-5 max-w-md mx-auto">
-            Si un jour vous voulez nous soutenir, c&apos;est <span className="text-red-400 font-medium">vous</span> qui décidez quand et comment.
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-5 max-w-md mx-auto">
+            Si un jour vous voulez nous soutenir, c&apos;est <span className="text-red-500 font-medium">vous</span> qui décidez quand et comment.
           </p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <Button className="bg-red-600 hover:bg-red-700 text-white font-semibold btn-glow">
