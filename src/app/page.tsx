@@ -84,19 +84,24 @@ const HOST_COLORS: Record<string, string> = {
 
 const GENRES = [
   "Action",
-  "Comédie",
-  "Drame",
-  "Sci-Fi",
-  "Horreur",
-  "Thriller",
-  "Romance",
   "Aventure",
   "Animation",
+  "Comédie",
   "Crime",
-  "Fantaisie",
-  "Mystère",
-  "Famille",
   "Documentaire",
+  "Drame",
+  "Famille",
+  "Fantaisie",
+  "Guerre",
+  "Histoire",
+  "Horreur",
+  "Musique",
+  "Mystère",
+  "Romance",
+  "Sci-Fi",
+  "Téléfilm",
+  "Thriller",
+  "Western",
 ];
 
 const YEARS = Array.from({ length: 20 }, (_, i) => 2025 - i);
