@@ -510,3 +510,25 @@ Stage Summary:
 - ESC key and backdrop click close the modal
 - Responsive: bottom-sheet on mobile, centered on desktop
 - Spring animation with Framer Motion for smooth open/close
+
+---
+Task ID: 7
+Agent: Main Agent
+Task: Add "Mis en avant" (Featured) management tab to Admin panel
+
+Work Log:
+- Extended `/api/featured` route with POST (add), PATCH (reorder), DELETE (remove) methods
+- POST: adds content to featured with auto-incrementing order
+- PATCH: reorders all featured items in a transaction
+- DELETE: removes from featured and re-indexes remaining items
+- Added "Mis en avant" tab to AdminPanel with: search bar with debounce, search results with add button, current featured list with poster/title/year/type/rating, order badges (1-10), hover-reveal action buttons (Monter/Descendre/Retirer), empty state with dashed border, info text about hero carousel limit (8 items)
+- Added quick action button "Gérer les mis en avant (Hero)" in overview tab
+- Added chevron-up and chevron-down icons to icons.tsx
+- Verified with agent-browser: tab renders correctly, 8 featured items shown with reorder buttons, search for "Inception" returns result with "Ajouter aux mis en avant" button
+
+Stage Summary:
+- Full CRUD for featured content management via Admin panel
+- Featured tab accessible from both tab bar and overview quick actions
+- API supports bulk operations (add multiple, reorder all, remove and re-index)
+- Search filters out already-featured items
+- Hero displays first 8 featured items

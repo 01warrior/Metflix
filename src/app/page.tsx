@@ -1968,7 +1968,15 @@ function AdminPanel({
   const [imageFixStats, setImageFixStats] = useState<ImageFixStats | null>(null);
 
   // Admin tab
-  const [adminTab, setAdminTab] = useState<"overview" | "anime" | "tmdb" | "images">("overview");
+  const [adminTab, setAdminTab] = useState<"overview" | "featured" | "anime" | "tmdb" | "images">("overview");
+
+  // Featured management state
+  const [featuredItems, setFeaturedItems] = useState<any[]>([]);
+  const [featuredLoading, setFeaturedLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const searchTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchStats = useCallback(async () => {
     setStatsLoading(true);
@@ -2090,10 +2098,74 @@ function AdminPanel({
 
   const TABS = [
     { id: "overview" as const, label: "Vue d'ensemble", icon: <Icon name="database" className="h-3.5 w-3.5" /> },
+    { id: "featured" as const, label: "Mis en avant", icon: <Icon name="star" className="h-3.5 w-3.5" /> },
     { id: "anime" as const, label: "Anime", icon: <Icon name="sparkles" className="h-3.5 w-3.5" /> },
     { id: "tmdb" as const, label: "Films & Séries", icon: <Icon name="film" className="h-3.5 w-3.5" /> },
     { id: "images" as const, label: "Images", icon: <Icon name="monitor" className="h-3.5 w-3.5" /> },
   ];
+
+  // Featured management functions
+  const fetchFeatured = useCallback(async () => {
+    setFeaturedLoading(true);
+    try {
+      const res = await fetch("/api/featured");
+      const data = await res.json();
+      setFeaturedItems(data.data || []);
+    } catch { toast({ title: "Erreur", description: "Impossible de charger les mis en avant", variant: "destructive" }); }
+    finally { setFeaturedLoading(false); }
+  }, [toast]);
+
+  const searchContent = useCallback(async (q: string) => {
+    if (q.length < 2) { setSearchResults([]); return; }
+    setSearchLoading(true);
+    try {
+      const res = await fetch(`/api/content?search=${encodeURIComponent(q)}&limit=10`);
+      const data = await res.json();
+      setSearchResults((data.data || []).filter((item: any) => !featuredItems.some(f => f.id === item.id)));
+    } catch { setSearchResults([]); }
+    finally { setSearchLoading(false); }
+  }, [featuredItems]);
+
+  const addToFeatured = async (id: string) => {
+    try {
+      const res = await fetch("/api/featured", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+      const data = await res.json();
+      if (data.data?.[0]?.success) {
+        toast({ title: "Ajouté !", description: "Contenu ajouté aux mis en avant" });
+        fetchFeatured();
+        setSearchResults(prev => prev.filter(r => r.id !== id));
+      } else { toast({ title: "Erreur", description: "Impossible d'ajouter", variant: "destructive" }); }
+    } catch { toast({ title: "Erreur réseau", variant: "destructive" }); }
+  };
+
+  const removeFromFeatured = async (id: string) => {
+    try {
+      await fetch("/api/featured", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+      toast({ title: "Retiré", description: "Contenu retiré des mis en avant" });
+      fetchFeatured();
+    } catch { toast({ title: "Erreur réseau", variant: "destructive" }); }
+  };
+
+  const moveFeatured = async (id: string, direction: "up" | "down") => {
+    const idx = featuredItems.findIndex(f => f.id === id);
+    if (idx < 0) return;
+    const newIdx = direction === "up" ? idx - 1 : idx + 1;
+    if (newIdx < 0 || newIdx >= featuredItems.length) return;
+    const newItems = [...featuredItems];
+    [newItems[idx], newItems[newIdx]] = [newItems[newIdx], newItems[idx]];
+    setFeaturedItems(newItems);
+    try {
+      await fetch("/api/featured", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: newItems.map((item, i) => ({ id: item.id, order: i })) }),
+      });
+    } catch { fetchFeatured(); }
+  };
+
+  useEffect(() => {
+    if (open && adminTab === "featured") fetchFeatured();
+  }, [open, adminTab, fetchFeatured]);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -2174,7 +2246,133 @@ function AdminPanel({
                 <Button onClick={() => setAdminTab("images")} variant="outline" className="w-full h-9 text-sm border-purple-500/20 text-purple-400 hover:bg-purple-500/10">
                   <Icon name="monitor" className="h-4 w-4 mr-2" /> Corriger les images cassées
                 </Button>
+                <Button onClick={() => setAdminTab("featured")} variant="outline" className="w-full h-9 text-sm border-amber-500/20 text-amber-400 hover:bg-amber-500/10">
+                  <Icon name="star" className="h-4 w-4 mr-2" /> Gérer les mis en avant (Hero)
+                </Button>
               </section>
+            </>
+          )}
+
+          {adminTab === "featured" && (
+            <>
+              {/* Search to add */}
+              <div className="relative">
+                <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => { setSearchQuery(e.target.value); if (searchTimerRef.current) clearTimeout(searchTimerRef.current); searchTimerRef.current = setTimeout(() => searchContent(e.target.value), 300); }}
+                  placeholder="Rechercher un contenu à ajouter..."
+                  className="pl-9 h-9 text-sm bg-background"
+                />
+                {searchLoading && <Icon name="loader" className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />}
+              </div>
+
+              {/* Search results */}
+              {searchResults.length > 0 && (
+                <div className="border rounded-lg overflow-hidden divide-y divide-border">
+                  {searchResults.map((item: any) => (
+                    <div key={item.id} className="flex items-center gap-3 p-2.5 hover:bg-muted/50 transition-colors">
+                      <img src={item.posterUrl} alt="" className="w-8 h-12 object-cover rounded" onError={(e) => handleImgError(e)} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{item.titleFr || item.title}</p>
+                        <p className="text-[11px] text-muted-foreground">{item.year} · {item.type} · {(item.rating || 0).toFixed(1)}</p>
+                      </div>
+                      <button
+                        onClick={() => addToFeatured(item.id)}
+                        className="w-8 h-8 flex items-center justify-center rounded-full bg-green-600/20 text-green-400 hover:bg-green-600/30 transition-colors flex-shrink-0"
+                        aria-label="Ajouter aux mis en avant"
+                      >
+                        <Icon name="check" className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Current featured list */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Contenus mis en avant ({featuredItems.length}/10)
+                  </h3>
+                  {featuredItems.length > 0 && (
+                    <span className="text-[10px] text-muted-foreground">Hero carousel</span>
+                  )}
+                </div>
+
+                {featuredLoading && (
+                  <div className="flex items-center justify-center py-8">
+                    <Icon name="loader" className="h-5 w-5 animate-spin text-muted-foreground" />
+                  </div>
+                )}
+
+                {!featuredLoading && featuredItems.length === 0 && (
+                  <div className="text-center py-8 border border-dashed rounded-lg">
+                    <Icon name="star" className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">Aucun contenu mis en avant</p>
+                    <p className="text-[11px] text-muted-foreground mt-1">Recherchez ci-dessus pour ajouter</p>
+                  </div>
+                )}
+
+                <div className="space-y-1.5">
+                  {featuredItems.map((item: any, idx: number) => (
+                    <motion.div
+                      key={item.id}
+                      layout
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex items-center gap-2.5 p-2 rounded-lg bg-muted/30 border border-border/50 group hover:bg-muted/60 transition-colors"
+                    >
+                      {/* Order badge */}
+                      <span className="w-6 h-6 flex items-center justify-center rounded-md bg-red-600/20 text-red-400 text-xs font-bold flex-shrink-0">
+                        {idx + 1}
+                      </span>
+
+                      {/* Poster */}
+                      <img src={item.posterUrl} alt="" className="w-8 h-12 object-cover rounded flex-shrink-0" onError={(e) => handleImgError(e)} />
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{item.titleFr || item.title}</p>
+                        <p className="text-[11px] text-muted-foreground">{item.year || "—"} · {item.type} · {(item.rating || 0).toFixed(1)}</p>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                        <button
+                          onClick={() => moveFeatured(item.id, "up")}
+                          disabled={idx === 0}
+                          className="w-7 h-7 flex items-center justify-center rounded hover:bg-muted disabled:opacity-30"
+                          aria-label="Monter"
+                        >
+                          <Icon name="chevron-up" className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={() => moveFeatured(item.id, "down")}
+                          disabled={idx === featuredItems.length - 1}
+                          className="w-7 h-7 flex items-center justify-center rounded hover:bg-muted disabled:opacity-30"
+                          aria-label="Descendre"
+                        >
+                          <Icon name="chevron-down" className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={() => removeFromFeatured(item.id)}
+                          className="w-7 h-7 flex items-center justify-center rounded hover:bg-red-500/20 text-red-400"
+                          aria-label="Retirer"
+                        >
+                          <Icon name="x" className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+
+              {featuredItems.length > 0 && (
+                <p className="text-[11px] text-muted-foreground text-center">
+                  ℹ️ Les {Math.min(featuredItems.length, 8)} premiers apparaissent dans le hero. Survolez un élément pour réordonner.
+                </p>
+              )}
             </>
           )}
 
