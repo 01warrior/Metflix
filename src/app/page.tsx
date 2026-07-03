@@ -375,7 +375,7 @@ function Header() {
           onClick={() => setView("home")}
           className="flex items-center"
         >
-          <div className="h-10 w-28 overflow-hidden flex items-center">
+          <div className="h-10 w-28 overflow-hidden rounded-lg flex items-center">
             <img src="/logo.png" alt="METFLIX" className="w-full h-full object-cover object-center" />
           </div>
         </button>
@@ -2275,7 +2275,7 @@ function Footer() {
       {/* Footer links */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="h-7 w-20 overflow-hidden">
+          <div className="h-7 w-20 overflow-hidden rounded-md">
             <img src="/logo.png" alt="METFLIX" className="w-full h-full object-cover object-center opacity-60" />
           </div>
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
