@@ -692,12 +692,12 @@ function HeroSection() {
 
   if (!current) {
     return (
-      <div className="relative w-full h-[60vh] md:h-[85vh] shimmer" />
+      <div className="relative w-full h-[60vh] md:h-[85vh] shimmer -mt-16" />
     );
   }
 
   return (
-    <div className="relative w-full h-[60vh] md:h-[85vh] overflow-hidden -mt-14">
+    <div className="relative w-full h-[60vh] md:h-[85vh] overflow-hidden -mt-16">
       {/* Backdrop image */}
       <AnimatePresence mode="wait">
         <motion.div
