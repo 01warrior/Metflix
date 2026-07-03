@@ -367,13 +367,13 @@ function Header() {
           : ""
       }`}
     >
-      <div className="max-w-7xl mx-auto flex items-center justify-between h-14 px-4 [text-shadow:0_1px_3px_rgba(0,0,0,0.8)]">
+      <div className="max-w-7xl mx-auto flex items-center justify-between h-16 px-4 [text-shadow:0_1px_3px_rgba(0,0,0,0.8)]">
         {/* Logo */}
         <button
           onClick={() => setView("home")}
           className="flex items-center"
         >
-          <img src="/logo.png" alt="StreamVibe" className="h-9 w-auto rounded-lg" />
+          <img src="/logo.png" alt="StreamVibe" className="h-10 w-auto rounded-lg" />
         </button>
 
         {/* Desktop nav */}
