@@ -1860,7 +1860,7 @@ function Footer() {
           </p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <Button className="bg-red-600 hover:bg-red-700 text-white font-semibold btn-glow">
-              <Icon name="heart" className="h-4 w-4 mr-2" /> Faire un don
+              <Icon name="server" className="h-4 w-4 mr-2" /> Participer aux serveurs
             </Button>
             <Button
               variant="outline"
