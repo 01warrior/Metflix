@@ -1,0 +1,953 @@
+     1→  1169→function DetailView() {
+     2→  1170→  const {
+     3→  1171→    contentDetail,
+     4→  1172→    setContentDetail,
+     5→  1173→    selectedContentId,
+     6→  1174→    setView,
+     7→  1175→    currentEmbed,
+     8→  1176→    setCurrentEmbed,
+     9→  1177→    toggleFavorite,
+    10→  1178→    favorites,
+    11→  1179→    toast,
+    12→  1180→  } = useAppStore();
+    13→  1181→  const [loading, setLoading] = useState(true);
+    14→  1182→  const [playerLoading, setPlayerLoading] = useState(false);
+    15→  1183→  const [selectedEpisode, setSelectedEpisode] = useState<string | null>(null);
+    16→  1184→  const [selectedSeason, setSelectedSeason] = useState<number>(1);
+    17→  1185→  const [iframeKey, setIframeKey] = useState(0);
+    18→  1186→  // MangaDex state
+    19→  1187→  const [mangadexId, setMangadexId] = useState<string | null>(null);
+    20→  1188→  const [mangadexChapters, setMangadexChapters] = useState<MangaDexChapter[]>([]);
+    21→  1189→  const [mangadexLoading, setMangadexLoading] = useState(false);
+    22→  1190→  const [mangadexError, setMangadexError] = useState<string | null>(null);
+    23→  1191→  // Language filter in detail view
+    24→  1192→  const [detailLangFilter, setDetailLangFilter] = useState<string | null>(null);
+    25→  1193→  // Cast state
+    26→  1194→  const [cast, setCast] = useState<{ id: number; name: string; character: string; profileUrl: string; order: number }[]>([]);
+    27→  1195→  const [crew, setCrew] = useState<{ id: number; name: string; job: string; department: string; profileUrl: string }[]>([]);
+    28→  1196→  const [castLoading, setCastLoading] = useState(false);
+    29→  1197→
+    30→  1198→  // Group episodes by season (before any early returns to satisfy rules-of-hooks)
+    31→  1199→  const seasonMap = useMemo(() => {
+    32→  1200→    if (!contentDetail?.embedGroups) return new Map<number, EmbedGroup[]>();
+    33→  1201→    const map = new Map<number, typeof contentDetail.embedGroups>();
+    34→  1202→    contentDetail.embedGroups.forEach((group) => {
+    35→  1203→      const s = group.season ?? 1;
+    36→  1204→      if (!map.has(s)) map.set(s, []);
+    37→  1205→      map.get(s)!.push(group);
+    38→  1206→    });
+    39→  1207→    map.forEach((groups) => {
+    40→  1208→      groups.sort((a, b) => (a.episode ?? 0) - (b.episode ?? 0));
+    41→  1209→    });
+    42→  1210→    return map;
+    43→  1211→  }, [contentDetail?.embedGroups]);
+    44→  1212→
+    45→  1213→  const availableSeasons = useMemo(
+    46→  1214→    () => Array.from(seasonMap.keys()).sort((a, b) => a - b),
+    47→  1215→    [seasonMap]
+    48→  1216→  );
+    49→  1217→
+    50→  1218→  const currentSeasonEpisodes = useMemo(
+    51→  1219→    () => seasonMap.get(selectedSeason) || [],
+    52→  1220→    [seasonMap, selectedSeason]
+    53→  1221→  );
+    54→  1222→
+    55→  1223→  // Fetch detail on mount or ID change
+    56→  1224→  const fetchDetail = useCallback(async (id: string) => {
+    57→  1225→    setSelectedEpisode(null);
+    58→  1226→    setSelectedSeason(1);
+    59→  1227→    setCurrentEmbed(null);
+    60→  1228→    setLoading(true);
+    61→  1229→    try {
+    62→  1230→      const res = await fetch(`/api/content/${id}`);
+    63→  1231→      const data = await res.json();
+    64→  1232→      setContentDetail(data);
+    65→  1233→      // Reset language filter
+    66→  1234→      setDetailLangFilter(null);
+    67→  1235→      // Fetch cast from TMDB
+    68→  1236→      if (data.tmdbId && data.type !== "manga") {
+    69→  1237→        setCastLoading(true);
+    70→  1238→        fetch(`/api/tmdb/cast?tmdbId=${data.tmdbId}&type=${data.type}`)
+    71→  1239→          .then((r) => r.json())
+    72→  1240→          .then((castData) => {
+    73→  1241→            setCast(castData.cast || []);
+    74→  1242→            setCrew(castData.crew || []);
+    75→  1243→          })
+    76→  1244→          .catch(() => { setCast([]); setCrew([]); })
+    77→  1245→          .finally(() => setCastLoading(false));
+    78→  1246→      } else {
+    79→  1247→        setCast([]);
+    80→  1248→        setCrew([]);
+    81→  1249→      }
+    82→  1250→      // Auto-select first embed
+    83→  1251→      if (data.embedGroups?.length > 0 && data.embedGroups[0].embeds?.length > 0) {
+    84→  1252→        const firstEmbed = data.embedGroups[0].embeds[0];
+    85→  1253→        setCurrentEmbed(firstEmbed);
+    86→  1254→        if (data.type !== "movie" && data.type !== "manga") {
+    87→  1255→          const firstGroup = data.embedGroups[0];
+    88→  1256→          setSelectedEpisode(
+    89→  1257→            firstGroup.season != null && firstGroup.episode != null
+    90→  1258→              ? `S${firstGroup.season}E${firstGroup.episode}`
+    91→  1259→              : null
+    92→  1260→          );
+    93→  1261→        }
+    94→  1262→      }
+    95→  1263→    } catch {
+    96→  1264→      setContentDetail(null);
+    97→  1265→      toast({ title: "Erreur", description: "Impossible de charger le contenu" });
+    98→  1266→    } finally {
+    99→  1267→      setLoading(false);
+   100→  1268→    }
+   101→  1269→  }, [setContentDetail, setCurrentEmbed, setSelectedEpisode, setSelectedSeason, toast]);
+   102→  1270→
+   103→  1271→  // Search MangaDex when manga detail loads
+   104→  1272→  const fetchMangaDexChapters = useCallback(async (mangaTitle: string) => {
+   105→  1273→    setMangadexLoading(true);
+   106→  1274→    setMangadexError(null);
+   107→  1275→    setMangadexChapters([]);
+   108→  1276→    setMangadexId(null);
+   109→  1277→    try {
+   110→  1278→      // Search for the manga on MangaDex
+   111→  1279→      const searchRes = await fetch(`/api/manga/search?q=${encodeURIComponent(mangaTitle)}`);
+   112→  1280→      const searchData = await searchRes.json();
+   113→  1281→
+   114→  1282→      if (!searchData.data || searchData.data.length === 0) {
+   115→  1283→        setMangadexError("Non disponible sur MangaDex");
+   116→  1284→        return;
+   117→  1285→      }
+   118→  1286→
+   119→  1287→      const mdId = searchData.data[0].id;
+   120→  1288→      setMangadexId(mdId);
+   121→  1289→
+   122→  1290→      // Fetch chapters in French
+   123→  1291→      const chaptersRes = await fetch(`/api/manga/chapters?mangadexId=${mdId}&lang=fr`);
+   124→  1292→      const chaptersData = await chaptersRes.json();
+   125→  1293→
+   126→  1294→      if (!chaptersData.data || chaptersData.data.length === 0) {
+   127→  1295→        // Try English as fallback
+   128→  1296→        const chaptersResEn = await fetch(`/api/manga/chapters?mangadexId=${mdId}&lang=en`);
+   129→  1297→        const chaptersDataEn = await chaptersResEn.json();
+   130→  1298→        if (!chaptersDataEn.data || chaptersDataEn.data.length === 0) {
+   131→  1299→          setMangadexError("Aucun chapitre disponible");
+   132→  1300→          return;
+   133→  1301→        }
+   134→  1302→        setMangadexChapters(chaptersDataEn.data);
+   135→  1303→      } else {
+   136→  1304→        setMangadexChapters(chaptersData.data);
+   137→  1305→      }
+   138→  1306→    } catch {
+   139→  1307→      setMangadexError("Erreur de connexion a MangaDex");
+   140→  1308→    } finally {
+   141→  1309→      setMangadexLoading(false);
+   142→  1310→    }
+   143→  1311→  }, []);
+   144→  1312→
+   145→  1313→  // Trigger MangaDex search when manga content loads
+   146→  1314→  useEffect(() => {
+   147→  1315→    if (contentDetail?.type === "manga" && contentDetail.title) {
+   148→  1316→      fetchMangaDexChapters(contentDetail.title);
+   149→  1317→    }
+   150→  1318→  }, [contentDetail?.type, contentDetail?.title, fetchMangaDexChapters]);
+   151→  1319→
+   152→  1320→  // Handle opening a chapter in the reader
+   153→  1321→  const handleOpenChapter = useCallback(async (chapter: MangaDexChapter) => {
+   154→  1322→    if (!chapter.id) return;
+   155→  1323→    const label = `Ch. ${chapter.chapter || "?"}${chapter.title ? ` - ${chapter.title}` : ""}`;
+   156→  1324→    const { openMangaReader } = useAppStore.getState();
+   157→  1325→    setMangadexLoading(true);
+   158→  1326→    try {
+   159→  1327→      const res = await fetch(`/api/manga/pages?chapterId=${chapter.id}`);
+   160→  1328→      const data = await res.json();
+   161→  1329→      if (data.baseUrl && data.hash && data.pages?.length > 0) {
+   162→  1330→        const pageUrls = data.pages.map(
+   163→  1331→          (filename: string) => `/api/manga/proxy?url=${encodeURIComponent(`${data.baseUrl}/data-saver/${data.hash}/${filename}`)}`
+   164→  1332→        );
+   165→  1333→        openMangaReader(pageUrls, label, mangadexChapters);
+   166→  1334→      } else {
+   167→  1335→        toast({ title: "Erreur", description: "Impossible de charger les pages" });
+   168→  1336→      }
+   169→  1337→    } catch {
+   170→  1338→      toast({ title: "Erreur", description: "Echec du chargement du chapitre" });
+   171→  1339→    } finally {
+   172→  1340→      setMangadexLoading(false);
+   173→  1341→    }
+   174→  1342→  }, [toast, mangadexChapters]);
+   175→  1343→
+   176→  1344→  useEffect(() => {
+   177→  1345→    if (!selectedContentId) return;
+   178→  1346→    fetchDetail(selectedContentId);
+   179→  1347→  }, [selectedContentId, fetchDetail]);
+   180→  1348→
+   181→  1349→  if (loading) {
+   182→  1350→    return (
+   183→  1351→      <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
+   184→  1352→        <Skeleton className="w-full aspect-video rounded-lg mb-6" />
+   185→  1353→        <div className="flex gap-4">
+   186→  1354→          <Skeleton className="w-32 aspect-[2/3] rounded-lg hidden md:block" />
+   187→  1355→          <div className="flex-1 space-y-3">
+   188→  1356→            <Skeleton className="h-8 w-1/2" />
+   189→  1357→            <Skeleton className="h-4 w-3/4" />
+   190→  1358→            <Skeleton className="h-4 w-1/2" />
+   191→  1359→          </div>
+   192→  1360→        </div>
+   193→  1361→      </div>
+   194→  1362→    );
+   195→  1363→  }
+   196→  1364→
+   197→  1365→  if (!contentDetail) return null;
+   198→  1366→
+   199→  1367→  const isFav = favorites.includes(contentDetail.id);
+   200→  1368→  const isSeriesOrAnime = contentDetail.type === "series" || contentDetail.type === "anime";
+   201→  1369→  const isManga = contentDetail.type === "manga";
+   202→  1370→
+   203→  1371→  const handleEmbedClick = (embed: EmbedSource, episodeKey?: string) => {
+   204→  1372→    setCurrentEmbed(embed);
+   205→  1373→    setPlayerLoading(true);
+   206→  1374→    setIframeKey((k) => k + 1);
+   207→  1375→    if (episodeKey) setSelectedEpisode(episodeKey);
+   208→  1376→  };
+   209→  1377→
+   210→  1378→  const handleFav = () => {
+   211→  1379→    toggleFavorite(contentDetail.id);
+   212→  1380→    toast({
+   213→  1381→      title: isFav ? "Retiré des favoris" : "Ajouté aux favoris",
+   214→  1382→      description: getDisplayTitle(contentDetail),
+   215→  1383→    });
+   216→  1384→  };
+   217→  1385→
+   218→  1386→  // Auto-select first episode of season when season changes
+   219→  1387→  const handleSeasonChange = (season: number) => {
+   220→  1388→    setSelectedSeason(season);
+   221→  1389→    const eps = seasonMap.get(season);
+   222→  1390→    if (eps?.length) {
+   223→  1391→      const firstEp = eps[0];
+   224→  1392→      const epKey = `S${firstEp.season}E${firstEp.episode}`;
+   225→  1393→      setSelectedEpisode(epKey);
+   226→  1394→      if (firstEp.embeds.length > 0) {
+   227→  1395→        handleEmbedClick(firstEp.embeds[0], epKey);
+   228→  1396→      }
+   229→  1397→    }
+   230→  1398→  };
+   231→  1399→
+   232→  1400→  return (
+   233→  1401→    <motion.div
+   234→  1402→      initial={{ opacity: 0 }}
+   235→  1403→      animate={{ opacity: 1 }}
+   236→  1404→      exit={{ opacity: 0 }}
+   237→  1405→      className="page-content max-w-7xl mx-auto px-4 md:px-8 py-6"
+   238→  1406→    >
+   239→  1407→      {/* Back button */}
+   240→  1408→      <button
+   241→  1409→        onClick={() => {
+   242→  1410→          setView("home");
+   243→  1411→          setContentDetail(null);
+   244→  1412→        }}
+   245→  1413→        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
+   246→  1414→      >
+   247→  1415→        <Icon name="chevron-left" className="h-4 w-4" />
+   248→  1416→        Retour
+   249→  1417→      </button>
+   250→  1418→
+   251→  1419→      {/* Manga reading info or Player area */}
+   252→  1420→      {isManga ? (
+   253→  1421→        <div className="mb-8 rounded-xl overflow-hidden border border-border bg-card">
+   254→  1422→          <div className="grid md:grid-cols-[280px_1fr] gap-0">
+   255→  1423→            {/* Manga cover */}
+   256→  1424→            <div className="relative">
+   257→  1425→              <img
+   258→  1426→                src={contentDetail.posterUrl}
+   259→  1427→                alt={getDisplayTitle(contentDetail)}
+   260→  1428→                className="w-full aspect-[2/3] md:aspect-auto md:h-full object-cover"
+   261→  1429→                onError={(e) => handleImgError(e)}
+   262→  1430→              />
+   263→  1431→              <div className="absolute inset-0 bg-gradient-to-r from-transparent to-card/50 hidden md:block" />
+   264→  1432→            </div>
+   265→  1433→            {/* Manga info */}
+   266→  1434→            <div className="p-6 flex flex-col">
+   267→  1435→              <div className="flex items-center gap-2 mb-3">
+   268→  1436→                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-purple-600/90 text-white">
+   269→  1437→                  Livre
+   270→  1438→                </span>
+   271→  1439→                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-600/20 text-purple-400">
+   272→  1440→                  Manga
+   273→  1441→                </span>
+   274→  1442→                <button
+   275→  1443→                  onClick={handleFav}
+   276→  1444→                  className="ml-auto w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors"
+   277→  1445→                  aria-label={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
+   278→  1446→                >
+   279→  1447→                  <Icon
+   280→  1448→                    name="heart"
+   281→  1449→                    className={`h-5 w-5 transition-all ${isFav ? "fill-red-500 text-red-500" : "text-muted-foreground"}`}
+   282→  1450→                  />
+   283→  1451→                </button>
+   284→  1452→              </div>
+   285→  1453→              <h1 className="text-2xl md:text-3xl font-extrabold text-foreground leading-tight mb-3">
+   286→  1454→                {getDisplayTitle(contentDetail)}
+   287→  1455→              </h1>
+   288→  1456→              {/* Rating */}
+   289→  1457→              <div className="flex items-center gap-3 mb-4 text-sm">
+   290→  1458→                <span className="flex items-center gap-1">
+   291→  1459→                  <Icon name="star" className="h-4 w-4 fill-amber-500 text-amber-500" />
+   292→  1460→                  <span className="text-foreground font-semibold">{contentDetail.rating?.toFixed(1)}</span>
+   293→  1461→                </span>
+   294→  1462→                {contentDetail.year && (
+   295→  1463→                  <span className="flex items-center gap-1 text-muted-foreground">
+   296→  1464→                    <Icon name="calendar" className="h-3.5 w-3.5" />
+   297→  1465→                    {contentDetail.year}
+   298→  1466→                  </span>
+   299→  1467→                )}
+   300→  1468→              </div>
+   301→  1469→              {/* Info cards */}
+   302→  1470→              <div className="grid grid-cols-3 gap-3 mb-4">
+   303→  1471→                <div className="rounded-lg bg-muted/50 p-3 text-center">
+   304→  1472→                  <Icon name="book-marked" className="h-5 w-5 text-purple-400 mx-auto mb-1" />
+   305→  1473→                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Auteur</p>
+   306→  1474→                  <p className="text-xs font-semibold text-foreground truncate">{contentDetail.genres?.split(",")[0]?.trim() || "Inconnu"}</p>
+   307→  1475→                </div>
+   308→  1476→                <div className="rounded-lg bg-muted/50 p-3 text-center">
+   309→  1477→                  <Icon name="books" className="h-5 w-5 text-emerald-400 mx-auto mb-1" />
+   310→  1478→                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Statut</p>
+   311→  1479→                  <p className="text-xs font-semibold text-foreground">{contentDetail.seasons && contentDetail.seasons > 100 ? "En cours" : "Terminé"}</p>
+   312→  1480→                </div>
+   313→  1481→                <div className="rounded-lg bg-muted/50 p-3 text-center">
+   314→  1482→                  <Icon name="book-open" className="h-5 w-5 text-blue-400 mx-auto mb-1" />
+   315→  1483→                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Chapitres</p>
+   316→  1484→                  <p className="text-xs font-semibold text-foreground">{contentDetail.seasons || "?"}</p>
+   317→  1485→                </div>
+   318→  1486→              </div>
+   319→  1487→              {/* Description */}
+   320→  1488→              {contentDetail.overviewFr && (
+   321→  1489→                <p className="text-sm text-muted-foreground leading-relaxed mb-4 line-clamp-4">
+   322→  1490→                  {contentDetail.overviewFr}
+   323→  1491→                </p>
+   324→  1492→              )}
+   325→  1493→              {/* MangaDex chapter section */}
+   326→  1494→              <div className="mt-2">
+   327→  1495→                {/* Loading state */}
+   328→  1496→                {mangadexLoading && (
+   329→  1497→                  <div className="flex items-center gap-2 py-3">
+   330→  1498→                    <Icon name="loader" className="h-4 w-4 animate-spin text-purple-400" />
+   331→  1499→                    <span className="text-sm text-muted-foreground">Recherche sur MangaDex...</span>
+   332→  1500→                  </div>
+   333→  1501→                )}
+   334→  1502→                {/* Error / not found state */}
+   335→  1503→                {mangadexError && !mangadexLoading && (
+   336→  1504→                  <div className="space-y-2">
+   337→  1505→                    <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+   338→  1506→                      <Icon name="alert-02" className="h-4 w-4 text-amber-400" />
+   339→  1507→                      {mangadexError}
+   340→  1508→                    </p>
+   341→  1509→                    {/* Fallback to AniList */}
+   342→  1510→                    {contentDetail.anilistId && (
+   343→  1511→                      <a
+   344→  1512→                        href={`https://anilist.co/manga/${contentDetail.anilistId}`}
+   345→  1513→                        target="_blank"
+   346→  1514→                        rel="noopener noreferrer"
+   347→  1515→                        className="inline-flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground text-sm font-medium rounded-lg transition-colors"
+   348→  1516→                      >
+   349→  1517→                        <Icon name="globe" className="h-3.5 w-3.5" />
+   350→  1518→                        Voir sur AniList
+   351→  1519→                      </a>
+   352→  1520→                    )}
+   353→  1521→                  </div>
+   354→  1522→                )}
+   355→  1523→                {/* Chapter list from MangaDex */}
+   356→  1524→                {!mangadexLoading && !mangadexError && mangadexChapters.length > 0 && (
+   357→  1525→                  <div>
+   358→  1526→                    <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+   359→  1527→                      <Icon name="book-open" className="h-4 w-4 text-purple-400" />
+   360→  1528→                      Chapitres disponibles
+   361→  1529→                      <span className="text-xs font-normal text-muted-foreground/70">
+   362→  1530→                        ({mangadexChapters.length} chapitres)
+   363→  1531→                      </span>
+   364→  1532→                    </h3>
+   365→  1533→                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-96 overflow-y-auto pr-1">
+   366→  1534→                      {mangadexChapters.map((ch) => (
+   367→  1535→                        <button
+   368→  1536→                          key={ch.id}
+   369→  1537→                          onClick={() => handleOpenChapter(ch)}
+   370→  1538→                          disabled={mangadexLoading}
+   371→  1539→                          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-left bg-muted/50 hover:bg-purple-600/10 hover:text-purple-400 transition-colors group disabled:opacity-50"
+   372→  1540→                        >
+   373→  1541→                          <span className="text-xs font-bold text-purple-400 group-hover:text-purple-300 min-w-[3rem]">
+   374→  1542→                            Ch. {ch.chapter || "?"}
+   375→  1543→                          </span>
+   376→  1544→                          <div className="flex-1 min-w-0">
+   377→  1545→                            {ch.title && (
+   378→  1546→                              <p className="text-xs font-medium text-foreground truncate group-hover:text-purple-300">
+   379→  1547→                                {ch.title}
+   380→  1548→                              </p>
+   381→  1549→                            )}
+   382→  1550→                          </div>
+   383→  1551→                          {ch.pages > 0 && (
+   384→  1552→                            <div className="flex items-center gap-1 text-muted-foreground flex-shrink-0">
+   385→  1553→                              <Icon name="book-open" className="h-3 w-3" />
+   386→  1554→                              <span className="text-[10px]">{ch.pages}p</span>
+   387→  1555→                            </div>
+   388→  1556→                          )}
+   389→  1557→                        </button>
+   390→  1558→                      ))}
+   391→  1559→                    </div>
+   392→  1560→                  </div>
+   393→  1561→                )}
+   394→  1562→              </div>
+   395→  1563→            </div>
+   396→  1564→          </div>
+   397→  1565→        </div>
+   398→  1566→      ) : (
+   399→  1567→        <div className="player-container mb-6">
+   400→  1568→          {currentEmbed ? (
+   401→  1569→          <>
+   402→  1570→            {playerLoading && (
+   403→  1571→              <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/60">
+   404→  1572→                <Icon name="loader" className="h-8 w-8 animate-spin text-red-500" />
+   405→  1573→              </div>
+   406→  1574→            )}
+   407→  1575→            <iframe
+   408→  1576→              key={iframeKey}
+   409→  1577→              src={currentEmbed.url}
+   410→  1578→              className="absolute inset-0 w-full h-full border-0"
+   411→  1579→              allowFullScreen
+   412→  1580→              allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+   413→  1581→              onLoad={() => setPlayerLoading(false)}
+   414→  1582→              title="Player"
+   415→  1583→            />
+   416→  1584→          </>
+   417→  1585→        ) : contentDetail.embedGroups.length === 0 ? (
+   418→  1586→          <div className="absolute inset-0 flex items-center justify-center">
+   419→  1587→            <div className="text-center px-4">
+   420→  1588→              <Icon name="server" className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
+   421→  1589→              <p className="text-muted-foreground font-medium mb-1">Aucun serveur disponible</p>
+   422→  1590→              <p className="text-muted-foreground/70 text-sm">
+   423→  1591→                {contentDetail.type === "anime"
+   424→  1592→                  ? "Cet anime n'a pas encore été matché avec TMDB. Utilisez l'Administration → Auto-Match TMDB pour ajouter des liens."
+   425→  1593→                  : "Ce contenu n'a pas de liens streaming disponibles."}
+   426→  1594→              </p>
+   427→  1595→            </div>
+   428→  1596→          </div>
+   429→  1597→        ) : (
+   430→  1598→          <div className="absolute inset-0 flex items-center justify-center">
+   431→  1599→            <div className="text-center">
+   432→  1600→              <Icon name="monitor" className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+   433→  1601→              <p className="text-muted-foreground">Sélectionnez un serveur ci-dessous</p>
+   434→  1602→            </div>
+   435→  1603→          </div>
+   436→  1604→        )}
+   437→  1605→      </div>
+   438→  1606→      )}
+   439→  1607→
+   440→  1608→      {/* Server buttons + Episode selector (not for manga) */}
+   441→  1609→      {!isManga && <div className="space-y-4 mb-8">
+   442→  1610→        {/* Language filter for servers */}
+   443→  1611→        <div className="flex items-center gap-2">
+   444→  1612→          <Icon name="languages" className="h-4 w-4 text-muted-foreground" />
+   445→  1613→          <div className="flex gap-1.5">
+   446→  1614→            <button
+   447→  1615→              onClick={() => setDetailLangFilter(null)}
+   448→  1616→              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+   449→  1617→                !detailLangFilter ? "bg-red-600/20 text-red-400" : "bg-muted text-muted-foreground hover:text-foreground"
+   450→  1618→              }`}
+   451→  1619→            >
+   452→  1620→              Tous
+   453→  1621→            </button>
+   454→  1622→            <button
+   455→  1623→              onClick={() => setDetailLangFilter(detailLangFilter === "vostfr" ? null : "vostfr")}
+   456→  1624→              className={`px-3 py-1 rounded-full text-xs font-bold tracking-wider transition-colors ${
+   457→  1625→                detailLangFilter === "vostfr" ? "bg-amber-600/20 text-amber-400" : "bg-muted text-muted-foreground hover:text-foreground"
+   458→  1626→              }`}
+   459→  1627→            >
+   460→  1628→              VOSTFR
+   461→  1629→            </button>
+   462→  1630→            <button
+   463→  1631→              onClick={() => setDetailLangFilter(detailLangFilter === "vf" ? null : "vf")}
+   464→  1632→              className={`px-3 py-1 rounded-full text-xs font-bold tracking-wider transition-colors ${
+   465→  1633→                detailLangFilter === "vf" ? "bg-emerald-600/20 text-emerald-400" : "bg-muted text-muted-foreground hover:text-foreground"
+   466→  1634→              }`}
+   467→  1635→            >
+   468→  1636→              VF
+   469→  1637→            </button>
+   470→  1638→          </div>
+   471→  1639→        </div>
+   472→  1640→
+   473→  1641→        {/* For movies: show server buttons directly */}
+   474→  1642→        {!isSeriesOrAnime && contentDetail.embedGroups.length > 0 && (
+   475→  1643→          <div>
+   476→  1644→            <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+   477→  1645→              <Icon name="server" className="h-4 w-4" />
+   478→  1646→              Serveurs disponibles
+   479→  1647→            </h3>
+   480→  1648→            <div className="flex flex-wrap gap-2">
+   481→  1649→              {contentDetail.embedGroups[0].embeds
+   482→  1650→                .filter((embed) => !detailLangFilter || (embed.hostConfig?.langs || ["vostfr"]).includes(detailLangFilter))
+   483→  1651→                .map((embed) => (
+   484→  1652→                <ServerButton
+   485→  1653→                  key={embed.id}
+   486→  1654→                  embed={embed}
+   487→  1655→                  isActive={currentEmbed?.id === embed.id}
+   488→  1656→                  onClick={() => handleEmbedClick(embed)}
+   489→  1657→                />
+   490→  1658→              ))}
+   491→  1659→            </div>
+   492→  1660→          </div>
+   493→  1661→        )}
+   494→  1662→
+   495→  1663→        {/* For series/anime: Netflix-style layout (handled below with info) */}
+   496→  1664→      </div>}
+   497→  1665→
+   498→  1666→      {/* ========== SERIES/ANIME: Netflix-style two-column layout ========== */}
+   499→  1667→      {isSeriesOrAnime && (
+   500→  1668→        <div className="grid lg:grid-cols-[1fr_380px] gap-6 mb-8">
+   501→  1669→          {/* Left column: Info + Servers */}
+   502→  1670→          <div>
+   503→  1671→            <div className="grid md:grid-cols-[180px_1fr] gap-5 mb-6">
+   504→  1672→              {/* Poster */}
+   505→  1673→              <div className="hidden md:block">
+   506→  1674→                <img
+   507→  1675→                  src={contentDetail.posterUrl}
+   508→  1676→                  alt={getDisplayTitle(contentDetail)}
+   509→  1677→                  className="w-full aspect-[2/3] rounded-lg object-cover shadow-xl"
+   510→  1678→                  onError={(e) => handleImgError(e)}
+   511→  1679→                />
+   512→  1680→              </div>
+   513→  1681→
+   514→  1682→              <div>
+   515→  1683→                <div className="flex items-start justify-between gap-4 mb-3">
+   516→  1684→                  <div>
+   517→  1685→                    <div className="flex items-center gap-2 mb-2">
+   518→  1686→                      <span
+   519→  1687→                        className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${TYPE_CONFIG[contentDetail.type]?.badgeClass || ""}`}
+   520→  1688→                      >
+   521→  1689→                        {TYPE_CONFIG[contentDetail.type]?.label || contentDetail.type}
+   522→  1690→                      </span>
+   523→  1691→                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-600/90 text-white">
+   524→  1692→                        1080p
+   525→  1693→                      </span>
+   526→  1694→                    </div>
+   527→  1695→                    <h1 className="text-2xl md:text-3xl font-extrabold text-foreground leading-tight">
+   528→  1696→                      {getDisplayTitle(contentDetail)}
+   529→  1697→                    </h1>
+   530→  1698→                  </div>
+   531→  1699→                  <button
+   532→  1700→                    onClick={handleFav}
+   533→  1701→                    className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors"
+   534→  1702→                    aria-label={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
+   535→  1703→                  >
+   536→  1704→                    <Icon
+   537→  1705→                      name="heart"
+   538→  1706→                      className={`h-5 w-5 transition-all ${isFav ? "fill-red-500 text-red-500" : "text-muted-foreground"}`}
+   539→  1707→                    />
+   540→  1708→                  </button>
+   541→  1709→                </div>
+   542→  1710→
+   543→  1711→                {/* Meta */}
+   544→  1712→                <div className="flex flex-wrap items-center gap-3 mb-4 text-sm text-muted-foreground">
+   545→  1713→                  <span className="flex items-center gap-1">
+   546→  1714→                    <Icon name="star" className="h-4 w-4 fill-amber-500 text-amber-500" />
+   547→  1715→                    <span className="text-foreground font-semibold">
+   548→  1716→                      {contentDetail.rating?.toFixed(1)}
+   549→  1717→                    </span>
+   550→  1718→                  </span>
+   551→  1719→                  {contentDetail.year && (
+   552→  1720→                    <span className="flex items-center gap-1">
+   553→  1721→                      <Icon name="calendar" className="h-3.5 w-3.5" />
+   554→  1722→                      {contentDetail.year}
+   555→  1723→                    </span>
+   556→  1724→                  )}
+   557→  1725→                  {contentDetail.seasons && (
+   558→  1726→                    <span className="flex items-center gap-1">
+   559→  1727→                      <Icon name="layers" className="h-3.5 w-3.5" />
+   560→  1728→                      {contentDetail.seasons} saison{contentDetail.seasons > 1 ? "s" : ""}
+   561→  1729→                    </span>
+   562→  1730→                  )}
+   563→  1731→                </div>
+   564→  1732→
+   565→  1733→                {/* Genres */}
+   566→  1734→                {contentDetail.genres && (
+   567→  1735→                  <div className="flex flex-wrap gap-2 mb-4">
+   568→  1736→                    {contentDetail.genres.split(",").map((g) => g.trim()).filter(Boolean).map((genre) => (
+   569→  1737→                      <Badge
+   570→  1738→                        key={genre}
+   571→  1739→                        variant="secondary"
+   572→  1740→                        className="text-xs bg-muted text-muted-foreground"
+   573→  1741→                      >
+   574→  1742→                        {genre}
+   575→  1743→                      </Badge>
+   576→  1744→                    ))}
+   577→  1745→                  </div>
+   578→  1746→                )}
+   579→  1747→
+   580→  1748→                {/* Overview */}
+   581→  1749→                {contentDetail.overviewFr && (
+   582→  1750→                  <p className="text-sm text-muted-foreground leading-relaxed line-clamp-4">
+   583→  1751→                    {contentDetail.overviewFr}
+   584→  1752→                  </p>
+   585→  1753→                )}
+   586→  1754→              </div>
+   587→  1755→            </div>
+   588→  1756→
+   589→  1757→            {/* Server buttons for current episode */}
+   590→  1758→            {selectedEpisode && (
+   591→  1759→              <div>
+   592→  1760→                <h4 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+   593→  1761→                  <Icon name="server" className="h-4 w-4" />
+   594→  1762→                  Serveurs — Épisode {currentSeasonEpisodes.find((g) => `S${g.season}E${g.episode}` === selectedEpisode)?.episode || ""}
+   595→  1763→                </h4>
+   596→  1764→                <div className="flex flex-wrap gap-2">
+   597→  1765→                  {contentDetail.embedGroups
+   598→  1766→                    .find((g) => {
+   599→  1767→                      const k = g.season != null && g.episode != null ? `S${g.season}E${g.episode}` : "all";
+   600→  1768→                      return k === selectedEpisode;
+   601→  1769→                    })
+   602→  1770→                    ?.embeds
+   603→  1771→                    .filter((embed) => !detailLangFilter || (embed.hostConfig?.langs || ["vostfr"]).includes(detailLangFilter))
+   604→  1772→                    .map((embed) => (
+   605→  1773→                      <ServerButton
+   606→  1774→                        key={embed.id}
+   607→  1775→                        embed={embed}
+   608→  1776→                        isActive={currentEmbed?.id === embed.id}
+   609→  1777→                        onClick={() => handleEmbedClick(embed, selectedEpisode)}
+   610→  1778→                      />
+   611→  1779→                    ))}
+   612→  1780→                </div>
+   613→  1781→              </div>
+   614→  1782→            )}
+   615→  1783→          </div>
+   616→  1784→
+   617→  1785→          {/* Right column: Season dropdown + Episode list */}
+   618→  1786→          <div className="rounded-xl border border-border/60 bg-card/50 overflow-hidden">
+   619→  1787→            {/* Season dropdown */}
+   620→  1788→            <div className="p-4 border-b border-border/50">
+   621→  1789→              <div className="flex items-center justify-between">
+   622→  1790→                <h3 className="text-sm font-bold text-foreground">Épisodes</h3>
+   623→  1791→                {availableSeasons.length > 1 && (
+   624→  1792→                  <Select
+   625→  1793→                    value={String(selectedSeason)}
+   626→  1794→                    onValueChange={(val) => handleSeasonChange(Number(val))}
+   627→  1795→                  >
+   628→  1796→                    <SelectTrigger className="w-[140px] h-9 text-xs bg-muted/50 border-border/50">
+   629→  1797→                      <SelectValue />
+   630→  1798→                    </SelectTrigger>
+   631→  1799→                    <SelectContent>
+   632→  1800→                      {availableSeasons.map((s) => (
+   633→  1801→                        <SelectItem key={s} value={String(s)} className="text-xs">
+   634→  1802→                          Saison {s}
+   635→  1803→                        </SelectItem>
+   636→  1804→                      ))}
+   637→  1805→                    </SelectContent>
+   638→  1806→                  </Select>
+   639→  1807→                )}
+   640→  1808→              </div>
+   641→  1809→            </div>
+   642→  1810→
+   643→  1811→            {/* Episode list */}
+   644→  1812→            <div className="max-h-[500px] overflow-y-auto custom-scrollbar">
+   645→  1813→              {currentSeasonEpisodes.length === 0 ? (
+   646→  1814→                <div className="p-6 text-center text-sm text-muted-foreground">
+   647→  1815→                  Aucun épisode disponible pour cette saison
+   648→  1816→                </div>
+   649→  1817→              ) : (
+   650→  1818→                currentSeasonEpisodes.map((group) => {
+   651→  1819→                  const epKey = group.season != null && group.episode != null ? `S${group.season}E${group.episode}` : "all";
+   652→  1820→                  const isActive = selectedEpisode === epKey;
+   653→  1821→                  const epNum = group.episode ?? 0;
+   654→  1822→                  return (
+   655→  1823→                    <button
+   656→  1824→                      key={epKey}
+   657→  1825→                      onClick={() => {
+   658→  1826→                        setSelectedEpisode(epKey);
+   659→  1827→                        if (group.embeds.length > 0) {
+   660→  1828→                          handleEmbedClick(group.embeds[0], epKey);
+   661→  1829→                        }
+   662→  1830→                      }}
+   663→  1831→                      className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-all border-b border-border/30 last:border-b-0 group ${
+   664→  1832→                        isActive
+   665→  1833→                          ? "bg-red-600/10 border-l-[3px] border-l-red-500"
+   666→  1834→                          : "hover:bg-muted/50 border-l-[3px] border-l-transparent"
+   667→  1835→                      }`}
+   668→  1836→                    >
+   669→  1837→                      {/* Episode number */}
+   670→  1838→                      <span className={`text-lg font-bold min-w-[2rem] text-center transition-colors ${
+   671→  1839→                        isActive ? "text-red-500" : "text-muted-foreground/40 group-hover:text-muted-foreground/70"
+   672→  1840→                      }`}>
+   673→  1841→                        {epNum}
+   674→  1842→                      </span>
+   675→  1843→
+   676→  1844→                      {/* Episode info */}
+   677→  1845→                      <div className="flex-1 min-w-0">
+   678→  1846→                        <p className={`text-sm font-medium truncate transition-colors ${
+   679→  1847→                          isActive ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"
+   680→  1848→                        }`}>
+   681→  1849→                          Épisode {epNum}
+   682→  1850→                        </p>
+   683→  1851→                        <p className="text-xs text-muted-foreground/60 mt-0.5">
+   684→  1852→                          {group.embeds.length} serveur{group.embeds.length > 1 ? "s" : ""} disponible{group.embeds.length > 1 ? "s" : ""}
+   685→  1853→                        </p>
+   686→  1854→                      </div>
+   687→  1855→
+   688→  1856→                      {/* Play icon */}
+   689→  1857→                      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+   690→  1858→                        isActive
+   691→  1859→                          ? "bg-red-600 text-white shadow-lg shadow-red-600/20"
+   692→  1860→                          : "bg-muted/80 text-muted-foreground opacity-0 group-hover:opacity-100"
+   693→  1861→                      }`}>
+   694→  1862→                        <Icon name={isActive ? "pause" : "play"} className="h-3.5 w-3.5" />
+   695→  1863→                      </div>
+   696→  1864→                    </button>
+   697→  1865→                  );
+   698→  1866→                })
+   699→  1867→              )}
+   700→  1868→            </div>
+   701→  1869→          </div>
+   702→  1870→        </div>
+   703→  1871→      )}
+   704→  1872→
+   705→  1873→      {/* ========== MOVIES: Info section (existing layout) ========== */}
+   706→  1874→      {!isManga && !isSeriesOrAnime && <div className="grid md:grid-cols-[220px_1fr] gap-6 mb-8">
+   707→  1875→        {/* Poster */}
+   708→  1876→        <div className="hidden md:block">
+   709→  1877→          <img
+   710→  1878→            src={contentDetail.posterUrl}
+   711→  1879→            alt={getDisplayTitle(contentDetail)}
+   712→  1880→            className="w-full aspect-[2/3] rounded-lg object-cover shadow-xl"
+   713→  1881→            onError={(e) => handleImgError(e)}
+   714→  1882→          />
+   715→  1883→        </div>
+   716→  1884→
+   717→  1885→        <div>
+   718→  1886→          <div className="flex items-start justify-between gap-4 mb-3">
+   719→  1887→            <div>
+   720→  1888→              <div className="flex items-center gap-2 mb-2">
+   721→  1889→                <span
+   722→  1890→                  className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${TYPE_CONFIG[contentDetail.type]?.badgeClass || ""}`}
+   723→  1891→                >
+   724→  1892→                  {TYPE_CONFIG[contentDetail.type]?.label || contentDetail.type}
+   725→  1893→                </span>
+   726→  1894→                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-600/90 text-white">
+   727→  1895→                  1080p
+   728→  1896→                </span>
+   729→  1897→              </div>
+   730→  1898→              <h1 className="text-2xl md:text-3xl font-extrabold text-foreground leading-tight">
+   731→  1899→                {getDisplayTitle(contentDetail)}
+   732→  1900→              </h1>
+   733→  1901→            </div>
+   734→  1902→            <button
+   735→  1903→              onClick={handleFav}
+   736→  1904→              className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors"
+   737→  1905→              aria-label={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
+   738→  1906→            >
+   739→  1907→              <Icon
+   740→  1908→                name="heart"
+   741→  1909→                className={`h-5 w-5 transition-all ${isFav ? "fill-red-500 text-red-500" : "text-muted-foreground"}`}
+   742→  1910→              />
+   743→  1911→            </button>
+   744→  1912→          </div>
+   745→  1913→
+   746→  1914→          {/* Meta */}
+   747→  1915→          <div className="flex flex-wrap items-center gap-3 mb-4 text-sm text-muted-foreground">
+   748→  1916→            <span className="flex items-center gap-1">
+   749→  1917→              <Icon name="star" className="h-4 w-4 fill-amber-500 text-amber-500" />
+   750→  1918→              <span className="text-foreground font-semibold">
+   751→  1919→                {contentDetail.rating?.toFixed(1)}
+   752→  1920→              </span>
+   753→  1921→            </span>
+   754→  1922→            {contentDetail.year && (
+   755→  1923→              <span className="flex items-center gap-1">
+   756→  1924→                <Icon name="calendar" className="h-3.5 w-3.5" />
+   757→  1925→                {contentDetail.year}
+   758→  1926→              </span>
+   759→  1927→            )}
+   760→  1928→            {contentDetail.runtime && (
+   761→  1929→              <span className="flex items-center gap-1">
+   762→  1930→                <Icon name="clock" className="h-3.5 w-3.5" />
+   763→  1931→                {contentDetail.runtime} min
+   764→  1932→              </span>
+   765→  1933→            )}
+   766→  1934→            {contentDetail.seasons && (
+   767→  1935→              <span className="flex items-center gap-1">
+   768→  1936→                <Icon name="layers" className="h-3.5 w-3.5" />
+   769→  1937→                {contentDetail.seasons} saison{contentDetail.seasons > 1 ? "s" : ""}
+   770→  1938→              </span>
+   771→  1939→            )}
+   772→  1940→          </div>
+   773→  1941→
+   774→  1942→          {/* Genres */}
+   775→  1943→          {contentDetail.genres && (
+   776→  1944→            <div className="flex flex-wrap gap-2 mb-4">
+   777→  1945→              {contentDetail.genres.split(",").map((g) => g.trim()).filter(Boolean).map((genre) => (
+   778→  1946→                <Badge
+   779→  1947→                  key={genre}
+   780→  1948→                  variant="secondary"
+   781→  1949→                  className="text-xs bg-muted text-muted-foreground"
+   782→  1950→                >
+   783→  1951→                  {genre}
+   784→  1952→                </Badge>
+   785→  1953→              ))}
+   786→  1954→            </div>
+   787→  1955→          )}
+   788→  1956→
+   789→  1957→          {/* Overview */}
+   790→  1958→          {contentDetail.overviewFr && (
+   791→  1959→            <p className="text-sm text-muted-foreground leading-relaxed">
+   792→  1960→              {contentDetail.overviewFr}
+   793→  1961→            </p>
+   794→  1962→          )}
+   795→  1963→        </div>
+   796→  1964→      </div>}
+   797→  1965→
+   798→  1966→      {/* Cast & Crew */}
+   799→  1967→      {!isManga && contentDetail.tmdbId && (
+   800→  1968→        <section className="mb-8">
+   801→  1969→          <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+   802→  1970→            <Icon name="camera" className="h-5 w-5 text-red-400" />
+   803→  1971→            Casting & Équipe
+   804→  1972→          </h2>
+   805→  1973→
+   806→  1974→          {castLoading ? (
+   807→  1975→            <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
+   808→  1976→              {Array.from({ length: 8 }).map((_, i) => (
+   809→  1977→                <div key={i} className="flex-shrink-0 w-[110px]">
+   810→  1978→                  <Skeleton className="w-[110px] h-[110px] rounded-full mb-2" />
+   811→  1979→                  <Skeleton className="h-4 w-20 mx-auto" />
+   812→  1980→                  <Skeleton className="h-3 w-16 mx-auto mt-1" />
+   813→  1981→                </div>
+   814→  1982→              ))}
+   815→  1983→            </div>
+   816→  1984→          ) : (
+   817→  1985→            <>
+   818→  1986→              {/* Cast horizontal scroll */}
+   819→  1987→              {cast.length > 0 && (
+   820→  1988→                <div className="mb-6">
+   821→  1989→                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">Acteurs</h3>
+   822→  1990→                  <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
+   823→  1991→                    {cast.map((person) => (
+   824→  1992→                      <div key={person.id} className="flex-shrink-0 w-[110px] text-center group">
+   825→  1993→                        <div className="w-[110px] h-[110px] rounded-full overflow-hidden mx-auto mb-2 border-2 border-transparent group-hover:border-red-500/40 transition-colors">
+   826→  1994→                          {person.profileUrl ? (
+   827→  1995→                            <img
+   828→  1996→                              src={person.profileUrl}
+   829→  1997→                              alt={person.name}
+   830→  1998→                              className="w-full h-full object-cover"
+   831→  1999→                              loading="lazy"
+   832→  2000→                              onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER_POSTER; }}
+   833→  2001→                            />
+   834→  2002→                          ) : (
+   835→  2003→                            <div className="w-full h-full bg-muted flex items-center justify-center">
+   836→  2004→                              <Icon name="user" className="h-8 w-8 text-muted-foreground/40" />
+   837→  2005→                            </div>
+   838→  2006→                          )}
+   839→  2007→                        </div>
+   840→  2008→                        <p className="text-xs font-medium text-foreground truncate">{person.name}</p>
+   841→  2009→                        <p className="text-[10px] text-muted-foreground truncate">{person.character}</p>
+   842→  2010→                      </div>
+   843→  2011→                    ))}
+   844→  2012→                  </div>
+   845→  2013→                </div>
+   846→  2014→              )}
+   847→  2015→
+   848→  2016→              {/* Crew */}
+   849→  2017→              {crew.length > 0 && (
+   850→  2018→                <div>
+   851→  2019→                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">Équipe technique</h3>
+   852→  2020→                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+   853→  2021→                    {crew.map((person) => (
+   854→  2022→                      <div key={`${person.id}-${person.job}`} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-muted/30">
+   855→  2023→                        <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-muted">
+   856→  2024→                          {person.profileUrl ? (
+   857→  2025→                            <img src={person.profileUrl} alt={person.name} className="w-full h-full object-cover" loading="lazy" />
+   858→  2026→                          ) : (
+   859→  2027→                            <div className="w-full h-full flex items-center justify-center">
+   860→  2028→                              <Icon name="user" className="h-4 w-4 text-muted-foreground/40" />
+   861→  2029→                            </div>
+   862→  2030→                          )}
+   863→  2031→                        </div>
+   864→  2032→                        <div className="min-w-0">
+   865→  2033→                          <p className="text-xs font-medium text-foreground truncate">{person.name}</p>
+   866→  2034→                          <p className="text-[10px] text-muted-foreground">{person.job}</p>
+   867→  2035→                        </div>
+   868→  2036→                      </div>
+   869→  2037→                    ))}
+   870→  2038→                  </div>
+   871→  2039→                </div>
+   872→  2040→              )}
+   873→  2041→            </>
+   874→  2042→          )}
+   875→  2043→        </section>
+   876→  2044→      )}
+   877→  2045→
+   878→  2046→      {/* Ad banner */}
+   879→  2047→      <div className="ad-banner flex items-center justify-center py-2.5 px-4 mb-8">
+   880→  2048→        <span className="text-[10px] text-muted-foreground/50 uppercase tracking-widest">
+   881→  2049→          Pub
+   882→  2050→        </span>
+   883→  2051→      </div>
+   884→  2052→
+   885→  2053→      {/* Related content */}
+   886→  2054→      {contentDetail.related && contentDetail.related.length > 0 && (
+   887→  2055→        <section>
+   888→  2056→          <h2 className="text-lg font-bold text-foreground mb-4">
+   889→  2057→            Contenu similaire
+   890→  2058→          </h2>
+   891→  2059→          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+   892→  2060→            {contentDetail.related.map((item) => (
+   893→  2061→              <ContentCard key={item.id} item={item} />
+   894→  2062→            ))}
+   895→  2063→          </div>
+   896→  2064→        </section>
+   897→  2065→      )}
+   898→  2066→    </motion.div>
+   899→  2067→  );
+   900→  2068→}
+   901→  2069→
+   902→  2070→// ==================== SERVER BUTTON ====================
+   903→  2071→
+   904→  2072→function ServerButton({
+   905→  2073→  embed,
+   906→  2074→  isActive,
+   907→  2075→  onClick,
+   908→  2076→}: {
+   909→  2077→  embed: EmbedSource;
+   910→  2078→  isActive: boolean;
+   911→  2079→  onClick: () => void;
+   912→  2080→}) {
+   913→  2081→  const hostColor = HOST_COLORS[embed.hostProvider] || "#666";
+   914→  2082→  const hostLabel = embed.hostConfig?.label || embed.serverName || embed.hostProvider;
+   915→  2083→  const quality = embed.quality || "1080p";
+   916→  2084→  const providerLangs = embed.hostConfig?.langs || ["vostfr"];
+   917→  2085→  const hasVF = providerLangs.includes("vf");
+   918→  2086→
+   919→  2087→  return (
+   920→  2088→    <button
+   921→  2089→      onClick={onClick}
+   922→  2090→      className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all border-2"
+   923→  2091→      style={{
+   924→  2092→        borderColor: isActive ? hostColor : "transparent",
+   925→  2093→        backgroundColor: isActive ? `${hostColor}15` : "oklch(0.18 0 0)",
+   926→  2094→        color: isActive ? hostColor : "oklch(0.7 0 0)",
+   927→  2095→        boxShadow: isActive ? `0 0 12px ${hostColor}30` : "none",
+   928→  2096→      }}
+   929→  2097→    >
+   930→  2098→      <span
+   931→  2099→        className="w-2 h-2 rounded-full flex-shrink-0"
+   932→  2100→        style={{ backgroundColor: hostColor }}
+   933→  2101→      />
+   934→  2102→      <span>{hostLabel}</span>
+   935→  2103→      {hasVF && (
+   936→  2104→        <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-emerald-500/20 text-emerald-400">
+   937→  2105→          VF
+   938→  2106→        </span>
+   939→  2107→      )}
+   940→  2108→      <span
+   941→  2109→        className="px-1.5 py-0.5 rounded text-[9px] font-bold"
+   942→  2110→        style={{
+   943→  2111→          backgroundColor: `${hostColor}25`,
+   944→  2112→          color: hostColor,
+   945→  2113→        }}
+   946→  2114→      >
+   947→  2115→        {quality}
+   948→  2116→      </span>
+   949→  2117→    </button>
+   950→  2118→  );
+   951→  2119→}
+   952→
+   953→[showing lines 1169-2119 of 3698; use offset=2120 with limit to continue reading]

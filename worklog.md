@@ -654,3 +654,35 @@ Stage Summary:
 - Light mode header: FIXED (theme-aware Tailwind classes)
 - Rebranding: COMPLETE (all references updated to METFLIX)
 - Zero lint errors
+---
+Task ID: 4
+Agent: Refactoring Agent
+Task: Refactor monolithic page.tsx into 16 separate component files
+
+Work Log:
+- Read full backup file (3698 lines) at src/app/page.tsx.backup
+- Extracted src/lib/content-helpers.tsx for shared constants (TYPE_CONFIG, HOST_COLORS, GENRES, YEARS) and helpers (getDisplayTitle, handleImgError, getTypeBadge, PLACEHOLDER_POSTER, PLACEHOLDER_BACKDROP)
+- Extracted src/components/skeleton-cards.tsx (SkeletonCard, SkeletonGrid)
+- Extracted src/components/content-card.tsx (ContentCard)
+- Extracted src/components/content-row.tsx (ContentRow)
+- Extracted src/components/header.tsx (Header with mobile sheet menu, admin panel integration)
+- Extracted src/components/mobile-bottom-nav.tsx (MobileBottomNav)
+- Extracted src/components/search-overlay.tsx (SearchOverlay with debounce)
+- Extracted src/components/hero-section.tsx (HeroSection with auto-carousel)
+- Extracted src/components/home-view.tsx (HomeView composing Hero + ContentRows)
+- Extracted src/components/browse-view.tsx (BrowseView with filters, infinite scroll)
+- Extracted src/components/detail-view.tsx (DetailView + ServerButton — largest component at ~950 lines)
+- Extracted src/components/favorites-view.tsx (FavoritesView)
+- Extracted src/components/footer.tsx (Footer with legal dialog, support section)
+- Extracted src/components/admin-panel.tsx (AdminPanel + StatCard — second largest at ~770 lines)
+- Extracted src/components/preview-modal.tsx (PreviewModal with trailer support)
+- Extracted src/components/manga-reader.tsx (MangaReader with chapter navigation)
+- Rewrote page.tsx as clean 97-line composition of imports + HomePage component
+- Fixed content-helpers.ts → content-helpers.tsx (JSX in TYPE_CONFIG requires .tsx extension)
+- Verified with bun run lint — 0 errors
+
+Stage Summary:
+- page.tsx reduced from 3698 lines to 97 lines
+- 16 component files + 1 helper module extracted into src/components/ and src/lib/
+- All components properly isolated with their own imports
+- No functionality changes, purely structural refactor
