@@ -21,6 +21,7 @@ export interface EmbedProvider {
   color: string;           // hex color for UI button
   quality: string;         // quality label ("1080p", "4K", "720p")
   active: boolean;         // whether to generate embeds for this provider
+  langs: string[];         // supported languages: ["vostfr", "vf"]
   
   // URL templates - {tmdbId}, {season}, {episode} are replaced
   movieUrl: string;        // URL template for movies
@@ -50,9 +51,10 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     color: "#e50914",
     quality: "1080p",
     active: true,
+    langs: ["vostfr", "vf"],
     movieUrl: "https://vidsrc.pm/embed/movie/{tmdbId}",
     tvUrl: "https://vidsrc.pm/embed/tv/{tmdbId}/{season}/{episode}",
-    note: "Working 2025-07-02. Reliable VidSrc fork.",
+    note: "Working 2025-07-02. Reliable VidSrc fork. VF via player.",
   },
   {
     id: "vidsrc_in",
@@ -60,9 +62,10 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     color: "#ff6b35",
     quality: "1080p",
     active: true,
+    langs: ["vostfr", "vf"],
     movieUrl: "https://vidsrc.in/embed/movie/{tmdbId}",
     tvUrl: "https://vidsrc.in/embed/tv/{tmdbId}/{season}/{episode}",
-    note: "Working 2025-07-02. Has Cloudflare ads but works.",
+    note: "Working 2025-07-02. Has Cloudflare ads but works. VF via player.",
   },
   {
     id: "vidsrc_dev",
@@ -70,9 +73,10 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     color: "#f97316",
     quality: "1080p",
     active: true,
+    langs: ["vostfr", "vf"],
     movieUrl: "https://vidsrc.dev/embed/movie/{tmdbId}",
     tvUrl: "https://vidsrc.dev/embed/tv/{tmdbId}/{season}/{episode}",
-    note: "Working 2025-07-02. Clean, fast.",
+    note: "Working 2025-07-02. Clean, fast. VF via player.",
   },
   {
     id: "vidsrc_io",
@@ -80,6 +84,7 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     color: "#ef4444",
     quality: "1080p",
     active: true,
+    langs: ["vostfr"],
     movieUrl: "https://vidsrc.io/embed/movie/{tmdbId}",
     tvUrl: "https://vidsrc.io/embed/tv/{tmdbId}/{season}/{episode}",
     note: "Working 2025-07-02.",
@@ -90,9 +95,10 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     color: "#4ecdc4",
     quality: "1080p",
     active: true,
+    langs: ["vostfr", "vf"],
     movieUrl: "https://embed.su/embed/movie/{tmdbId}",
     tvUrl: "https://embed.su/embed/tv/{tmdbId}/{season}/{episode}",
-    note: "Working 2025-07-02. TV episodes select in-player.",
+    note: "Working 2025-07-02. TV episodes select in-player. VF via player.",
   },
 
   {
@@ -101,9 +107,10 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     color: "#10b981",
     quality: "1080p",
     active: true,
+    langs: ["vostfr", "vf"],
     movieUrl: "https://embed.smashystream.com/movie/{tmdbId}",
     tvUrl: "https://embed.smashystream.com/tv/{tmdbId}/{season}/{episode}",
-    note: "Working 2025-07-03. Redirects to anyembed.xyz backend. Clean player.",
+    note: "Working 2025-07-03. Redirects to anyembed.xyz backend. Clean player. VF via player.",
   },
   {
     id: "anyembed",
@@ -111,6 +118,7 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     color: "#14b8a6",
     quality: "1080p",
     active: true,
+    langs: ["vostfr"],
     movieUrl: "https://anyembed.xyz/embed/tmdb-movie-{tmdbId}",
     tvUrl: "https://anyembed.xyz/embed/tmdb-tv-{tmdbId}-{season}-{episode}",
     note: "Working 2025-07-03. SmashyStream backend, direct access.",
@@ -123,9 +131,10 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     color: "#f59e0b",
     quality: "1080p",
     active: true,
+    langs: ["vostfr", "vf"],
     movieUrl: "https://vidsrc.pro/embed/movie/{tmdbId}",
     tvUrl: "https://vidsrc.pro/embed/tv/{tmdbId}/{season}/{episode}",
-    note: "Working 2025-07-02. 301 → embed.su.",
+    note: "Working 2025-07-02. 301 → embed.su. VF via player.",
   },
   {
     id: "vidsrc_me",
@@ -133,6 +142,7 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     color: "#a855f7",
     quality: "1080p",
     active: true,
+    langs: ["vostfr"],
     movieUrl: "https://vidsrcme.ru/embed/movie/{tmdbId}",
     tvUrl: "https://vidsrcme.ru/embed/tv/{tmdbId}/{season}/{episode}",
     note: "Working 2025-07-02. Redirects to vidsrcme.ru.",
@@ -143,9 +153,10 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     color: "#0ea5e9",
     quality: "1080p",
     active: true,
+    langs: ["vostfr", "vf"],
     movieUrl: "https://vidcore.org/embed/movie/{tmdbId}",
     tvUrl: "https://vidcore.org/embed/tv/{tmdbId}/{season}/{episode}",
-    note: "Working 2025-07-09. HLS playback, subtitle support. 308→www.",
+    note: "Working 2025-07-09. HLS playback, subtitle support. 308→www. VF via player.",
   },
   {
     id: "vidlink",
@@ -153,9 +164,10 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     color: "#f43f5e",
     quality: "1080p",
     active: true,
+    langs: ["vostfr", "vf"],
     movieUrl: "https://vidlink.pro/movie/{tmdbId}",
     tvUrl: "https://vidlink.pro/tv/{tmdbId}/{season}/{episode}",
-    note: "Working 2025-07-09. No /embed/ prefix in URL.",
+    note: "Working 2025-07-09. No /embed/ prefix in URL. VF via player.",
   },
 
   // === TIER 3: Currently Down (keep as reference, re-enable when back) ===
@@ -165,6 +177,7 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     color: "#6366f1",
     quality: "1080p",
     active: false,
+    langs: ["vostfr"],
     movieUrl: "https://vidsrc.xyz/embed/movie/{tmdbId}",
     tvUrl: "https://vidsrc.xyz/embed/tv/{tmdbId}/{season}/{episode}",
     note: "DEAD 2025-07-02. Domain offline.",
@@ -175,6 +188,7 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     color: "#3b82f6",
     quality: "1080p",
     active: false,
+    langs: ["vostfr"],
     movieUrl: "https://vidsrc.cc/embed/movie/{tmdbId}",
     tvUrl: "https://vidsrc.cc/embed/tv/{tmdbId}/{season}/{episode}",
     note: "BLOCKED 2025-07-02. Returns 403.",
@@ -185,6 +199,7 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     color: "#8b5cf6",
     quality: "1080p",
     active: false,
+    langs: ["vostfr"],
     movieUrl: "https://vidsrc.to/embed/movie/{tmdbId}",
     tvUrl: "https://vidsrc.to/embed/tv/{tmdbId}/{season}/{episode}",
     note: "BLOCKED 2025-07-02. Returns 403.",
@@ -195,6 +210,7 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     color: "#06b6d4",
     quality: "720p",
     active: false,
+    langs: ["vostfr"],
     movieUrl: "https://autoembed.cc/embed/movie/{tmdbId}",
     tvUrl: "https://autoembed.cc/embed/tv/{tmdbId}/{season}/{episode}",
     note: "DEAD 2025-07-02. Domain offline.",
@@ -205,6 +221,7 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     color: "#22c55e",
     quality: "1080p",
     active: false,
+    langs: ["vostfr"],
     movieUrl: "https://2embed.cc/embed/{tmdbId}",
     tvUrl: "https://2embed.cc/embed/{tmdbId}?s={season}&e={episode}",
     note: "DEAD 2025-07-02. Domain offline.",
@@ -215,6 +232,7 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     color: "#ec4899",
     quality: "4K",
     active: false,
+    langs: ["vostfr"],
     movieUrl: "https://superembed.stream/movie/{tmdbId}",
     tvUrl: "https://superembed.stream/tv/{tmdbId}/{season}/{episode}",
     note: "DEAD 2025-07-02. Returns 404.",
@@ -323,6 +341,17 @@ export function getProviderColorMap(): Record<string, string> {
   const map: Record<string, string> = {};
   for (const p of EMBED_PROVIDERS) {
     map[p.id] = p.color;
+  }
+  return map;
+}
+
+/**
+ * Provider langs map for UI (id → langs array)
+ */
+export function getProviderLangsMap(): Record<string, string[]> {
+  const map: Record<string, string[]> = {};
+  for (const p of EMBED_PROVIDERS) {
+    map[p.id] = p.langs;
   }
   return map;
 }

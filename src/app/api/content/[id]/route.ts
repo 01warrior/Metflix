@@ -5,14 +5,14 @@ import { posterUrl, backdropUrl } from "@/lib/content-utils";
 import { EMBED_PROVIDERS, getProviderById } from "@/lib/embed-providers";
 
 // Build HOST_CONFIG from the provider registry (single source of truth)
-const HOST_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
-  manga: { label: "Lecteur", color: "#8b5cf6", icon: "📚" },
+const HOST_CONFIG: Record<string, { label: string; color: string; icon: string; langs: string[] }> = {
+  manga: { label: "Lecteur", color: "#8b5cf6", icon: "📚", langs: [] },
 };
 for (const p of EMBED_PROVIDERS) {
-  HOST_CONFIG[p.id] = { label: p.name, color: p.color, icon: "🔗" };
+  HOST_CONFIG[p.id] = { label: p.name, color: p.color, icon: "🔗", langs: p.langs };
 }
 // Fallback for legacy DB entries
-HOST_CONFIG["vidsrc"] = HOST_CONFIG["vidsrc"] || { label: "VidSrc", color: "#e50914", icon: "🔗" };
+HOST_CONFIG["vidsrc"] = HOST_CONFIG["vidsrc"] || { label: "VidSrc", color: "#e50914", icon: "🔗", langs: ["vostfr"] };
 
 export async function GET(
   _request: Request,
@@ -90,7 +90,7 @@ export async function GET(
           url: e.url,
           lang: e.lang,
           quality: e.quality,
-          hostConfig: HOST_CONFIG[e.hostProvider] || { label: e.serverName, color: "#666", icon: "🔗" },
+          hostConfig: HOST_CONFIG[e.hostProvider] || { label: e.serverName, color: "#666", icon: "🔗", langs: ["vostfr"] },
         })),
       });
     } else if (content.type === "movie") {
@@ -106,7 +106,7 @@ export async function GET(
           url: e.url,
           lang: e.lang,
           quality: e.quality,
-          hostConfig: HOST_CONFIG[e.hostProvider] || { label: e.serverName, color: "#666", icon: "🔗" },
+          hostConfig: HOST_CONFIG[e.hostProvider] || { label: e.serverName, color: "#666", icon: "🔗", langs: ["vostfr"] },
         })),
       });
     } else {
@@ -125,7 +125,7 @@ export async function GET(
           quality: e.quality,
           season: e.season,
           episode: e.episode,
-          hostConfig: HOST_CONFIG[e.hostProvider] || { label: e.serverName, color: "#666", icon: "🔗" },
+          hostConfig: HOST_CONFIG[e.hostProvider] || { label: e.serverName, color: "#666", icon: "🔗", langs: ["vostfr"] },
         });
       }
 
@@ -166,7 +166,7 @@ export async function GET(
       embeds: content.embeds,
       embedGroups,
       hostProviders: [...new Set(content.embeds.map((e) => e.hostProvider))].map(
-        (p) => HOST_CONFIG[p] || { label: p, color: "#666", icon: "🔗" }
+        (p) => HOST_CONFIG[p] || { label: p, color: "#666", icon: "🔗", langs: ["vostfr"] }
       ),
       related,
     };

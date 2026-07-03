@@ -27,6 +27,7 @@ export interface HostConfig {
   label: string;
   color: string;
   icon: string;
+  langs?: string[];
 }
 
 export interface EmbedSource {
@@ -86,6 +87,7 @@ interface AppState {
   selectedGenre: string | null;
   selectedYearFrom: number | null;
   selectedYearTo: number | null;
+  selectedLang: string | null; // "vostfr", "vf", or null (all)
   searchQuery: string;
   selectedContentId: string | null;
   showSearch: boolean;
@@ -121,6 +123,7 @@ interface AppState {
   setSelectedGenre: (genre: string | null) => void;
   setSelectedYearFrom: (year: number | null) => void;
   setSelectedYearTo: (year: number | null) => void;
+  setSelectedLang: (lang: string | null) => void;
   setSearchQuery: (query: string) => void;
   setSelectedContentId: (id: string | null) => void;
   setShowSearch: (show: boolean) => void;
@@ -157,6 +160,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   selectedGenre: null,
   selectedYearFrom: null,
   selectedYearTo: null,
+  selectedLang: null,
   searchQuery: "",
   selectedContentId: null,
   showSearch: false,
@@ -191,6 +195,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   setSelectedGenre: (genre) => set({ selectedGenre: genre, browsePage: 1, browseContent: [] }),
   setSelectedYearFrom: (year) => set({ selectedYearFrom: year, browsePage: 1, browseContent: [] }),
   setSelectedYearTo: (year) => set({ selectedYearTo: year, browsePage: 1, browseContent: [] }),
+  setSelectedLang: (lang) => set({ selectedLang: lang, browsePage: 1, browseContent: [] }),
   setSearchQuery: (query) => set({ searchQuery: query }),
   setSelectedContentId: (id) => set({ selectedContentId: id }),
   setShowSearch: (show) => set({ showSearch: show }),

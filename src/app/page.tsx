@@ -331,6 +331,7 @@ function ContentRow({
 function Header() {
   const { setView, setShowSearch, favorites, currentView, setSelectedType, selectedType } =
     useAppStore();
+  const { theme, setTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -415,6 +416,13 @@ function Header() {
 
         {/* Right actions */}
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+            aria-label={theme === "dark" ? "Thème clair" : "Thème sombre"}
+          >
+            <Icon name={theme === "dark" ? "sun" : "moon"} className="h-5 w-5 text-white/70" />
+          </button>
           <button
             onClick={() => setAdminOpen(true)}
             className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
@@ -901,6 +909,8 @@ function BrowseView() {
     setSelectedYearFrom,
     selectedYearTo,
     setSelectedYearTo,
+    selectedLang,
+    setSelectedLang,
     browseContent,
     browseTotal,
     browseLoading,
@@ -918,7 +928,7 @@ function BrowseView() {
   // Reset when filters change
   useEffect(() => {
     initialFetchDone.current = false;
-  }, [selectedType, selectedGenre, selectedSort, selectedYearFrom, selectedYearTo]);
+  }, [selectedType, selectedGenre, selectedSort, selectedYearFrom, selectedYearTo, selectedLang]);
 
   const fetchContent = useCallback(async (page: number, append: boolean) => {
     setBrowseLoading(true);
@@ -948,12 +958,12 @@ function BrowseView() {
       setBrowseLoading(false);
       initialFetchDone.current = true;
     }
-  }, [selectedType, selectedGenre, selectedSort, selectedYearFrom, selectedYearTo, browseContent, setBrowseContent, setBrowseTotal, setBrowsePage, setBrowseLoading]);
+  }, [selectedType, selectedGenre, selectedSort, selectedYearFrom, selectedYearTo, selectedLang, browseContent, setBrowseContent, setBrowseTotal, setBrowsePage, setBrowseLoading]);
 
   // Fetch when filters change
   useEffect(() => {
     fetchContent(1, false);
-  }, [selectedType, selectedGenre, selectedSort, selectedYearFrom, selectedYearTo]);
+  }, [selectedType, selectedGenre, selectedSort, selectedYearFrom, selectedYearTo, selectedLang]);
 
   // Infinite scroll
   useEffect(() => {
@@ -1034,6 +1044,38 @@ function BrowseView() {
               {genre}
             </button>
           ))}
+        </div>
+
+        {/* Language filter */}
+        <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
+          <button
+            onClick={() => setSelectedLang(null)}
+            className={!selectedLang
+              ? "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5 bg-red-600/20 text-red-400 border border-red-600/40"
+              : "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5 bg-muted text-muted-foreground hover:text-foreground border border-transparent"
+            }
+          >
+            <Icon name="languages" className="h-3.5 w-3.5" />
+            Toutes langues
+          </button>
+          <button
+            onClick={() => setSelectedLang(selectedLang === "vostfr" ? null : "vostfr")}
+            className={selectedLang === "vostfr"
+              ? "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold tracking-wider transition-colors bg-amber-600/20 text-amber-400 border border-amber-600/40"
+              : "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold tracking-wider transition-colors bg-muted text-muted-foreground hover:text-foreground border border-transparent"
+            }
+          >
+            VOSTFR
+          </button>
+          <button
+            onClick={() => setSelectedLang(selectedLang === "vf" ? null : "vf")}
+            className={selectedLang === "vf"
+              ? "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold tracking-wider transition-colors bg-emerald-600/20 text-emerald-400 border border-emerald-600/40"
+              : "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold tracking-wider transition-colors bg-muted text-muted-foreground hover:text-foreground border border-transparent"
+            }
+          >
+            VF
+          </button>
         </div>
 
         {/* Sort + Year */}
@@ -1143,6 +1185,12 @@ function DetailView() {
   const [mangadexChapters, setMangadexChapters] = useState<MangaDexChapter[]>([]);
   const [mangadexLoading, setMangadexLoading] = useState(false);
   const [mangadexError, setMangadexError] = useState<string | null>(null);
+  // Language filter in detail view
+  const [detailLangFilter, setDetailLangFilter] = useState<string | null>(null);
+  // Cast state
+  const [cast, setCast] = useState<{ id: number; name: string; character: string; profileUrl: string; order: number }[]>([]);
+  const [crew, setCrew] = useState<{ id: number; name: string; job: string; department: string; profileUrl: string }[]>([]);
+  const [castLoading, setCastLoading] = useState(false);
 
   // Group episodes by season (before any early returns to satisfy rules-of-hooks)
   const seasonMap = useMemo(() => {
@@ -1179,6 +1227,23 @@ function DetailView() {
       const res = await fetch(`/api/content/${id}`);
       const data = await res.json();
       setContentDetail(data);
+      // Reset language filter
+      setDetailLangFilter(null);
+      // Fetch cast from TMDB
+      if (data.tmdbId && data.type !== "manga") {
+        setCastLoading(true);
+        fetch(`/api/tmdb/cast?tmdbId=${data.tmdbId}&type=${data.type}`)
+          .then((r) => r.json())
+          .then((castData) => {
+            setCast(castData.cast || []);
+            setCrew(castData.crew || []);
+          })
+          .catch(() => { setCast([]); setCrew([]); })
+          .finally(() => setCastLoading(false));
+      } else {
+        setCast([]);
+        setCrew([]);
+      }
       // Auto-select first embed
       if (data.embedGroups?.length > 0 && data.embedGroups[0].embeds?.length > 0) {
         const firstEmbed = data.embedGroups[0].embeds[0];
@@ -1539,6 +1604,37 @@ function DetailView() {
 
       {/* Server buttons + Episode selector (not for manga) */}
       {!isManga && <div className="space-y-4 mb-8">
+        {/* Language filter for servers */}
+        <div className="flex items-center gap-2">
+          <Icon name="languages" className="h-4 w-4 text-muted-foreground" />
+          <div className="flex gap-1.5">
+            <button
+              onClick={() => setDetailLangFilter(null)}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                !detailLangFilter ? "bg-red-600/20 text-red-400" : "bg-muted text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Tous
+            </button>
+            <button
+              onClick={() => setDetailLangFilter(detailLangFilter === "vostfr" ? null : "vostfr")}
+              className={`px-3 py-1 rounded-full text-xs font-bold tracking-wider transition-colors ${
+                detailLangFilter === "vostfr" ? "bg-amber-600/20 text-amber-400" : "bg-muted text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              VOSTFR
+            </button>
+            <button
+              onClick={() => setDetailLangFilter(detailLangFilter === "vf" ? null : "vf")}
+              className={`px-3 py-1 rounded-full text-xs font-bold tracking-wider transition-colors ${
+                detailLangFilter === "vf" ? "bg-emerald-600/20 text-emerald-400" : "bg-muted text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              VF
+            </button>
+          </div>
+        </div>
+
         {/* For movies: show server buttons directly */}
         {!isSeriesOrAnime && contentDetail.embedGroups.length > 0 && (
           <div>
@@ -1547,7 +1643,9 @@ function DetailView() {
               Serveurs disponibles
             </h3>
             <div className="flex flex-wrap gap-2">
-              {contentDetail.embedGroups[0].embeds.map((embed) => (
+              {contentDetail.embedGroups[0].embeds
+                .filter((embed) => !detailLangFilter || (embed.hostConfig?.langs || ["vostfr"]).includes(detailLangFilter))
+                .map((embed) => (
                 <ServerButton
                   key={embed.id}
                   embed={embed}
@@ -1666,7 +1764,9 @@ function DetailView() {
                       const k = g.season != null && g.episode != null ? `S${g.season}E${g.episode}` : "all";
                       return k === selectedEpisode;
                     })
-                    ?.embeds.map((embed) => (
+                    ?.embeds
+                    .filter((embed) => !detailLangFilter || (embed.hostConfig?.langs || ["vostfr"]).includes(detailLangFilter))
+                    .map((embed) => (
                       <ServerButton
                         key={embed.id}
                         embed={embed}
@@ -1860,6 +1960,86 @@ function DetailView() {
         </div>
       </div>}
 
+      {/* Cast & Crew */}
+      {!isManga && contentDetail.tmdbId && (
+        <section className="mb-8">
+          <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+            <Icon name="camera" className="h-5 w-5 text-red-400" />
+            Casting & Équipe
+          </h2>
+
+          {castLoading ? (
+            <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="flex-shrink-0 w-[110px]">
+                  <Skeleton className="w-[110px] h-[110px] rounded-full mb-2" />
+                  <Skeleton className="h-4 w-20 mx-auto" />
+                  <Skeleton className="h-3 w-16 mx-auto mt-1" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <>
+              {/* Cast horizontal scroll */}
+              {cast.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">Acteurs</h3>
+                  <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
+                    {cast.map((person) => (
+                      <div key={person.id} className="flex-shrink-0 w-[110px] text-center group">
+                        <div className="w-[110px] h-[110px] rounded-full overflow-hidden mx-auto mb-2 border-2 border-transparent group-hover:border-red-500/40 transition-colors">
+                          {person.profileUrl ? (
+                            <img
+                              src={person.profileUrl}
+                              alt={person.name}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                              onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER_POSTER; }}
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-muted flex items-center justify-center">
+                              <Icon name="user" className="h-8 w-8 text-muted-foreground/40" />
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-xs font-medium text-foreground truncate">{person.name}</p>
+                        <p className="text-[10px] text-muted-foreground truncate">{person.character}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Crew */}
+              {crew.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">Équipe technique</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                    {crew.map((person) => (
+                      <div key={`${person.id}-${person.job}`} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-muted/30">
+                        <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-muted">
+                          {person.profileUrl ? (
+                            <img src={person.profileUrl} alt={person.name} className="w-full h-full object-cover" loading="lazy" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Icon name="user" className="h-4 w-4 text-muted-foreground/40" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-medium text-foreground truncate">{person.name}</p>
+                          <p className="text-[10px] text-muted-foreground">{person.job}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </section>
+      )}
+
       {/* Ad banner */}
       <div className="ad-banner flex items-center justify-center py-2.5 px-4 mb-8">
         <span className="text-[10px] text-muted-foreground/50 uppercase tracking-widest">
@@ -1898,6 +2078,8 @@ function ServerButton({
   const hostColor = HOST_COLORS[embed.hostProvider] || "#666";
   const hostLabel = embed.hostConfig?.label || embed.serverName || embed.hostProvider;
   const quality = embed.quality || "1080p";
+  const providerLangs = embed.hostConfig?.langs || ["vostfr"];
+  const hasVF = providerLangs.includes("vf");
 
   return (
     <button
@@ -1915,6 +2097,11 @@ function ServerButton({
         style={{ backgroundColor: hostColor }}
       />
       <span>{hostLabel}</span>
+      {hasVF && (
+        <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-emerald-500/20 text-emerald-400">
+          VF
+        </span>
+      )}
       <span
         className="px-1.5 py-0.5 rounded text-[9px] font-bold"
         style={{

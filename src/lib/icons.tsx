@@ -63,6 +63,9 @@ import {
   VolumeHighIcon,
   VolumeMute01Icon,
   InformationCircleIcon,
+  Sun02Icon,
+  Moon02Icon,
+  TranslateIcon,
 } from "@hugeicons/core-free-icons";
 
 // Icon name → icon data mapping
@@ -130,6 +133,9 @@ export const ICON_MAP: Record<string, IconSvgElement> = {
   "volume-2": VolumeHighIcon,
   "volume-x": VolumeMute01Icon,
   info: InformationCircleIcon,
+  sun: Sun02Icon,
+  moon: Moon02Icon,
+  languages: TranslateIcon,
 };
 
 // Simple Icon component that mimics Lucide's API
