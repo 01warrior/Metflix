@@ -1831,40 +1831,67 @@ function FavoritesView() {
 // ==================== FOOTER ====================
 
 function Footer() {
+  const [showAd, setShowAd] = useState(false);
+  const [adWatched, setAdWatched] = useState(false);
+
   return (
     <footer className="mt-auto border-t border-border/50 pb-20 md:pb-0">
-      {/* Donation section */}
+      {/* Support section */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
         <div className="rounded-xl bg-gradient-to-r from-red-950/30 via-red-900/10 to-red-950/30 border border-red-900/20 p-6 text-center">
-          <h3 className="text-lg font-bold text-foreground mb-2">
-            Soutenir le site
-          </h3>
-          <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
-            StreamVibe est gratuit et le restera. Aidez-nous à maintenir les
-            serveurs en faisant un don.
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <Icon name="heart" className="h-5 w-5 text-red-400" />
+            <h3 className="text-lg font-bold text-foreground">
+              Vous êtes chez vous
+            </h3>
+          </div>
+          <p className="text-sm text-muted-foreground mb-5 max-w-lg mx-auto leading-relaxed">
+            Ici, pas de pubs forcées. Vous avez le contrôle. Profitez du moment présent sans interruption.
+            Si vous souhaitez nous soutenir, c&apos;est vous qui choisissez.
           </p>
-          <Button className="bg-red-600 hover:bg-red-700 text-white font-semibold btn-glow">
-            Faire un don
-          </Button>
-        </div>
-      </div>
-
-      {/* Ad banner */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 mb-6">
-        <div className="ad-banner flex items-center justify-center py-2.5 px-4">
-          <span className="text-[10px] text-muted-foreground/50 uppercase tracking-widest">
-            Pub
-          </span>
+          <div className="flex items-center justify-center gap-3 flex-wrap">
+            <Button className="bg-red-600 hover:bg-red-700 text-white font-semibold btn-glow">
+              <Icon name="heart" className="h-4 w-4 mr-2" /> Faire un don
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowAd(true)}
+              className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 font-medium"
+            >
+              <Icon name="play" className="h-4 w-4 mr-2" /> Voir une pub de mon propre gré
+            </Button>
+          </div>
+          {showAd && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              className="mt-4 rounded-lg border border-border/50 bg-card/50 p-4"
+            >
+              {!adWatched ? (
+                <div className="flex flex-col items-center gap-3">
+                  <p className="text-sm text-muted-foreground">Merci ! La pub s&apos;affiche ci-dessous :</p>
+                  <div className="w-full max-w-sm h-24 rounded-lg bg-muted/50 border border-dashed border-border flex items-center justify-center">
+                    <span className="text-xs text-muted-foreground/50">Espace publicitaire</span>
+                  </div>
+                  <Button size="sm" onClick={() => { setAdWatched(true); setShowAd(false); }}
+                    className="bg-green-600 hover:bg-green-700 text-white">
+                    <Icon name="check" className="h-3.5 w-3.5 mr-1" /> J&apos;ai regardé, merci !
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-sm text-green-400 flex items-center justify-center gap-1.5">
+                  <Icon name="heart" className="h-4 w-4" /> Merci pour votre soutien ! Vous pouvez regarder une autre pub plus tard.
+                </p>
+              )}
+            </motion.div>
+          )}
         </div>
       </div>
 
       {/* Footer links */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-xl font-extrabold">
-            <span className="text-red-500">Stream</span>
-            <span>Vibe</span>
-          </div>
+          <img src="/logo.png" alt="StreamVibe" className="h-7 w-auto rounded-md opacity-60" />
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
             <span>Contact</span>
             <span>DMCA</span>
