@@ -417,25 +417,25 @@ function Header() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setAdminOpen(true)}
-            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
             aria-label="Administration"
           >
-            <Icon name="settings" className="h-4.5 w-4.5 text-white/70" />
+            <Icon name="settings" className="h-5 w-5 text-white/70" />
           </button>
           <button
             onClick={() => setShowSearch(true)}
-            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
             aria-label="Rechercher"
           >
-            <Icon name="search" className="h-4.5 w-4.5 text-white/70" />
+            <Icon name="search" className="h-5 w-5 text-white/70" />
           </button>
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileOpen(true)}
-            className="md:hidden w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+            className="md:hidden w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
             aria-label="Menu"
           >
-            <Icon name="menu" className="h-5 w-5 text-white/70" />
+            <Icon name="menu" className="h-5.5 w-5.5 text-white/70" />
           </button>
         </div>
       </div>
