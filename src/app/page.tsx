@@ -2097,11 +2097,11 @@ function AdminPanel({
     ? Math.round(((stats.anime.total - (matchStats?.anime.unmatched || 0)) / stats.anime.total) * 100) : 0;
 
   const TABS = [
-    { id: "overview" as const, label: "Vue d'ensemble", icon: <Icon name="database" className="h-5 w-5" /> },
-    { id: "featured" as const, label: "Mis en avant", icon: <Icon name="star" className="h-5 w-5" /> },
-    { id: "anime" as const, label: "Anime", icon: <Icon name="sparkles" className="h-5 w-5" /> },
-    { id: "tmdb" as const, label: "Films & Séries", icon: <Icon name="film" className="h-5 w-5" /> },
-    { id: "images" as const, label: "Images", icon: <Icon name="monitor" className="h-5 w-5" /> },
+    { id: "overview" as const, label: "Vue d'ensemble", icon: <Icon name="database" className="h-4 w-4" /> },
+    { id: "featured" as const, label: "Mis en avant", icon: <Icon name="star" className="h-4 w-4" /> },
+    { id: "anime" as const, label: "Anime", icon: <Icon name="sparkles" className="h-4 w-4" /> },
+    { id: "tmdb" as const, label: "Films & Séries", icon: <Icon name="film" className="h-4 w-4" /> },
+    { id: "images" as const, label: "Images", icon: <Icon name="monitor" className="h-4 w-4" /> },
   ];
 
   // Featured management functions
@@ -2177,13 +2177,13 @@ function AdminPanel({
           <SheetDescription className="text-base">Gérer le contenu, les syncs et les paramètres</SheetDescription>
         </SheetHeader>
 
-        <div className="flex gap-1.5 mb-6 bg-muted/50 rounded-xl p-1.5 mx-4">
+        <div className="flex gap-0.5 mb-6 bg-muted/50 rounded-xl p-1 mx-4">
           {TABS.map((tab) => (
             <button key={tab.id} onClick={() => setAdminTab(tab.id)}
-              className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 rounded-lg text-base font-medium transition-all ${
+              className={`flex-1 flex items-center justify-center gap-1.5 px-1 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
                 adminTab === tab.id ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
               }`}>
-              {tab.icon}<span className="hidden sm:inline">{tab.label}</span>
+              {tab.icon}<span className="truncate">{tab.label}</span>
             </button>
           ))}
         </div>
