@@ -30,6 +30,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Icon } from "@/lib/icons";
 import { motion, AnimatePresence } from "framer-motion";
@@ -2003,6 +2010,7 @@ function FavoritesView() {
 
 function Footer() {
   const [showAd, setShowAd] = useState(false);
+  const [showLegal, setShowLegal] = useState(false);
   const [adWatched, setAdWatched] = useState(false);
 
   return (
@@ -2074,6 +2082,12 @@ function Footer() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <img src="/logo.png" alt="StreamVibe" className="h-7 w-auto rounded-md opacity-60" />
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <button
+              onClick={() => setShowLegal(true)}
+              className="hover:text-foreground transition-colors cursor-pointer"
+            >
+              Informations Légales
+            </button>
             <span>Contact</span>
             <span>DMCA</span>
             <span>Conditions d&apos;utilisation</span>
@@ -2083,6 +2097,74 @@ function Footer() {
           </p>
         </div>
       </div>
+
+      {/* Legal Information Modal */}
+      <Dialog open={showLegal} onOpenChange={setShowLegal}>
+        <DialogContent className="sm:max-w-lg bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2.5 text-lg">
+              <Icon name="shield" className="h-5 w-5 text-zinc-500" />
+              Informations Légales
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              Mentions légales et politique de StreamVibe
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-5 mt-2">
+            {/* Content Discovery */}
+            <div>
+              <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-1.5">
+                Plateforme de découverte
+              </h4>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                StreamVibe fonctionne comme une plateforme de découverte et d&apos;indexation de contenu.
+              </p>
+            </div>
+
+            <Separator className="bg-zinc-200 dark:bg-zinc-800" />
+
+            {/* No Hosting */}
+            <div>
+              <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-1.5">
+                Politique de non-hébergement
+              </h4>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                StreamVibe fonctionne strictement comme un moteur de recherche et agrégateur qui indexe du contenu
+                publiquement disponible sur internet. Nous ne téléchargeons, n&apos;hébergeons et ne stockons
+                aucun fichier média.
+              </p>
+            </div>
+
+            <Separator className="bg-zinc-200 dark:bg-zinc-800" />
+
+            {/* Content Removal */}
+            <div>
+              <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-1.5">
+                Retrait de contenu
+              </h4>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                Toutes les demandes de retrait doivent être soumises aux plateformes d&apos;hébergement
+                d&apos;origine. Une fois supprimé de ces plateformes, le contenu disparaîtra automatiquement
+                de notre index.
+              </p>
+            </div>
+
+            <Separator className="bg-zinc-200 dark:bg-zinc-800" />
+
+            {/* Disclaimer */}
+            <div>
+              <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-1.5">
+                Avertissement
+              </h4>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                Les utilisateurs sont seuls responsables de leurs interactions avec les services tiers
+                accessibles via cette plateforme.
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </footer>
   );
 }
