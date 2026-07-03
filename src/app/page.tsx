@@ -1846,11 +1846,14 @@ function Footer() {
             </h3>
           </div>
           <p className="text-sm text-muted-foreground mb-2 max-w-lg mx-auto leading-relaxed">
-            On sait, les pubs qui interrompent au pire moment, ça gâche tout. Ici, c&apos;est different.
+            Les interruptions finissent par gâcher les meilleurs moments.
+          </p>
+          <p className="text-sm text-muted-foreground mb-2 max-w-lg mx-auto leading-relaxed">
+            Une publicité qui apparaît au pire instant, une fenêtre à fermer, un compte à rebours qui casse le rythme…
+            <span className="text-foreground font-medium"> À force, l&apos;envie de continuer disparaît.</span>
           </p>
           <p className="text-sm text-muted-foreground mb-5 max-w-lg mx-auto leading-relaxed">
-            <span className="text-foreground font-medium">Vous êtes chez vous.</span> Pas de popup, pas de compte à rebours, pas de truc qui clignote.
-            Juste vous, votre serie, et un moment tranquille. Vous avez le contrôle — toujours.
+            Ici, <span className="text-foreground font-medium">rien ne s&apos;interpose.</span> Vous choisissez, vous regardez, vous gardez le contrôle.
           </p>
           <p className="text-xs text-muted-foreground/70 mb-5 max-w-md mx-auto">
             Si un jour vous voulez nous soutenir, c&apos;est <span className="text-red-400 font-medium">vous</span> qui décidez quand et comment.

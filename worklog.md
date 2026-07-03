@@ -566,3 +566,18 @@ Stage Summary:
 - Icons bumped from h-3.5/h-4 to h-4/h-5 for consistency
 - Verified via agent-browser + VLM: buttons and text appropriately sized, good visual balance
 - No lint errors, clean compilation
+
+---
+Task ID: footer-text-update
+Agent: main
+Task: Update footer support section with refined psychological copy
+
+Work Log:
+- Read current footer text in page.tsx (lines 1848-1857)
+- Replaced old text with user's new 4-paragraph psychological copy
+- Applied emphasis styling: "À force, l'envie de continuer disparaît" and "rien ne s'interpose" in bold foreground, "vous" in red for CTA
+- Verified lint passes cleanly, dev server running without errors
+
+Stage Summary:
+- Footer support section now uses emotionally-driven copy: interruptions frustration → contrast with ad-free experience → voluntary support CTA
+- No code errors, server stable
