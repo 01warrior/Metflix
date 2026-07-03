@@ -1952,6 +1952,9 @@ function AdminPanel({
   const [tmdbSyncResult, setTmdbSyncResult] = useState<any>(null);
   const [tmdbPages, setTmdbPages] = useState(3);
   const [tmdbSource, setTmdbSource] = useState("all");
+  const [seriesMaxSeasons, setSeriesMaxSeasons] = useState(50);
+  const [seriesMaxEps, setSeriesMaxEps] = useState(10);
+  const [regenerateEmbeds, setRegenerateEmbeds] = useState(false);
 
   // Match state
   const [matchLoading, setMatchLoading] = useState(false);
@@ -2032,12 +2035,19 @@ function AdminPanel({
     setTmdbSyncLoading(true);
     setTmdbSyncResult(null);
     try {
-      const params = new URLSearchParams({ type, source: tmdbSource, pages: String(tmdbPages), limit: "500" });
+      const params = new URLSearchParams({
+        type, source: tmdbSource, pages: String(tmdbPages), limit: "500",
+        maxSeasons: String(seriesMaxSeasons),
+        maxEpsPerSeason: String(seriesMaxEps),
+      });
+      if (regenerateEmbeds) params.set("regenerateEmbeds", "true");
       const res = await fetch(`/api/tmdb/sync?${params.toString()}`, { method: "POST" });
       const data = await res.json();
       if (data.success) {
         setTmdbSyncResult(data.stats);
-        toast({ title: `TMDB ${type === "movies" ? "Films" : "Séries"} réussi !`, description: `${data.stats.created} créés, ${data.stats.updated} mis à jour` });
+        const desc = [`Créés: ${data.stats.created}`, `MAJ: ${data.stats.updated}`];
+        if (data.stats.embedsDeleted) desc.push(`Embeds regénérés: ${data.stats.embedsDeleted}`);
+        toast({ title: `TMDB ${type === "movies" ? "Films" : "Séries"} réussi !`, description: desc.join(" · ") });
         fetchStats();
       } else {
         toast({ title: "Erreur TMDB", description: data.error || "Échec", variant: "destructive" });
@@ -2542,6 +2552,29 @@ function AdminPanel({
                     <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
                       <Icon name="tv" className="h-4 w-4" /> Séries
                     </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-sm text-muted-foreground mb-1.5 block">Max Saisons</label>
+                        <Input type="number" min={1} max={50} value={seriesMaxSeasons}
+                          onChange={(e) => setSeriesMaxSeasons(Math.max(1, Math.min(50, Number(e.target.value) || 1)))} className="h-11 text-base" />
+                      </div>
+                      <div>
+                        <label className="text-sm text-muted-foreground mb-1.5 block">Max Eps/Saison</label>
+                        <Input type="number" min={1} max={50} value={seriesMaxEps}
+                          onChange={(e) => setSeriesMaxEps(Math.max(1, Math.min(50, Number(e.target.value) || 1)))} className="h-11 text-base" />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                      <input type="checkbox" id="regen-embeds" checked={regenerateEmbeds}
+                        onChange={(e) => setRegenerateEmbeds(e.target.checked)}
+                        className="h-4 w-4 rounded border-border accent-red-600" />
+                      <label htmlFor="regen-embeds" className="text-sm text-muted-foreground cursor-pointer">
+                        Régénérer les embeds (supprime et recrée tous les liens streaming)
+                      </label>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      💡 Le vrai nombre de saisons est récupéré depuis TMDB. Cochez la case si vos séries n'ont que S1E1-E3.
+                    </p>
                     <Button onClick={() => handleTmdbSync("series")} disabled={tmdbSyncLoading}
                       className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold h-12 text-base">
                       {tmdbSyncLoading ? <Icon name="loader" className="h-5 w-5 mr-2 animate-spin" /> : <Icon name="tv" className="h-5 w-5 mr-2" />}
@@ -2555,9 +2588,13 @@ function AdminPanel({
                       <p className="text-muted-foreground">
                         Créés: <span className="text-green-400">{tmdbSyncResult.created}</span> ·
                         MAJ: <span className="text-yellow-400">{tmdbSyncResult.updated}</span> ·
-                        Embeds: <span className="text-blue-400">{tmdbSyncResult.withEmbeds}</span> ·
-                        Images: <span className="text-purple-400">{tmdbSyncResult.imagesFixed || 0}</span>
+                        Embeds: <span className="text-blue-400">{tmdbSyncResult.withEmbeds}</span>
                       </p>
+                      {tmdbSyncResult.embedsDeleted > 0 && (
+                        <p className="text-muted-foreground">
+                          Embeds supprimés: <span className="text-orange-400">{tmdbSyncResult.embedsDeleted}</span> (régénérés)
+                        </p>
+                      )}
                     </div>
                   )}
                 </>

@@ -66,6 +66,8 @@ export interface TmdbMedia {
   adult?: boolean;
   origin_country?: string[];
   genre_names?: string[];
+  number_of_seasons?: number;
+  number_of_episodes?: number;
 }
 
 export interface TmdbDetails extends TmdbMedia {

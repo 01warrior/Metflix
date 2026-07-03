@@ -29,6 +29,9 @@ function clamp(val: string | null, min: number, max: number, fallback: number): 
  *   type: "movies" or "series" (required)
  *   source: "trending" | "popular" | "top_rated" | "now_playing" | "upcoming" | "discover" | "all"
  *   pages: number of pages per source (1-20, default 3)
+ *   maxSeasons: max seasons to generate embeds for series (1-50, default 50)
+ *   maxEpsPerSeason: max episodes per season (1-50, default 10)
+ *   regenerateEmbeds: "true" to delete existing embeds and regenerate (for fixing series with only S1E1-3)
  *   genreId: TMDB genre ID for discover mode
  *   yearFrom/yearTo: year range for discover
  *   limit: max items to process (default 200, max 500)
@@ -61,6 +64,9 @@ async function handleSync(request: NextRequest) {
     const limit = Math.min(Number(searchParams.get("limit") || 200), 500);
     const dryRun = searchParams.get("dryRun") === "true";
     const fixImages = searchParams.get("fixImages") === "true";
+    const regenerateEmbeds = searchParams.get("regenerateEmbeds") === "true";
+    const seriesMaxSeasons = clamp(searchParams.get("maxSeasons"), 1, 50, 50);
+    const seriesMaxEpsPerSeason = clamp(searchParams.get("maxEpsPerSeason"), 1, 50, 10);
     const genreId = searchParams.get("genreId");
     const yearFrom = searchParams.get("yearFrom") ? parseInt(searchParams.get("yearFrom")!) : undefined;
     const yearTo = searchParams.get("yearTo") ? parseInt(searchParams.get("yearTo")!) : undefined;
@@ -178,9 +184,18 @@ async function handleSync(request: NextRequest) {
       if (row.tmdbId) existingByTmdbId.set(row.tmdbId, row.id);
     }
 
-    // 4. Get content IDs that already have embeds
+    // 4. Get content IDs that already have embeds (skip if regenerating)
     const existingEmbeds = await db.embedSource.groupBy({ by: ["contentId"] });
-    const contentIdsWithEmbeds = new Set(existingEmbeds.map((e) => e.contentId));
+    const contentIdsWithEmbeds = regenerateEmbeds ? new Set<string>() : new Set(existingEmbeds.map((e) => e.contentId));
+
+    // If regenerating, delete all existing embeds for this content type
+    let embedsDeleted = 0;
+    if (regenerateEmbeds) {
+      const { count } = await db.embedSource.deleteMany({
+        where: { content: { type: contentType } },
+      });
+      embedsDeleted = count;
+    }
 
     // 5. Process
     let created = 0;
@@ -196,7 +211,10 @@ async function handleSync(request: NextRequest) {
           continue;
         }
 
-        const contentData = tmdbToContentData(item, contentType as "movie" | "series");
+        const realSeasons = contentType === "series" ? (item.number_of_seasons || 1) : 1;
+        const contentData = tmdbToContentData(item, contentType as "movie" | "series", {
+          seasons: realSeasons,
+        });
         const existingId = existingByTmdbId.get(item.id);
 
         if (existingId) {
@@ -209,6 +227,10 @@ async function handleSync(request: NextRequest) {
             year: contentData.year,
             releaseDate: contentData.releaseDate,
           };
+          // Always update season count for series
+          if (contentType === "series" && contentData.seasons) {
+            updateData.seasons = contentData.seasons;
+          }
           if (fixImages || !contentIdsWithEmbeds.has(existingId)) {
             updateData.posterPath = contentData.posterPath;
             updateData.backdropPath = contentData.backdropPath;
@@ -250,7 +272,15 @@ async function handleSync(request: NextRequest) {
         // Generate embeds
         const contentId = existingId || existingByTmdbId.get(item.id);
         if (contentId && !contentIdsWithEmbeds.has(contentId)) {
-          const embeds = generateAllEmbeds(item.id, contentType as "movie" | "series");
+          const realSeasons = contentType === "series" ? (item.number_of_seasons || 1) : 1;
+          const embeds = generateAllEmbeds(
+            item.id,
+            contentType as "movie" | "series",
+            realSeasons,
+            seriesMaxSeasons,
+            seriesMaxEpsPerSeason,
+            item.number_of_episodes
+          );
           if (embeds.length > 0) {
             for (let i = 0; i < embeds.length; i += 500) {
               await db.embedSource.createMany({
@@ -284,6 +314,7 @@ async function handleSync(request: NextRequest) {
         skipped,
         withEmbeds,
         imagesFixed,
+        embedsDeleted: regenerateEmbeds ? embedsDeleted : undefined,
         totalContent,
         totalEmbeds,
       },
