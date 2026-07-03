@@ -1859,13 +1859,13 @@ function Footer() {
             Si un jour vous voulez nous soutenir, c&apos;est <span className="text-red-500 font-medium">vous</span> qui décidez quand et comment.
           </p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
-            <Button className="bg-red-600 hover:bg-red-700 text-white font-semibold btn-glow">
+            <Button className="bg-red-600 hover:bg-red-700 text-white font-semibold btn-glow h-12 px-6">
               <Icon name="server" className="h-4 w-4 mr-2" /> Participer au maintien des serveurs
             </Button>
             <Button
               variant="outline"
               onClick={() => setShowAd(true)}
-              className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 font-medium"
+              className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 font-medium h-12 px-6"
             >
               <Icon name="heart" className="h-4 w-4 mr-2" /> Meilleur : offrir 30s de mon temps
             </Button>
