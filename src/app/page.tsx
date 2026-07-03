@@ -1845,9 +1845,15 @@ function Footer() {
               Vous êtes chez vous
             </h3>
           </div>
+          <p className="text-sm text-muted-foreground mb-2 max-w-lg mx-auto leading-relaxed">
+            On sait, les pubs qui interrompent au pire moment, ça gâche tout. Ici, c&apos;est different.
+          </p>
           <p className="text-sm text-muted-foreground mb-5 max-w-lg mx-auto leading-relaxed">
-            Ici, pas de pubs forcées. Vous avez le contrôle. Profitez du moment présent sans interruption.
-            Si vous souhaitez nous soutenir, c&apos;est vous qui choisissez.
+            <span className="text-foreground font-medium">Vous êtes chez vous.</span> Pas de popup, pas de compte à rebours, pas de truc qui clignote.
+            Juste vous, votre serie, et un moment tranquille. Vous avez le contrôle — toujours.
+          </p>
+          <p className="text-xs text-muted-foreground/70 mb-5 max-w-md mx-auto">
+            Si un jour vous voulez nous soutenir, c&apos;est <span className="text-red-400 font-medium">vous</span> qui décidez quand et comment.
           </p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <Button className="bg-red-600 hover:bg-red-700 text-white font-semibold btn-glow">
@@ -1858,7 +1864,7 @@ function Footer() {
               onClick={() => setShowAd(true)}
               className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 font-medium"
             >
-              <Icon name="play" className="h-4 w-4 mr-2" /> Voir une pub de mon propre gré
+              <Icon name="heart" className="h-4 w-4 mr-2" /> Meilleur : offrir 30s de mon temps
             </Button>
           </div>
           {showAd && (
@@ -1869,18 +1875,19 @@ function Footer() {
             >
               {!adWatched ? (
                 <div className="flex flex-col items-center gap-3">
-                  <p className="text-sm text-muted-foreground">Merci ! La pub s&apos;affiche ci-dessous :</p>
+                  <p className="text-sm text-foreground font-medium">🫶 Vous êtes génial, merci !</p>
+                  <p className="text-xs text-muted-foreground">La pub s&apos;affiche ci-dessous — 30 secondes et c&apos;est bon :</p>
                   <div className="w-full max-w-sm h-24 rounded-lg bg-muted/50 border border-dashed border-border flex items-center justify-center">
                     <span className="text-xs text-muted-foreground/50">Espace publicitaire</span>
                   </div>
                   <Button size="sm" onClick={() => { setAdWatched(true); setShowAd(false); }}
                     className="bg-green-600 hover:bg-green-700 text-white">
-                    <Icon name="check" className="h-3.5 w-3.5 mr-1" /> J&apos;ai regardé, merci !
+                    <Icon name="check" className="h-3.5 w-3.5 mr-1" /> C&apos;est fait, merci !
                   </Button>
                 </div>
               ) : (
                 <p className="text-sm text-green-400 flex items-center justify-center gap-1.5">
-                  <Icon name="heart" className="h-4 w-4" /> Merci pour votre soutien ! Vous pouvez regarder une autre pub plus tard.
+                  <Icon name="heart" className="h-4 w-4" /> Vous venez de faire la différence. Merci d&apos;être là.
                 </p>
               )}
             </motion.div>
