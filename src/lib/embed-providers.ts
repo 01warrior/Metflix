@@ -4,7 +4,7 @@
  * CENTRALIZED CONFIG - All embed providers in ONE file.
  * To add/remove/modify a provider, edit ONLY this file.
  * 
- * VERIFIED: Tested on 2025-07-03 (v3)
+ * VERIFIED: Tested on 2025-07-09 (v4)
  * 
  * HOW TO UPDATE:
  * 1. Test the domain: curl -sI "https://DOMAIN/embed/movie/550" | head -1
@@ -136,6 +136,26 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     movieUrl: "https://vidsrcme.ru/embed/movie/{tmdbId}",
     tvUrl: "https://vidsrcme.ru/embed/tv/{tmdbId}/{season}/{episode}",
     note: "Working 2025-07-02. Redirects to vidsrcme.ru.",
+  },
+  {
+    id: "vidcore",
+    name: "VidCore",
+    color: "#0ea5e9",
+    quality: "1080p",
+    active: true,
+    movieUrl: "https://vidcore.org/embed/movie/{tmdbId}",
+    tvUrl: "https://vidcore.org/embed/tv/{tmdbId}/{season}/{episode}",
+    note: "Working 2025-07-09. HLS playback, subtitle support. 308→www.",
+  },
+  {
+    id: "vidlink",
+    name: "VidLink",
+    color: "#f43f5e",
+    quality: "1080p",
+    active: true,
+    movieUrl: "https://vidlink.pro/movie/{tmdbId}",
+    tvUrl: "https://vidlink.pro/tv/{tmdbId}/{season}/{episode}",
+    note: "Working 2025-07-09. No /embed/ prefix in URL.",
   },
 
   // === TIER 3: Currently Down (keep as reference, re-enable when back) ===
