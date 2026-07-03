@@ -157,8 +157,10 @@ streamvibe/
 ## Base de données
 
 **Engine :** SQLite via Prisma ORM
-**Fichier :** `db/custom.db`
+**Fichier :** `db/custom.db` — **base de données locale, fichier unique à la racine du projet**
 **Schéma :** `prisma/schema.prisma`
+
+> La base est un simple fichier SQLite stocké dans le dossier `db/`. Pas de serveur externe, pas de Docker, pas de configuration réseau. Le fichier est créé automatiquement au premier `bun run db:push`. Pour backup : copier `db/custom.db`. Pour reset : `bun run db:reset`.
 
 ### Tables
 
