@@ -50,6 +50,7 @@ export async function GET(request: Request) {
     const genre = searchParams.get("genre");
     const yearFrom = searchParams.get("yearFrom");
     const yearTo = searchParams.get("yearTo");
+    const lang = searchParams.get("lang"); // "vostfr", "vf"
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "20", 10)));
     const sort = searchParams.get("sort") || "recent";
@@ -79,6 +80,15 @@ export async function GET(request: Request) {
       where.year = {};
       if (yearFrom) where.year.gte = parseInt(yearFrom, 10);
       if (yearTo) where.year.lte = parseInt(yearTo, 10);
+    }
+
+    if (lang) {
+      where.embeds = {
+        some: {
+          lang: lang.toLowerCase(),
+          isActive: true,
+        },
+      };
     }
 
     let orderBy: Prisma.ContentOrderByWithRelationInput;

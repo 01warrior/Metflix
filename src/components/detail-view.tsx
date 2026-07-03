@@ -56,6 +56,9 @@ export function DetailView() {
   const [cast, setCast] = useState<{ id: number; name: string; character: string; profileUrl: string; order: number }[]>([]);
   const [crew, setCrew] = useState<{ id: number; name: string; job: string; department: string; profileUrl: string }[]>([]);
   const [castLoading, setCastLoading] = useState(false);
+  // Trailer state
+  const [trailer, setTrailer] = useState<{ key: string; name: string; type: string; site: string; official?: boolean } | null>(null);
+  const [showTrailer, setShowTrailer] = useState(false);
 
   // Group episodes by season (before any early returns to satisfy rules-of-hooks)
   const seasonMap = useMemo(() => {
@@ -87,6 +90,8 @@ export function DetailView() {
     setSelectedEpisode(null);
     setSelectedSeason(1);
     setCurrentEmbed(null);
+    setTrailer(null);
+    setShowTrailer(false);
     setLoading(true);
     try {
       const res = await fetch(`/api/content/${id}`);
@@ -105,6 +110,15 @@ export function DetailView() {
           })
           .catch(() => { setCast([]); setCrew([]); })
           .finally(() => setCastLoading(false));
+        // Fetch trailer from TMDB videos API
+        fetch(`/api/tmdb/videos?tmdbId=${data.tmdbId}&type=${data.type}`)
+          .then((r) => r.json())
+          .then((videoData) => {
+            if (videoData.trailer) {
+              setTrailer(videoData.trailer);
+            }
+          })
+          .catch(() => { setTrailer(null); });
       } else {
         setCast([]);
         setCrew([]);
@@ -427,7 +441,46 @@ export function DetailView() {
         </div>
       ) : (
         <div className="player-container mb-6">
-          {currentEmbed ? (
+          {/* Trailer overlay */}
+          <AnimatePresence>
+            {showTrailer && trailer && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="absolute inset-0 z-30 bg-black flex flex-col"
+              >
+                {/* Trailer header with close button */}
+                <div className="flex items-center justify-between px-4 py-2.5 bg-gradient-to-b from-black/80 to-transparent">
+                  <div className="flex items-center gap-2">
+                    <Icon name="play-circle" className="h-5 w-5 text-red-500" />
+                    <span className="text-sm font-medium text-white truncate max-w-[300px]">
+                      {trailer.name}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setShowTrailer(false)}
+                    className="w-9 h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white"
+                    aria-label="Fermer la bande-annonce"
+                  >
+                    <Icon name="x" className="h-5 w-5" />
+                  </button>
+                </div>
+                {/* YouTube iframe */}
+                <iframe
+                  key={`trailer-${trailer.key}`}
+                  src={`https://www.youtube-nocookie.com/embed/${trailer.key}`}
+                  className="flex-1 w-full border-0"
+                  allowFullScreen
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  title={trailer.name}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {currentEmbed && !showTrailer ? (
           <>
             {playerLoading && (
               <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/60">
@@ -444,7 +497,7 @@ export function DetailView() {
               title="Player"
             />
           </>
-        ) : contentDetail.embedGroups.length === 0 ? (
+        ) : !showTrailer && contentDetail.embedGroups.length === 0 ? (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center px-4">
               <Icon name="server" className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
@@ -456,15 +509,68 @@ export function DetailView() {
               </p>
             </div>
           </div>
-        ) : (
+        ) : !showTrailer ? (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
               <Icon name="monitor" className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
               <p className="text-muted-foreground">Sélectionnez un serveur ci-dessous</p>
             </div>
           </div>
-        )}
+        ) : null}
       </div>
+      )}
+
+      {/* Action bar: Trailer + Ma Liste (non-manga only) */}
+      {!isManga && (
+        <div className="flex items-center gap-3 mb-4">
+          {trailer && (
+            <Button
+              onClick={() => setShowTrailer(true)}
+              className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white"
+            >
+              <Icon name="play-circle" className="h-4 w-4" />
+              Bande-annonce
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            onClick={handleFav}
+            className="flex items-center gap-2 border-border bg-card hover:bg-muted text-foreground"
+          >
+            <Icon
+              name="heart"
+              className={`h-4 w-4 ${isFav ? "fill-red-500 text-red-500" : ""}`}
+            />
+            Ma Liste
+          </Button>
+        </div>
+      )}
+
+      {/* Trailer thumbnail teaser (non-manga, trailer available, not playing) */}
+      {!isManga && trailer && !showTrailer && (
+        <motion.button
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.3 }}
+          onClick={() => setShowTrailer(true)}
+          className="group relative w-full aspect-video rounded-lg overflow-hidden border border-border/60 bg-card mb-6 cursor-pointer"
+        >
+          <img
+            src={`https://img.youtube.com/vi/${trailer.key}/hqdefault.jpg`}
+            alt={trailer.name}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+          />
+          <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+            <div className="w-14 h-14 rounded-full bg-red-600/90 flex items-center justify-center shadow-lg shadow-red-600/30 group-hover:scale-110 transition-transform">
+              <Icon name="play" className="h-6 w-6 text-white ml-1" />
+            </div>
+          </div>
+          <div className="absolute bottom-0 left-0 right-0 px-4 py-3 bg-gradient-to-t from-black/80 to-transparent">
+            <p className="text-xs font-semibold text-white">Bande-annonce</p>
+            <p className="text-[10px] text-white/70 truncate">{trailer.name}</p>
+          </div>
+        </motion.button>
       )}
 
       {/* Server buttons + Episode selector (not for manga) */}

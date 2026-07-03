@@ -59,6 +59,35 @@ export interface ContentDetail extends ContentItem {
   related: ContentItem[];
 }
 
+// Watch history item type
+export interface WatchHistoryItem {
+  contentId: string;
+  title: string;
+  posterUrl: string;
+  type: string;
+  timestamp: number;
+}
+
+// Load watch history from localStorage
+function loadWatchHistory(): WatchHistoryItem[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const stored = localStorage.getItem("metflix-watch-history");
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveWatchHistory(history: WatchHistoryItem[]) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem("metflix-watch-history", JSON.stringify(history));
+  } catch {
+    // ignore
+  }
+}
+
 // Load favorites from localStorage
 function loadFavorites(): string[] {
   if (typeof window === "undefined") return [];
@@ -107,6 +136,7 @@ interface AppState {
   searchResults: ContentItem[];
   currentEmbed: EmbedSource | null;
   favorites: string[];
+  watchHistory: WatchHistoryItem[];
   mangaReaderOpen: boolean;
   mangaReaderPages: string[];
   mangaReaderCurrentPage: number;
@@ -145,6 +175,8 @@ interface AppState {
   toggleFavorite: (id: string) => void;
   isFavorite: (id: string) => boolean;
   initFavorites: () => void;
+  initWatchHistory: () => void;
+  addToWatchHistory: (item: { id: string; title: string; posterUrl: string; type: string }) => void;
   openMangaReader: (pages: string[], title: string, chapters: { id: string; chapter: string | null; title: string | null; volume: string | null; pages: number; publishAt: string | null; readableAt: string | null }[]) => void;
   closeMangaReader: () => void;
   setMangaReaderPage: (page: number) => void;
@@ -180,6 +212,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   searchResults: [],
   currentEmbed: null,
   favorites: [],
+  watchHistory: [],
   mangaReaderOpen: false,
   mangaReaderPages: [],
   mangaReaderCurrentPage: 0,
@@ -224,6 +257,27 @@ export const useAppStore = create<AppState>((set, get) => ({
   resetBrowse: () => set({ browseContent: [], browseTotal: 0, browsePage: 1 }),
 
   initFavorites: () => set({ favorites: loadFavorites() }),
+  initWatchHistory: () => set({ watchHistory: loadWatchHistory() }),
+  addToWatchHistory: (item) => {
+    const current = get().watchHistory;
+    // Remove duplicate if exists
+    const filtered = current.filter((h) => h.contentId !== item.id);
+    // Add to front
+    const updated: WatchHistoryItem[] = [
+      {
+        contentId: item.id,
+        title: item.title,
+        posterUrl: item.posterUrl,
+        type: item.type,
+        timestamp: Date.now(),
+      },
+      ...filtered,
+    ];
+    // Limit to 20 items
+    const limited = updated.slice(0, 20);
+    set({ watchHistory: limited });
+    saveWatchHistory(limited);
+  },
   toggleFavorite: (id) => {
     const current = get().favorites;
     const next = current.includes(id) ? current.filter((fid) => fid !== id) : [...current, id];

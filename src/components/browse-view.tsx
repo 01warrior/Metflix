@@ -39,6 +39,25 @@ export function BrowseView() {
 
   const loaderRef = useRef<HTMLDivElement>(null);
   const initialFetchDone = useRef(false);
+  const [typeCounts, setTypeCounts] = useState<Record<string, number>>({});
+
+  // Fetch content type counts once on mount
+  useEffect(() => {
+    const types: ("all" | "movie" | "series" | "anime" | "manga")[] = ["all", "movie", "series", "anime", "manga"];
+    Promise.all(
+      types.map(async (type) => {
+        const params = new URLSearchParams({ limit: "0" });
+        if (type !== "all") params.set("type", type);
+        const res = await fetch(`/api/content?${params.toString()}`);
+        const data = await res.json();
+        return { type, count: data.total ?? 0 };
+      })
+    ).then((results) => {
+      const counts: Record<string, number> = {};
+      for (const r of results) counts[r.type] = r.count;
+      setTypeCounts(counts);
+    });
+  }, []);
 
   // Reset when filters change
   useEffect(() => {
@@ -54,6 +73,7 @@ export function BrowseView() {
       if (selectedSort) params.set("sort", selectedSort);
       if (selectedYearFrom) params.set("yearFrom", String(selectedYearFrom));
       if (selectedYearTo) params.set("yearTo", String(selectedYearTo));
+      if (selectedLang) params.set("lang", selectedLang);
       params.set("page", String(page));
       params.set("limit", "20");
 
@@ -130,6 +150,11 @@ export function BrowseView() {
               }`}
             >
               {tab.label}
+              {typeCounts[tab.value] !== undefined && (
+                <span className={`ml-1.5 text-xs ${selectedType === tab.value ? "text-red-200" : "text-muted-foreground/70"}`}>
+                  ({typeCounts[tab.value]})
+                </span>
+              )}
             </button>
           ))}
         </div>

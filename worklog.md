@@ -686,3 +686,156 @@ Stage Summary:
 - 16 component files + 1 helper module extracted into src/components/ and src/lib/
 - All components properly isolated with their own imports
 - No functionality changes, purely structural refactor
+---
+Task ID: 6-c
+Agent: full-stack-developer
+Task: Add content count badges to browse view type tabs
+
+Work Log:
+- Added typeCounts state (Record<string, number>) to BrowseView component
+- Added useEffect on mount to fetch counts for all 5 content types (all, movie, series, anime, manga) in parallel using /api/content?type=X&limit=0
+- Displayed counts in parentheses next to type tab labels with subtle styling (text-red-200 for active, text-muted-foreground/70 for inactive)
+- Ran lint — no errors
+
+Stage Summary:
+- Browse view now shows item counts per content type in the type filter tabs
+- Counts are fetched once on component mount via 5 parallel API calls
+- Display format: "Films (14)", "Séries (8)", etc.
+
+---
+Task ID: 6-b
+Agent: full-stack-developer
+Task: Add Surprise Me / Découverte Aléatoire feature
+
+Work Log:
+- Added random discovery button to HomeView alongside "Derniers Ajouts" section title
+- Connected to existing /api/content/random endpoint
+- Added loading state with spinning sparkles icon animation via framer-motion
+- Used purple-to-fuchsia gradient (no blue/indigo) for visually distinct style
+- Responsive design: smaller pill button on mobile, more prominent on desktop
+- Button text animates between "Surprise Me" and "Chargement..." with AnimatePresence
+- Uses store actions `setSelectedContentId` and `setView("detail")` for navigation
+- Ran lint — no errors
+
+Stage Summary:
+- Users can now discover random content with one click
+- Button features loading animation and smooth navigation
+- Purple gradient button sits right-aligned in the "Derniers Ajouts" header row
+
+---
+Task ID: 6-a
+Agent: full-stack-developer
+Task: Add Top 10 ranking numbers to trending content rows
+
+Work Log:
+- Modified ContentRow to accept showRanking prop
+- Added Netflix-style ranking overlay on first 10 cards
+- Applied to Films Tendances in HomeView
+- Verified lint passes
+
+Stage Summary:
+- ContentRow now supports visual ranking display
+- Films Tendances row shows Top 10 ranking numbers
+
+---
+Task ID: 7-c
+Agent: full-stack-developer
+Task: Add YouTube trailer embed support to the METFLIX detail view using the existing TMDB videos API.
+
+Work Log:
+- Added `trailer` and `showTrailer` state variables to the DetailView component
+- Extended `fetchDetail` callback to also fetch trailer data from `/api/tmdb/videos?tmdbId=xxx&type=xxx` in parallel with the cast fetch
+- Added trailer state reset at the start of `fetchDetail` to prevent stale trailers when navigating between content
+- Built trailer overlay (AnimatePresence + motion.div) inside the player-container that covers the player area when a trailer is playing, with a header showing trailer name + close button (X icon)
+- Used youtube-nocookie.com embed URL (`https://www.youtube-nocookie.com/embed/${key}`) with no autoplay
+- Added action bar below the player with "Bande-annonce" button (red, play-circle icon, only visible when trailer available) and "Ma Liste" button (outline, heart icon, toggles favorite)
+- Added trailer thumbnail teaser section below the action bar: full-width aspect-video card with YouTube hqdefault thumbnail, centered red play button with hover scale animation, bottom gradient with trailer name, and framer-motion entrance animation
+- All new UI is theme-aware (uses bg-card, bg-muted, text-foreground, border-border)
+- Only shown for non-manga content types (movies, series, anime)
+- Verified with `bun run lint` — no errors
+
+Stage Summary:
+- YouTube trailer support fully integrated into detail view
+- Trailer fetched automatically when content with tmdbId loads (not manga)
+- Three trailer entry points: action bar button, thumbnail teaser card, and overlay in player area
+- Trailer overlay uses AnimatePresence for smooth fade in/out
+- "Ma Liste" button added to action bar for quick favorite toggling
+- YouTube embed uses privacy-enhanced nocookie domain
+
+---
+Task ID: 7-a
+Agent: full-stack-developer
+Task: Add "Continue Watching" (Continuer à regarder) section to METFLIX home page
+
+Work Log:
+- Added `WatchHistoryItem` interface and localStorage persistence helpers to `app-store.ts`
+- Added `watchHistory` state array, `initWatchHistory` and `addToWatchHistory` actions to the Zustand store
+- `addToWatchHistory` deduplicates, prepends, and limits to 20 items with localStorage sync
+- Created `WatchHistoryCard` component in `home-view.tsx` with "Reprendre" overlay badge, play button on hover, and date display
+- Created `WatchHistoryRow` component with horizontal scroll, left/right nav arrows, and clock icon header
+- Inserted `WatchHistoryRow` between Hero and "Derniers Ajouts" sections (only renders when history has items)
+- Added `useEffect` in `page.tsx` to automatically call `addToWatchHistory` when `selectedContentId` and `contentDetail` change
+- Added `initWatchHistory` call alongside `initFavorites` on mount
+- Lint passes cleanly with no errors
+
+Stage Summary:
+- "Continuer à regarder" section now appears on home page between hero and latest content
+- Watch history persists across page refreshes via localStorage key "metflix-watch-history"
+- Maximum 20 items tracked, most recent first, duplicates removed
+- Cards feature a "Reprendre" badge overlay and play button on hover
+- Viewing any content detail page automatically adds it to watch history
+
+---
+Task ID: 7-b
+Agent: full-stack-developer
+Task: Enhance METFLIX search overlay with recent searches, search suggestions, and improved UX
+
+Work Log:
+- Added recent search history stored in localStorage (`metflix-recent-searches`) with max 8 entries
+- Recent searches displayed as clickable pill/tag buttons with clock icon and hover-to-reveal X remove button
+- "Tout effacer" (Clear all) button to clear all recent searches
+- Recent searches shown only when input is empty/focused and searches exist
+- Added debounced (300ms) search suggestions calling `/api/search?q=...&limit=5`
+- Suggestions shown as compact list items with poster thumbnail, title, year, type badge, and rating
+- Each suggestion is clickable and navigates to detail preview view
+- "Résultats pour '...'" separator shown above suggestion results
+- Full search results (on Enter) show in grid with ContentCard components
+- Added framer-motion animations for all section transitions (recent, suggestions, results, empty states)
+- Enhanced "Aucun résultat" state with circular icon, multi-line message, and helpful hint
+- Search input now has search icon prefix, rounded-xl style, and prominent focus ring
+- Keyboard navigation hint ("Entrée pour rechercher") shown in multiple contexts
+- Updated `/api/search` API to support optional `limit` query parameter (1-50, default 20)
+- Empty state when no query and no recent searches shows friendly welcome message
+
+Stage Summary:
+- Search overlay now supports three modes: recent searches (idle), live suggestions (typing), full results (Enter)
+- localStorage-backed recent searches with add/remove/clear functionality
+- Compact suggestion items with poster thumbnails for quick scanning
+- Smooth framer-motion animations throughout
+- Search API now supports configurable limit parameter
+- All lint checks pass with zero errors
+
+---
+Task ID: session-continue
+Agent: Main Agent
+Task: Continue development - fix VF/VOSTFR filter, verify existing features, add UI improvements
+
+Work Log:
+- Verified server startup and connectivity
+- Confirmed all 5 original tasks already completed (refactoring, theme toggle, cast/crew, derniers ajouts, VF/VOSTFR UI)
+- Fixed VF/VOSTFR filter: added `lang` param to browse-view fetch and `/api/content` endpoint with Prisma `embeds.some()` query
+- Fixed CORS for Preview Panel: added `allowedDevOrigins` patterns to next.config.ts
+- Delegated 6 improvement tasks to sub-agents (3 batches of 3)
+- Batch 1: Top 10 ranking numbers, Surprise Me button, Content type counts
+- Batch 2: Continue Watching section, Enhanced Search with suggestions, Trailer embed
+- All lint checks pass clean
+- All API endpoints verified (200 OK)
+
+Stage Summary:
+- VF/VOSTFR filter now fully functional (frontend + backend)
+- Top 10 Netflix-style ranking on Films Tendances row
+- Surprise Me random discovery button with loading animation
+- Content type counts displayed in browse filter tabs
+- Continue Watching section with localStorage persistence
+- Enhanced search: recent searches, live suggestions, better empty states
+- Trailer embed support in detail view with YouTube nocookie

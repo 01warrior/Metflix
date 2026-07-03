@@ -30,12 +30,17 @@ export default function Page() {
     latestContent,
     setLatestContent,
     initFavorites,
+    initWatchHistory,
+    selectedContentId,
+    contentDetail,
+    addToWatchHistory,
   } = useAppStore();
 
   // Init favorites from localStorage
   useEffect(() => {
     initFavorites();
-  }, [initFavorites]);
+    initWatchHistory();
+  }, [initFavorites, initWatchHistory]);
 
   // Fetch home data
   useEffect(() => {
@@ -74,6 +79,18 @@ export default function Page() {
 
     fetchHome();
   }, [setFeatured, setTrendingMovies, setTrendingSeries, setTrendingAnime, setTrendingManga, setLatestContent]);
+
+  // Track watch history when content detail is loaded
+  useEffect(() => {
+    if (selectedContentId && contentDetail) {
+      addToWatchHistory({
+        id: contentDetail.id,
+        title: contentDetail.title,
+        posterUrl: contentDetail.posterUrl,
+        type: contentDetail.type,
+      });
+    }
+  }, [selectedContentId, contentDetail, addToWatchHistory]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">

@@ -7,6 +7,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = request.nextUrl;
     const q = searchParams.get("q")?.trim();
+    const limit = Math.min(Math.max(parseInt(searchParams.get("limit") || "20", 10) || 20, 1), 50);
 
     if (!q || q.length < 2) {
       return NextResponse.json({ data: [], query: "", count: 0 });
@@ -24,7 +25,7 @@ export async function GET(request: Request) {
     const results = await db.content.findMany({
       where,
       orderBy: [{ rating: "desc" }, { voteCount: "desc" }],
-      take: 20,
+      take: limit,
       select: {
         id: true,
         tmdbId: true,
