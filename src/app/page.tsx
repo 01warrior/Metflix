@@ -359,10 +359,9 @@ function Header() {
         {/* Logo */}
         <button
           onClick={() => setView("home")}
-          className="text-xl font-extrabold tracking-tight"
+          className="flex items-center"
         >
-          <span className="text-red-500">Stream</span>
-          <span className="text-white">Vibe</span>
+          <img src="/logo.png" alt="StreamVibe" className="h-9 w-auto rounded-lg" />
         </button>
 
         {/* Desktop nav */}
