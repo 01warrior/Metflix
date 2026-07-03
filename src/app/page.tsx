@@ -1919,10 +1919,10 @@ function StatCard({ label, value, sub, color = "text-foreground" }: {
   label: string; value: number | string; sub?: string; color?: string;
 }) {
   return (
-    <div className="rounded-lg border border-border bg-card p-4">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className={`text-2xl font-bold ${color}`}>{value}</p>
-      {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
+    <div className="rounded-xl border border-border bg-card p-5">
+      <p className="text-base text-muted-foreground">{label}</p>
+      <p className={`text-3xl font-bold ${color}`}>{value}</p>
+      {sub && <p className="text-sm text-muted-foreground">{sub}</p>}
     </div>
   );
 }
@@ -2097,11 +2097,11 @@ function AdminPanel({
     ? Math.round(((stats.anime.total - (matchStats?.anime.unmatched || 0)) / stats.anime.total) * 100) : 0;
 
   const TABS = [
-    { id: "overview" as const, label: "Vue d'ensemble", icon: <Icon name="database" className="h-3.5 w-3.5" /> },
-    { id: "featured" as const, label: "Mis en avant", icon: <Icon name="star" className="h-3.5 w-3.5" /> },
-    { id: "anime" as const, label: "Anime", icon: <Icon name="sparkles" className="h-3.5 w-3.5" /> },
-    { id: "tmdb" as const, label: "Films & Séries", icon: <Icon name="film" className="h-3.5 w-3.5" /> },
-    { id: "images" as const, label: "Images", icon: <Icon name="monitor" className="h-3.5 w-3.5" /> },
+    { id: "overview" as const, label: "Vue d'ensemble", icon: <Icon name="database" className="h-5 w-5" /> },
+    { id: "featured" as const, label: "Mis en avant", icon: <Icon name="star" className="h-5 w-5" /> },
+    { id: "anime" as const, label: "Anime", icon: <Icon name="sparkles" className="h-5 w-5" /> },
+    { id: "tmdb" as const, label: "Films & Séries", icon: <Icon name="film" className="h-5 w-5" /> },
+    { id: "images" as const, label: "Images", icon: <Icon name="monitor" className="h-5 w-5" /> },
   ];
 
   // Featured management functions
@@ -2170,43 +2170,43 @@ function AdminPanel({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="left" className="w-full sm:w-1/2 overflow-y-auto">
-        <SheetHeader className="mb-5 px-6">
-          <SheetTitle className="flex items-center gap-2 text-xl">
-            <Icon name="settings" className="h-6 w-6 text-red-500" /> Administration
+        <SheetHeader className="mb-6 px-6">
+          <SheetTitle className="flex items-center gap-3 text-2xl">
+            <Icon name="settings" className="h-7 w-7 text-red-500" /> Administration
           </SheetTitle>
-          <SheetDescription className="text-sm">Gérer le contenu, les syncs et les paramètres</SheetDescription>
+          <SheetDescription className="text-base">Gérer le contenu, les syncs et les paramètres</SheetDescription>
         </SheetHeader>
 
-        <div className="flex gap-1 mb-5 bg-muted/50 rounded-xl p-1.5 mx-4">
+        <div className="flex gap-1.5 mb-6 bg-muted/50 rounded-xl p-1.5 mx-4">
           {TABS.map((tab) => (
             <button key={tab.id} onClick={() => setAdminTab(tab.id)}
-              className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 rounded-lg text-base font-medium transition-all ${
                 adminTab === tab.id ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
               }`}>
-              {tab.icon}<span className="hidden sm:inline text-[13px]">{tab.label}</span>
+              {tab.icon}<span className="hidden sm:inline">{tab.label}</span>
             </button>
           ))}
         </div>
 
-        <div className="space-y-4 pb-6 px-4">
+        <div className="space-y-5 pb-8 px-5">
           {adminTab === "overview" && (
             <>
-              <div className={`rounded-xl border p-4 ${matchStats?.tmdbKeyValid ? "border-green-500/30 bg-green-500/5" : "border-red-500/30 bg-red-500/5"}`}>
-                <p className="text-sm font-medium flex items-center gap-2 mb-2">
-                  <span className={`w-2.5 h-2.5 rounded-full ${matchStats?.tmdbKeyValid ? "bg-green-400" : "bg-red-400"} animate-pulse`} />
+              <div className={`rounded-xl border p-5 ${matchStats?.tmdbKeyValid ? "border-green-500/30 bg-green-500/5" : "border-red-500/30 bg-red-500/5"}`}>
+                <p className="text-base font-medium flex items-center gap-2 mb-2">
+                  <span className={`w-3 h-3 rounded-full ${matchStats?.tmdbKeyValid ? "bg-green-400" : "bg-red-400"} animate-pulse`} />
                   TMDB API
                 </p>
-                <p className="text-base font-semibold flex items-center gap-2">
+                <p className="text-lg font-semibold flex items-center gap-2">
                   {matchStats?.tmdbKeyValid ? (
-                    <><Icon name="badge-check" className="h-4 w-4 text-green-400" /> Clé TMDB configurée et valide</>
+                    <><Icon name="badge-check" className="h-5 w-5 text-green-400" /> Clé TMDB configurée et valide</>
                   ) : (
-                    <><Icon name="alert-02" className="h-4 w-4 text-red-400" /> Clé TMDB non configurée</>
+                    <><Icon name="alert-02" className="h-5 w-5 text-red-400" /> Clé TMDB non configurée</>
                   )}
                 </p>
               </div>
 
               {stats ? (
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-3">
                   <StatCard label="Films" value={stats.movies.total} />
                   <StatCard label="Séries" value={stats.series.total} />
                   <StatCard label="Anime" value={stats.anime.total} sub={`${stats.anime.withEmbeds} avec streams`} />
@@ -2215,39 +2215,39 @@ function AdminPanel({
                   <StatCard label="TMDB Match" value={`${tmdbRate}%`} color={tmdbRate > 80 ? "text-green-400" : tmdbRate > 40 ? "text-yellow-400" : "text-red-400"} />
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-2">
-                  {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-lg" />)}
+                <div className="grid grid-cols-2 gap-3">
+                  {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
                 </div>
               )}
 
               {imageFixStats && imageFixStats.needsFix > 0 && (
-                <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/5 p-4">
-                  <p className="text-sm text-yellow-400 font-medium mb-1 flex items-center gap-1.5"><Icon name="warning" className="h-4 w-4" /> {imageFixStats.needsFix} images cassées</p>
-                  <p className="text-xs text-muted-foreground">Onglet &quot;Images&quot; pour corriger</p>
+                <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/5 p-5">
+                  <p className="text-base text-yellow-400 font-medium mb-1.5 flex items-center gap-2"><Icon name="warning" className="h-5 w-5" /> {imageFixStats.needsFix} images cassées</p>
+                  <p className="text-sm text-muted-foreground">Onglet &quot;Images&quot; pour corriger</p>
                 </div>
               )}
 
               {matchStats && matchStats.anime.unmatched > 0 && (
-                <div className="rounded-xl border border-orange-500/30 bg-orange-500/5 p-4">
-                  <p className="text-sm text-orange-400 font-medium mb-1 flex items-center gap-1.5"><Icon name="zap" className="h-4 w-4" /> {matchStats.anime.unmatched} anime sans TMDB ID</p>
-                  <p className="text-xs text-muted-foreground">Onglet &quot;Anime&quot; → Matcher</p>
+                <div className="rounded-xl border border-orange-500/30 bg-orange-500/5 p-5">
+                  <p className="text-base text-orange-400 font-medium mb-1.5 flex items-center gap-2"><Icon name="zap" className="h-5 w-5" /> {matchStats.anime.unmatched} anime sans TMDB ID</p>
+                  <p className="text-sm text-muted-foreground">Onglet &quot;Anime&quot; → Matcher</p>
                 </div>
               )}
 
               <Separator />
-              <section className="space-y-2">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Actions rapides</h3>
-                <Button onClick={() => setAdminTab("tmdb")} variant="outline" className="w-full h-10 text-sm border-blue-500/20 text-blue-400 hover:bg-blue-500/10">
-                  <Icon name="film" className="h-4 w-4 mr-2" /> Ajouter des Films via TMDB
+              <section className="space-y-3">
+                <h3 className="text-base font-semibold text-muted-foreground uppercase tracking-wider">Actions rapides</h3>
+                <Button onClick={() => setAdminTab("tmdb")} variant="outline" className="w-full h-12 text-base border-blue-500/20 text-blue-400 hover:bg-blue-500/10">
+                  <Icon name="film" className="h-5 w-5 mr-2" /> Ajouter des Films via TMDB
                 </Button>
-                <Button onClick={() => setAdminTab("anime")} variant="outline" className="w-full h-10 text-sm border-orange-500/20 text-orange-400 hover:bg-orange-500/10">
-                  <Icon name="sparkles" className="h-4 w-4 mr-2" /> Synchroniser les Anime (AniList)
+                <Button onClick={() => setAdminTab("anime")} variant="outline" className="w-full h-12 text-base border-orange-500/20 text-orange-400 hover:bg-orange-500/10">
+                  <Icon name="sparkles" className="h-5 w-5 mr-2" /> Synchroniser les Anime (AniList)
                 </Button>
-                <Button onClick={() => setAdminTab("images")} variant="outline" className="w-full h-10 text-sm border-purple-500/20 text-purple-400 hover:bg-purple-500/10">
-                  <Icon name="monitor" className="h-4 w-4 mr-2" /> Corriger les images cassées
+                <Button onClick={() => setAdminTab("images")} variant="outline" className="w-full h-12 text-base border-purple-500/20 text-purple-400 hover:bg-purple-500/10">
+                  <Icon name="monitor" className="h-5 w-5 mr-2" /> Corriger les images cassées
                 </Button>
-                <Button onClick={() => setAdminTab("featured")} variant="outline" className="w-full h-10 text-sm border-amber-500/20 text-amber-400 hover:bg-amber-500/10">
-                  <Icon name="star" className="h-4 w-4 mr-2" /> Gérer les mis en avant (Hero)
+                <Button onClick={() => setAdminTab("featured")} variant="outline" className="w-full h-12 text-base border-amber-500/20 text-amber-400 hover:bg-amber-500/10">
+                  <Icon name="star" className="h-5 w-5 mr-2" /> Gérer les mis en avant (Hero)
                 </Button>
               </section>
             </>
@@ -2257,32 +2257,32 @@ function AdminPanel({
             <>
               {/* Search to add */}
               <div className="relative">
-                <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Icon name="search" className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   value={searchQuery}
                   onChange={(e) => { setSearchQuery(e.target.value); if (searchTimerRef.current) clearTimeout(searchTimerRef.current); searchTimerRef.current = setTimeout(() => searchContent(e.target.value), 300); }}
                   placeholder="Rechercher un contenu à ajouter..."
-                  className="pl-10 h-10 text-sm bg-background"
+                  className="pl-12 h-12 text-base bg-background"
                 />
-                {searchLoading && <Icon name="loader" className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />}
+                {searchLoading && <Icon name="loader" className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 animate-spin text-muted-foreground" />}
               </div>
 
               {/* Search results */}
               {searchResults.length > 0 && (
-                <div className="border rounded-lg overflow-hidden divide-y divide-border">
+                <div className="border rounded-xl overflow-hidden divide-y divide-border">
                   {searchResults.map((item: any) => (
-                    <div key={item.id} className="flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors">
-                      <img src={item.posterUrl} alt="" className="w-10 h-14 object-cover rounded" onError={(e) => handleImgError(e)} />
+                    <div key={item.id} className="flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors">
+                      <img src={item.posterUrl} alt="" className="w-12 h-[72px] object-cover rounded-lg" onError={(e) => handleImgError(e)} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{item.titleFr || item.title}</p>
-                        <p className="text-xs text-muted-foreground">{item.year} · {item.type} · {(item.rating || 0).toFixed(1)}</p>
+                        <p className="text-base font-medium truncate">{item.titleFr || item.title}</p>
+                        <p className="text-sm text-muted-foreground">{item.year} · {item.type} · {(item.rating || 0).toFixed(1)}</p>
                       </div>
                       <button
                         onClick={() => addToFeatured(item.id)}
-                        className="w-9 h-9 flex items-center justify-center rounded-full bg-green-600/20 text-green-400 hover:bg-green-600/30 transition-colors flex-shrink-0"
+                        className="w-11 h-11 flex items-center justify-center rounded-full bg-green-600/20 text-green-400 hover:bg-green-600/30 transition-colors flex-shrink-0"
                         aria-label="Ajouter aux mis en avant"
                       >
-                        <Icon name="check" className="h-4 w-4" />
+                        <Icon name="check" className="h-5 w-5" />
                       </button>
                     </div>
                   ))}
@@ -2292,11 +2292,11 @@ function AdminPanel({
               {/* Current featured list */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                  <h3 className="text-base font-semibold text-muted-foreground uppercase tracking-wider">
                     Contenus mis en avant ({featuredItems.length}/10)
                   </h3>
                   {featuredItems.length > 0 && (
-                    <span className="text-xs text-muted-foreground">Hero carousel</span>
+                    <span className="text-sm text-muted-foreground">Hero carousel</span>
                   )}
                 </div>
 
@@ -2307,60 +2307,60 @@ function AdminPanel({
                 )}
 
                 {!featuredLoading && featuredItems.length === 0 && (
-                  <div className="text-center py-8 border border-dashed rounded-lg">
-                    <Icon name="star" className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">Aucun contenu mis en avant</p>
-                    <p className="text-xs text-muted-foreground mt-1">Recherchez ci-dessus pour ajouter</p>
+                  <div className="text-center py-10 border border-dashed rounded-xl">
+                    <Icon name="star" className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
+                    <p className="text-base text-muted-foreground">Aucun contenu mis en avant</p>
+                    <p className="text-sm text-muted-foreground mt-1">Recherchez ci-dessus pour ajouter</p>
                   </div>
                 )}
 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {featuredItems.map((item: any, idx: number) => (
                     <motion.div
                       key={item.id}
                       layout
                       initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-border/50 group hover:bg-muted/60 transition-colors"
+                      className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 border border-border/50 group hover:bg-muted/60 transition-colors"
                     >
                       {/* Order badge */}
-                      <span className="w-7 h-7 flex items-center justify-center rounded-lg bg-red-600/20 text-red-400 text-sm font-bold flex-shrink-0">
+                      <span className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-600/20 text-red-400 text-base font-bold flex-shrink-0">
                         {idx + 1}
                       </span>
 
                       {/* Poster */}
-                      <img src={item.posterUrl} alt="" className="w-10 h-14 object-cover rounded flex-shrink-0" onError={(e) => handleImgError(e)} />
+                      <img src={item.posterUrl} alt="" className="w-12 h-[72px] object-cover rounded-lg flex-shrink-0" onError={(e) => handleImgError(e)} />
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{item.titleFr || item.title}</p>
-                        <p className="text-xs text-muted-foreground">{item.year || "—"} · {item.type} · {(item.rating || 0).toFixed(1)}</p>
+                        <p className="text-base font-medium truncate">{item.titleFr || item.title}</p>
+                        <p className="text-sm text-muted-foreground">{item.year || "—"} · {item.type} · {(item.rating || 0).toFixed(1)}</p>
                       </div>
 
                       {/* Actions */}
-                      <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                         <button
                           onClick={() => moveFeatured(item.id, "up")}
                           disabled={idx === 0}
-                          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-muted disabled:opacity-30"
+                          className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-muted disabled:opacity-30"
                           aria-label="Monter"
                         >
-                          <Icon name="chevron-up" className="h-4 w-4" />
+                          <Icon name="chevron-up" className="h-5 w-5" />
                         </button>
                         <button
                           onClick={() => moveFeatured(item.id, "down")}
                           disabled={idx === featuredItems.length - 1}
-                          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-muted disabled:opacity-30"
+                          className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-muted disabled:opacity-30"
                           aria-label="Descendre"
                         >
-                          <Icon name="chevron-down" className="h-4 w-4" />
+                          <Icon name="chevron-down" className="h-5 w-5" />
                         </button>
                         <button
                           onClick={() => removeFromFeatured(item.id)}
-                          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-500/20 text-red-400"
+                          className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-red-500/20 text-red-400"
                           aria-label="Retirer"
                         >
-                          <Icon name="x" className="h-4 w-4" />
+                          <Icon name="x" className="h-5 w-5" />
                         </button>
                       </div>
                     </motion.div>
@@ -2369,7 +2369,7 @@ function AdminPanel({
               </div>
 
               {featuredItems.length > 0 && (
-                <p className="text-xs text-muted-foreground text-center">
+                <p className="text-sm text-muted-foreground text-center">
                   ℹ️ Les {Math.min(featuredItems.length, 8)} premiers apparaissent dans le hero. Survolez un élément pour réordonner.
                 </p>
               )}
@@ -2379,7 +2379,7 @@ function AdminPanel({
           {adminTab === "anime" && (
             <>
               {matchStats && (
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-3">
                   <StatCard label="Total Anime" value={matchStats.anime.total} />
                   <StatCard label="Avec TMDB" value={matchStats.anime.matched} color="text-green-400" />
                   <StatCard label="Sans streams" value={matchStats.anime.unmatched} color="text-red-400" />
@@ -2390,65 +2390,65 @@ function AdminPanel({
               <Separator />
 
               <section>
-                <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5 mb-3">
-                  <Icon name="zap" className="h-4 w-4 text-muted-foreground" /> Sync AniList
+                <h3 className="text-base font-semibold text-foreground flex items-center gap-2 mb-4">
+                  <Icon name="zap" className="h-5 w-5 text-muted-foreground" /> Sync AniList
                 </h3>
-                <div className="space-y-3">
-                  <div className="grid grid-cols-3 gap-2">
+                <div className="space-y-4">
+                  <div className="grid grid-cols-3 gap-3">
                     <div>
-                      <label className="text-xs text-muted-foreground mb-1 block"><Icon name="trending-up" className="h-3 w-3 inline mr-1" />Trending</label>
+                      <label className="text-sm text-muted-foreground mb-1.5 block"><Icon name="trending-up" className="h-4 w-4 inline mr-1" />Trending</label>
                       <Input type="number" min={1} max={20} value={trendingPages}
-                        onChange={(e) => setTrendingPages(Math.max(1, Math.min(20, Number(e.target.value) || 1)))} className="h-8 text-sm" />
+                        onChange={(e) => setTrendingPages(Math.max(1, Math.min(20, Number(e.target.value) || 1)))} className="h-11 text-base" />
                     </div>
                     <div>
-                      <label className="text-xs text-muted-foreground mb-1 block"><Icon name="arrow-down-up" className="h-3 w-3 inline mr-1" />Populaire</label>
+                      <label className="text-sm text-muted-foreground mb-1.5 block"><Icon name="arrow-down-up" className="h-4 w-4 inline mr-1" />Populaire</label>
                       <Input type="number" min={1} max={20} value={popularPages}
-                        onChange={(e) => setPopularPages(Math.max(1, Math.min(20, Number(e.target.value) || 1)))} className="h-8 text-sm" />
+                        onChange={(e) => setPopularPages(Math.max(1, Math.min(20, Number(e.target.value) || 1)))} className="h-11 text-base" />
                     </div>
                     <div>
-                      <label className="text-xs text-muted-foreground mb-1 block"><Icon name="star" className="h-3 w-3 inline mr-1" />Top Notes</label>
+                      <label className="text-sm text-muted-foreground mb-1.5 block"><Icon name="star" className="h-4 w-4 inline mr-1" />Top Notes</label>
                       <Input type="number" min={1} max={20} value={topRatedPages}
-                        onChange={(e) => setTopRatedPages(Math.max(1, Math.min(20, Number(e.target.value) || 1)))} className="h-8 text-sm" />
+                        onChange={(e) => setTopRatedPages(Math.max(1, Math.min(20, Number(e.target.value) || 1)))} className="h-11 text-base" />
                     </div>
                   </div>
                   <div>
-                    <label className="text-xs text-muted-foreground mb-1.5 block">Genres</label>
-                    <div className="flex flex-wrap gap-1.5">
+                    <label className="text-sm text-muted-foreground mb-2 block">Genres</label>
+                    <div className="flex flex-wrap gap-2">
                       {ADMIN_GENRES.map((genre) => (
                         <Badge key={genre} variant={selectedGenres.includes(genre) ? "default" : "outline"}
-                          className={`cursor-pointer text-xs transition-colors ${selectedGenres.includes(genre) ? "bg-red-600 text-white hover:bg-red-700 border-red-600" : "border-border text-muted-foreground hover:border-red-400 hover:text-red-400"}`}
+                          className={`cursor-pointer text-sm px-3 py-1 transition-colors ${selectedGenres.includes(genre) ? "bg-red-600 text-white hover:bg-red-700 border-red-600" : "border-border text-muted-foreground hover:border-red-400 hover:text-red-400"}`}
                           onClick={() => toggleGenre(genre)}>{genre}</Badge>
                       ))}
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-xs text-muted-foreground mb-1 block">Max Saisons</label>
+                      <label className="text-sm text-muted-foreground mb-1.5 block">Max Saisons</label>
                       <Input type="number" min={1} max={20} value={maxSeasons}
-                        onChange={(e) => setMaxSeasons(Math.max(1, Math.min(20, Number(e.target.value) || 1)))} className="h-8 text-sm" />
+                        onChange={(e) => setMaxSeasons(Math.max(1, Math.min(20, Number(e.target.value) || 1)))} className="h-11 text-base" />
                     </div>
                     <div>
-                      <label className="text-xs text-muted-foreground mb-1 block">Max Eps/Saison</label>
+                      <label className="text-sm text-muted-foreground mb-1.5 block">Max Eps/Saison</label>
                       <Input type="number" min={1} max={50} value={maxEpsPerSeason}
-                        onChange={(e) => setMaxEpsPerSeason(Math.max(1, Math.min(50, Number(e.target.value) || 1)))} className="h-8 text-sm" />
+                        onChange={(e) => setMaxEpsPerSeason(Math.max(1, Math.min(50, Number(e.target.value) || 1)))} className="h-11 text-base" />
                     </div>
                   </div>
                 </div>
               </section>
 
-              <div className="rounded-lg border border-dashed border-border bg-card/50 p-3 text-center">
-                <p className="text-xs text-muted-foreground mb-1">Estimation</p>
-                <p className="text-sm font-bold">≈ <span className="text-red-400 text-lg">{estimatedCount}</span> <span className="text-sm text-muted-foreground">anime</span></p>
+              <div className="rounded-xl border border-dashed border-border bg-card/50 p-4 text-center">
+                <p className="text-sm text-muted-foreground mb-1">Estimation</p>
+                <p className="text-lg font-bold">≈ <span className="text-red-400 text-xl">{estimatedCount}</span> <span className="text-base text-muted-foreground">anime</span></p>
               </div>
 
-              <Button onClick={handleSync} disabled={syncLoading} className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold h-11">
-                {syncLoading ? <Icon name="loader" className="h-4 w-4 mr-2 animate-spin" /> : <Icon name="play" className="h-4 w-4 mr-2" />}
+              <Button onClick={handleSync} disabled={syncLoading} className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold h-12 text-base">
+                {syncLoading ? <Icon name="loader" className="h-5 w-5 mr-2 animate-spin" /> : <Icon name="play" className="h-5 w-5 mr-2" />}
                 {syncLoading ? "Synchronisation..." : "Sync AniList"}
               </Button>
 
               {syncResult && (
-                <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm space-y-1">
-                  <p className="font-medium text-green-400 flex items-center gap-1"><Icon name="check" className="h-3.5 w-3.5" /> Sync terminé en {syncResult.elapsed}</p>
+                <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-base space-y-1.5">
+                  <p className="font-medium text-green-400 flex items-center gap-1.5"><Icon name="check" className="h-4 w-4" /> Sync terminé en {syncResult.elapsed}</p>
                   <p className="text-muted-foreground">Créés: <span className="text-green-400">{syncResult.created}</span> · MAJ: <span className="text-yellow-400">{syncResult.updated}</span> · Embeds: <span className="text-blue-400">{syncResult.withEmbeds}</span></p>
                 </div>
               )}
@@ -2456,27 +2456,27 @@ function AdminPanel({
               <Separator />
 
               <section>
-                <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5 mb-3">
-                  <Icon name="search" className="h-4 w-4 text-muted-foreground" /> Auto-Match TMDB
-                  {matchStats?.tmdbKeyValid && <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-green-500/20 text-green-400 uppercase ml-1">AUTO</span>}
+                <h3 className="text-base font-semibold text-foreground flex items-center gap-2 mb-4">
+                  <Icon name="search" className="h-5 w-5 text-muted-foreground" /> Auto-Match TMDB
+                  {matchStats?.tmdbKeyValid && <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-green-500/20 text-green-400 uppercase ml-1">AUTO</span>}
                 </h3>
                 <Button onClick={handleMatchTmdb} disabled={matchLoading || !matchStats?.tmdbKeyValid}
-                  variant="outline" className="w-full border-orange-500/30 text-orange-400 hover:bg-orange-500/10 h-10 font-semibold">
-                  {matchLoading ? <Icon name="loader" className="h-4 w-4 mr-2 animate-spin" /> : <Icon name="zap" className="h-4 w-4 mr-2" />}
+                  variant="outline" className="w-full border-orange-500/30 text-orange-400 hover:bg-orange-500/10 h-12 font-semibold text-base">
+                  {matchLoading ? <Icon name="loader" className="h-5 w-5 mr-2 animate-spin" /> : <Icon name="zap" className="h-5 w-5 mr-2" />}
                   {matchLoading ? "Matching..." : `Matcher 100 anime (${matchStats?.anime.unmatched || "?"} restants)`}
                 </Button>
                 {matchResult && (
-                  <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm space-y-1 mt-2">
-                    <p className="font-medium text-green-400 flex items-center gap-1"><Icon name="check" className="h-3.5 w-3.5" /> {matchResult.matched}/{matchResult.processed} matchés</p>
-                    {matchResult.remainingUnmatched > 0 && <p className="text-muted-foreground text-xs">Encore {matchResult.remainingUnmatched} restants. Relancez !</p>}
+                  <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-base space-y-1.5 mt-3">
+                    <p className="font-medium text-green-400 flex items-center gap-1.5"><Icon name="check" className="h-4 w-4" /> {matchResult.matched}/{matchResult.processed} matchés</p>
+                    {matchResult.remainingUnmatched > 0 && <p className="text-muted-foreground text-sm">Encore {matchResult.remainingUnmatched} restants. Relancez !</p>}
                   </div>
                 )}
               </section>
 
               <Separator />
               <Button variant="outline" onClick={handleReset}
-                className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 h-9 text-sm">
-                <Icon name="delete" className="h-3.5 w-3.5 mr-1" /> Réinitialiser les Anime
+                className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 h-11 text-base">
+                <Icon name="delete" className="h-5 w-5 mr-2" /> Réinitialiser les Anime
               </Button>
             </>
           )}
@@ -2484,74 +2484,74 @@ function AdminPanel({
           {adminTab === "tmdb" && (
             <>
               {!matchStats?.tmdbKeyValid ? (
-                <div className="rounded-lg border border-red-500/30 bg-red-500/5 p-4 text-center">
-                  <p className="text-red-400 font-medium mb-1 flex items-center gap-1"><Icon name="alert-02" className="h-3.5 w-3.5" /> TMDB non configuré</p>
-                  <p className="text-xs text-muted-foreground">Ajoutez TMDB_API_KEY dans le fichier .env</p>
+                <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-5 text-center">
+                  <p className="text-red-400 font-medium mb-1.5 flex items-center gap-2"><Icon name="alert-02" className="h-5 w-5" /> TMDB non configuré</p>
+                  <p className="text-sm text-muted-foreground">Ajoutez TMDB_API_KEY dans le fichier .env</p>
                 </div>
               ) : (
                 <>
-                  <div className="rounded-lg border border-green-500/30 bg-green-500/5 p-3 mb-3">
-                    <p className="text-xs text-green-400 font-medium flex items-center gap-1"><Icon name="badge-check" className="h-3.5 w-3.5" /> TMDB connecté — Prêt à importer</p>
+                  <div className="rounded-xl border border-green-500/30 bg-green-500/5 p-4 mb-4">
+                    <p className="text-sm text-green-400 font-medium flex items-center gap-1.5"><Icon name="badge-check" className="h-4 w-4" /> TMDB connecté — Prêt à importer</p>
                   </div>
 
-                  <div className="space-y-3 mb-4">
+                  <div className="space-y-4 mb-5">
                     <div>
-                      <label className="text-xs text-muted-foreground mb-1.5 block">Source</label>
-                      <div className="grid grid-cols-3 gap-1.5">
+                      <label className="text-sm text-muted-foreground mb-2 block">Source</label>
+                      <div className="grid grid-cols-3 gap-2">
                         {[
                           { id: "all", label: "Tout" }, { id: "trending", label: "Trending" },
                           { id: "popular", label: "Populaire" }, { id: "top_rated", label: "Top Notes" },
                           { id: "now_playing", label: "Au cinéma" }, { id: "upcoming", label: "À venir" },
                         ].map((s) => (
                           <button key={s.id} onClick={() => setTmdbSource(s.id)}
-                            className={`px-2 py-1.5 rounded-md text-xs font-medium transition-all ${tmdbSource === s.id ? "bg-red-600 text-white shadow-sm" : "bg-muted text-muted-foreground hover:text-foreground"}`}>
+                            className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${tmdbSource === s.id ? "bg-red-600 text-white shadow-sm" : "bg-muted text-muted-foreground hover:text-foreground"}`}>
                             {s.label}
                           </button>
                         ))}
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-xs text-muted-foreground mb-1 block">Pages</label>
+                        <label className="text-sm text-muted-foreground mb-1.5 block">Pages</label>
                         <Input type="number" min={1} max={20} value={tmdbPages}
-                          onChange={(e) => setTmdbPages(Math.max(1, Math.min(20, Number(e.target.value) || 1)))} className="h-8 text-sm" />
+                          onChange={(e) => setTmdbPages(Math.max(1, Math.min(20, Number(e.target.value) || 1)))} className="h-11 text-base" />
                       </div>
                       <div className="flex items-end">
-                        <div className="rounded-lg border border-dashed border-border bg-card/50 p-2 text-center w-full">
-                          <p className="text-[10px] text-muted-foreground">Estimation</p>
-                          <p className="text-sm font-bold text-red-400">≈ {tmdbPages * 20}+ items</p>
+                        <div className="rounded-xl border border-dashed border-border bg-card/50 p-3 text-center w-full">
+                          <p className="text-xs text-muted-foreground">Estimation</p>
+                          <p className="text-base font-bold text-red-400">≈ {tmdbPages * 20}+ items</p>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <section className="space-y-2">
-                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                      <Icon name="film" className="h-3.5 w-3.5" /> Films
+                  <section className="space-y-3">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                      <Icon name="film" className="h-4 w-4" /> Films
                     </h3>
                     <Button onClick={() => handleTmdbSync("movies")} disabled={tmdbSyncLoading}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold h-10">
-                      {tmdbSyncLoading ? <Icon name="loader" className="h-4 w-4 mr-2 animate-spin" /> : <Icon name="film" className="h-4 w-4 mr-2" />}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold h-12 text-base">
+                      {tmdbSyncLoading ? <Icon name="loader" className="h-5 w-5 mr-2 animate-spin" /> : <Icon name="film" className="h-5 w-5 mr-2" />}
                       {tmdbSyncLoading ? "Import..." : "Importer des Films"}
                     </Button>
                   </section>
 
                   <Separator />
 
-                  <section className="space-y-2">
-                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                      <Icon name="tv" className="h-3.5 w-3.5" /> Séries
+                  <section className="space-y-3">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                      <Icon name="tv" className="h-4 w-4" /> Séries
                     </h3>
                     <Button onClick={() => handleTmdbSync("series")} disabled={tmdbSyncLoading}
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold h-10">
-                      {tmdbSyncLoading ? <Icon name="loader" className="h-4 w-4 mr-2 animate-spin" /> : <Icon name="tv" className="h-4 w-4 mr-2" />}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold h-12 text-base">
+                      {tmdbSyncLoading ? <Icon name="loader" className="h-5 w-5 mr-2 animate-spin" /> : <Icon name="tv" className="h-5 w-5 mr-2" />}
                       {tmdbSyncLoading ? "Import..." : "Importer des Séries"}
                     </Button>
                   </section>
 
                   {tmdbSyncResult && (
-                    <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm space-y-1">
-                      <p className="font-medium text-green-400 flex items-center gap-1"><Icon name="check" className="h-3.5 w-3.5" /> {tmdbSyncResult.type === "movie" ? "Films" : "Séries"} terminé</p>
+                    <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-base space-y-1.5">
+                      <p className="font-medium text-green-400 flex items-center gap-1.5"><Icon name="check" className="h-4 w-4" /> {tmdbSyncResult.type === "movie" ? "Films" : "Séries"} terminé</p>
                       <p className="text-muted-foreground">
                         Créés: <span className="text-green-400">{tmdbSyncResult.created}</span> ·
                         MAJ: <span className="text-yellow-400">{tmdbSyncResult.updated}</span> ·
@@ -2568,42 +2568,42 @@ function AdminPanel({
           {adminTab === "images" && (
             <>
               {imageFixStats ? (
-                <div className="grid grid-cols-2 gap-2 mb-4">
+                <div className="grid grid-cols-2 gap-3 mb-5">
                   <StatCard label="Total contenus" value={imageFixStats.total} />
                   <StatCard label="Avec TMDB ID" value={imageFixStats.withTmdbId} color="text-green-400" />
                   <StatCard label="Posters cassés" value={imageFixStats.brokenPosters} color="text-red-400" />
                   <StatCard label="Sans poster" value={imageFixStats.noPosters} color="text-orange-400" />
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-2 mb-4">
-                  {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-lg" />)}
+                <div className="grid grid-cols-2 gap-3 mb-5">
+                  {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
                 </div>
               )}
 
               {imageFixStats && imageFixStats.needsFix > 0 && (
                 <>
-                  <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3 mb-3">
-                    <p className="text-xs text-yellow-400 font-medium mb-1 flex items-center gap-1"><Icon name="warning" className="h-3.5 w-3.5" /> {imageFixStats.needsFix} images à corriger</p>
-                    <p className="text-[11px] text-muted-foreground">Télécharge les vrais posters/backdrops depuis TMDB.</p>
+                  <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/5 p-4 mb-4">
+                    <p className="text-sm text-yellow-400 font-medium mb-1.5 flex items-center gap-1.5"><Icon name="warning" className="h-4 w-4" /> {imageFixStats.needsFix} images à corriger</p>
+                    <p className="text-sm text-muted-foreground">Télécharge les vrais posters/backdrops depuis TMDB.</p>
                   </div>
                   <Button onClick={handleFixImages} disabled={fixLoading}
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold h-10">
-                    {fixLoading ? <Icon name="loader" className="h-4 w-4 mr-2 animate-spin" /> : <Icon name="monitor" className="h-4 w-4 mr-2" />}
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold h-12 text-base">
+                    {fixLoading ? <Icon name="loader" className="h-5 w-5 mr-2 animate-spin" /> : <Icon name="monitor" className="h-5 w-5 mr-2" />}
                     {fixLoading ? "Correction..." : "Corriger les images"}
                   </Button>
                 </>
               )}
 
               {fixResult && (
-                <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm space-y-1 mt-2">
-                  <p className="font-medium text-green-400 flex items-center gap-1"><Icon name="check" className="h-3.5 w-3.5" /> Images corrigées</p>
+                <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-base space-y-1.5 mt-3">
+                  <p className="font-medium text-green-400 flex items-center gap-1.5"><Icon name="check" className="h-4 w-4" /> Images corrigées</p>
                   <p className="text-muted-foreground">Fixées: <span className="text-green-400">{fixResult.fixed}</span> · OK: <span>{fixResult.alreadyGood}</span> · NF: <span className="text-red-400">{fixResult.notFound}</span></p>
                 </div>
               )}
 
               {imageFixStats && imageFixStats.needsFix === 0 && (
-                <div className="rounded-lg border border-green-500/30 bg-green-500/5 p-4 text-center">
-                  <p className="text-green-400 font-medium flex items-center gap-1 justify-center"><Icon name="badge-check" className="h-3.5 w-3.5" /> Toutes les images sont OK !</p>
+                <div className="rounded-xl border border-green-500/30 bg-green-500/5 p-5 text-center">
+                  <p className="text-green-400 font-medium flex items-center gap-2 justify-center text-base"><Icon name="badge-check" className="h-5 w-5" /> Toutes les images sont OK !</p>
                 </div>
               )}
             </>
