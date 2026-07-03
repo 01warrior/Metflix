@@ -1919,10 +1919,10 @@ function StatCard({ label, value, sub, color = "text-foreground" }: {
   label: string; value: number | string; sub?: string; color?: string;
 }) {
   return (
-    <div className="rounded-lg border border-border bg-card p-3">
-      <p className="text-[11px] text-muted-foreground">{label}</p>
-      <p className={`text-xl font-bold ${color}`}>{value}</p>
-      {sub && <p className="text-[10px] text-muted-foreground">{sub}</p>}
+    <div className="rounded-lg border border-border bg-card p-4">
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <p className={`text-2xl font-bold ${color}`}>{value}</p>
+      {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
     </div>
   );
 }
@@ -2170,20 +2170,20 @@ function AdminPanel({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="left" className="w-full sm:w-1/2 overflow-y-auto">
-        <SheetHeader className="mb-4 px-4">
-          <SheetTitle className="flex items-center gap-2 text-lg">
-            <Icon name="settings" className="h-5 w-5 text-red-500" /> Administration
+        <SheetHeader className="mb-5 px-6">
+          <SheetTitle className="flex items-center gap-2 text-xl">
+            <Icon name="settings" className="h-6 w-6 text-red-500" /> Administration
           </SheetTitle>
-          <SheetDescription>Gérer le contenu, les syncs et les paramètres</SheetDescription>
+          <SheetDescription className="text-sm">Gérer le contenu, les syncs et les paramètres</SheetDescription>
         </SheetHeader>
 
-        <div className="flex gap-1 mb-5 bg-muted/50 rounded-lg p-1">
+        <div className="flex gap-1 mb-5 bg-muted/50 rounded-xl p-1.5 mx-4">
           {TABS.map((tab) => (
             <button key={tab.id} onClick={() => setAdminTab(tab.id)}
-              className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-md text-xs font-medium transition-all ${
+              className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 adminTab === tab.id ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
               }`}>
-              {tab.icon}<span className="hidden sm:inline">{tab.label}</span>
+              {tab.icon}<span className="hidden sm:inline text-[13px]">{tab.label}</span>
             </button>
           ))}
         </div>
@@ -2191,16 +2191,16 @@ function AdminPanel({
         <div className="space-y-4 pb-6 px-4">
           {adminTab === "overview" && (
             <>
-              <div className={`rounded-lg border p-3 ${matchStats?.tmdbKeyValid ? "border-green-500/30 bg-green-500/5" : "border-red-500/30 bg-red-500/5"}`}>
-                <p className="text-xs font-medium flex items-center gap-1.5 mb-2">
-                  <span className={`w-2 h-2 rounded-full ${matchStats?.tmdbKeyValid ? "bg-green-400" : "bg-red-400"} animate-pulse`} />
+              <div className={`rounded-xl border p-4 ${matchStats?.tmdbKeyValid ? "border-green-500/30 bg-green-500/5" : "border-red-500/30 bg-red-500/5"}`}>
+                <p className="text-sm font-medium flex items-center gap-2 mb-2">
+                  <span className={`w-2.5 h-2.5 rounded-full ${matchStats?.tmdbKeyValid ? "bg-green-400" : "bg-red-400"} animate-pulse`} />
                   TMDB API
                 </p>
-                <p className="text-sm font-semibold flex items-center gap-1.5">
+                <p className="text-base font-semibold flex items-center gap-2">
                   {matchStats?.tmdbKeyValid ? (
-                    <><Icon name="badge-check" className="h-3.5 w-3.5 text-green-400" /> Clé TMDB configurée et valide</>
+                    <><Icon name="badge-check" className="h-4 w-4 text-green-400" /> Clé TMDB configurée et valide</>
                   ) : (
-                    <><Icon name="alert-02" className="h-3.5 w-3.5 text-red-400" /> Clé TMDB non configurée</>
+                    <><Icon name="alert-02" className="h-4 w-4 text-red-400" /> Clé TMDB non configurée</>
                   )}
                 </p>
               </div>
@@ -2221,32 +2221,32 @@ function AdminPanel({
               )}
 
               {imageFixStats && imageFixStats.needsFix > 0 && (
-                <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3">
-                  <p className="text-xs text-yellow-400 font-medium mb-1 flex items-center gap-1"><Icon name="warning" className="h-3.5 w-3.5" /> {imageFixStats.needsFix} images cassées</p>
-                  <p className="text-[11px] text-muted-foreground">Onglet &quot;Images&quot; pour corriger</p>
+                <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/5 p-4">
+                  <p className="text-sm text-yellow-400 font-medium mb-1 flex items-center gap-1.5"><Icon name="warning" className="h-4 w-4" /> {imageFixStats.needsFix} images cassées</p>
+                  <p className="text-xs text-muted-foreground">Onglet &quot;Images&quot; pour corriger</p>
                 </div>
               )}
 
               {matchStats && matchStats.anime.unmatched > 0 && (
-                <div className="rounded-lg border border-orange-500/30 bg-orange-500/5 p-3">
-                  <p className="text-xs text-orange-400 font-medium mb-1 flex items-center gap-1"><Icon name="zap" className="h-3.5 w-3.5" /> {matchStats.anime.unmatched} anime sans TMDB ID</p>
-                  <p className="text-[11px] text-muted-foreground">Onglet &quot;Anime&quot; → Matcher</p>
+                <div className="rounded-xl border border-orange-500/30 bg-orange-500/5 p-4">
+                  <p className="text-sm text-orange-400 font-medium mb-1 flex items-center gap-1.5"><Icon name="zap" className="h-4 w-4" /> {matchStats.anime.unmatched} anime sans TMDB ID</p>
+                  <p className="text-xs text-muted-foreground">Onglet &quot;Anime&quot; → Matcher</p>
                 </div>
               )}
 
               <Separator />
               <section className="space-y-2">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions rapides</h3>
-                <Button onClick={() => setAdminTab("tmdb")} variant="outline" className="w-full h-9 text-sm border-blue-500/20 text-blue-400 hover:bg-blue-500/10">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Actions rapides</h3>
+                <Button onClick={() => setAdminTab("tmdb")} variant="outline" className="w-full h-10 text-sm border-blue-500/20 text-blue-400 hover:bg-blue-500/10">
                   <Icon name="film" className="h-4 w-4 mr-2" /> Ajouter des Films via TMDB
                 </Button>
-                <Button onClick={() => setAdminTab("anime")} variant="outline" className="w-full h-9 text-sm border-orange-500/20 text-orange-400 hover:bg-orange-500/10">
+                <Button onClick={() => setAdminTab("anime")} variant="outline" className="w-full h-10 text-sm border-orange-500/20 text-orange-400 hover:bg-orange-500/10">
                   <Icon name="sparkles" className="h-4 w-4 mr-2" /> Synchroniser les Anime (AniList)
                 </Button>
-                <Button onClick={() => setAdminTab("images")} variant="outline" className="w-full h-9 text-sm border-purple-500/20 text-purple-400 hover:bg-purple-500/10">
+                <Button onClick={() => setAdminTab("images")} variant="outline" className="w-full h-10 text-sm border-purple-500/20 text-purple-400 hover:bg-purple-500/10">
                   <Icon name="monitor" className="h-4 w-4 mr-2" /> Corriger les images cassées
                 </Button>
-                <Button onClick={() => setAdminTab("featured")} variant="outline" className="w-full h-9 text-sm border-amber-500/20 text-amber-400 hover:bg-amber-500/10">
+                <Button onClick={() => setAdminTab("featured")} variant="outline" className="w-full h-10 text-sm border-amber-500/20 text-amber-400 hover:bg-amber-500/10">
                   <Icon name="star" className="h-4 w-4 mr-2" /> Gérer les mis en avant (Hero)
                 </Button>
               </section>
@@ -2262,7 +2262,7 @@ function AdminPanel({
                   value={searchQuery}
                   onChange={(e) => { setSearchQuery(e.target.value); if (searchTimerRef.current) clearTimeout(searchTimerRef.current); searchTimerRef.current = setTimeout(() => searchContent(e.target.value), 300); }}
                   placeholder="Rechercher un contenu à ajouter..."
-                  className="pl-9 h-9 text-sm bg-background"
+                  className="pl-10 h-10 text-sm bg-background"
                 />
                 {searchLoading && <Icon name="loader" className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />}
               </div>
@@ -2271,15 +2271,15 @@ function AdminPanel({
               {searchResults.length > 0 && (
                 <div className="border rounded-lg overflow-hidden divide-y divide-border">
                   {searchResults.map((item: any) => (
-                    <div key={item.id} className="flex items-center gap-3 p-2.5 hover:bg-muted/50 transition-colors">
-                      <img src={item.posterUrl} alt="" className="w-8 h-12 object-cover rounded" onError={(e) => handleImgError(e)} />
+                    <div key={item.id} className="flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors">
+                      <img src={item.posterUrl} alt="" className="w-10 h-14 object-cover rounded" onError={(e) => handleImgError(e)} />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{item.titleFr || item.title}</p>
-                        <p className="text-[11px] text-muted-foreground">{item.year} · {item.type} · {(item.rating || 0).toFixed(1)}</p>
+                        <p className="text-xs text-muted-foreground">{item.year} · {item.type} · {(item.rating || 0).toFixed(1)}</p>
                       </div>
                       <button
                         onClick={() => addToFeatured(item.id)}
-                        className="w-8 h-8 flex items-center justify-center rounded-full bg-green-600/20 text-green-400 hover:bg-green-600/30 transition-colors flex-shrink-0"
+                        className="w-9 h-9 flex items-center justify-center rounded-full bg-green-600/20 text-green-400 hover:bg-green-600/30 transition-colors flex-shrink-0"
                         aria-label="Ajouter aux mis en avant"
                       >
                         <Icon name="check" className="h-4 w-4" />
@@ -2292,11 +2292,11 @@ function AdminPanel({
               {/* Current featured list */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                     Contenus mis en avant ({featuredItems.length}/10)
                   </h3>
                   {featuredItems.length > 0 && (
-                    <span className="text-[10px] text-muted-foreground">Hero carousel</span>
+                    <span className="text-xs text-muted-foreground">Hero carousel</span>
                   )}
                 </div>
 
@@ -2310,31 +2310,31 @@ function AdminPanel({
                   <div className="text-center py-8 border border-dashed rounded-lg">
                     <Icon name="star" className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
                     <p className="text-sm text-muted-foreground">Aucun contenu mis en avant</p>
-                    <p className="text-[11px] text-muted-foreground mt-1">Recherchez ci-dessus pour ajouter</p>
+                    <p className="text-xs text-muted-foreground mt-1">Recherchez ci-dessus pour ajouter</p>
                   </div>
                 )}
 
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   {featuredItems.map((item: any, idx: number) => (
                     <motion.div
                       key={item.id}
                       layout
                       initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center gap-2.5 p-2 rounded-lg bg-muted/30 border border-border/50 group hover:bg-muted/60 transition-colors"
+                      className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-border/50 group hover:bg-muted/60 transition-colors"
                     >
                       {/* Order badge */}
-                      <span className="w-6 h-6 flex items-center justify-center rounded-md bg-red-600/20 text-red-400 text-xs font-bold flex-shrink-0">
+                      <span className="w-7 h-7 flex items-center justify-center rounded-lg bg-red-600/20 text-red-400 text-sm font-bold flex-shrink-0">
                         {idx + 1}
                       </span>
 
                       {/* Poster */}
-                      <img src={item.posterUrl} alt="" className="w-8 h-12 object-cover rounded flex-shrink-0" onError={(e) => handleImgError(e)} />
+                      <img src={item.posterUrl} alt="" className="w-10 h-14 object-cover rounded flex-shrink-0" onError={(e) => handleImgError(e)} />
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{item.titleFr || item.title}</p>
-                        <p className="text-[11px] text-muted-foreground">{item.year || "—"} · {item.type} · {(item.rating || 0).toFixed(1)}</p>
+                        <p className="text-xs text-muted-foreground">{item.year || "—"} · {item.type} · {(item.rating || 0).toFixed(1)}</p>
                       </div>
 
                       {/* Actions */}
@@ -2342,25 +2342,25 @@ function AdminPanel({
                         <button
                           onClick={() => moveFeatured(item.id, "up")}
                           disabled={idx === 0}
-                          className="w-7 h-7 flex items-center justify-center rounded hover:bg-muted disabled:opacity-30"
+                          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-muted disabled:opacity-30"
                           aria-label="Monter"
                         >
-                          <Icon name="chevron-up" className="h-3.5 w-3.5" />
+                          <Icon name="chevron-up" className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => moveFeatured(item.id, "down")}
                           disabled={idx === featuredItems.length - 1}
-                          className="w-7 h-7 flex items-center justify-center rounded hover:bg-muted disabled:opacity-30"
+                          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-muted disabled:opacity-30"
                           aria-label="Descendre"
                         >
-                          <Icon name="chevron-down" className="h-3.5 w-3.5" />
+                          <Icon name="chevron-down" className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => removeFromFeatured(item.id)}
-                          className="w-7 h-7 flex items-center justify-center rounded hover:bg-red-500/20 text-red-400"
+                          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-500/20 text-red-400"
                           aria-label="Retirer"
                         >
-                          <Icon name="x" className="h-3.5 w-3.5" />
+                          <Icon name="x" className="h-4 w-4" />
                         </button>
                       </div>
                     </motion.div>
@@ -2369,7 +2369,7 @@ function AdminPanel({
               </div>
 
               {featuredItems.length > 0 && (
-                <p className="text-[11px] text-muted-foreground text-center">
+                <p className="text-xs text-muted-foreground text-center">
                   ℹ️ Les {Math.min(featuredItems.length, 8)} premiers apparaissent dans le hero. Survolez un élément pour réordonner.
                 </p>
               )}
