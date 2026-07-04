@@ -299,7 +299,15 @@ export function generateAllEmbeds(
   const embeds: ReturnType<typeof generateAllEmbeds> = [];
 
   const isMovie = type === "movie";
-  const effectiveSeasons = Math.min(seasons, maxSeasons);
+  // When real episode counts per season are available, derive season count from them
+  // (more reliable than number_of_seasons from the list API which can be missing)
+  let effectiveSeasons: number;
+  if (seasonEpisodeCounts && Object.keys(seasonEpisodeCounts).length > 0) {
+    effectiveSeasons = Math.max(...Object.keys(seasonEpisodeCounts).map(Number));
+  } else {
+    effectiveSeasons = seasons;
+  }
+  effectiveSeasons = Math.min(effectiveSeasons, maxSeasons);
 
   for (const provider of active) {
     if (isMovie) {

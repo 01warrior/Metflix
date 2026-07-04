@@ -287,11 +287,14 @@ async function handleSync(request: NextRequest) {
                     seasonEpisodeCounts[season.season_number] = season.episode_count;
                   }
                 }
+                console.log(`[TMDB Sync] ${item.name || item.title} (ID:${item.id}): ${Object.keys(seasonEpisodeCounts).length} seasons from TMDB details, list API says ${item.number_of_seasons || 'undefined'}`);
+              } else {
+                console.log(`[TMDB Sync] ${item.name || item.title} (ID:${item.id}): no seasons in TV details response`);
               }
               // Rate limit: 250ms between TMDB detail requests
               await new Promise((r) => setTimeout(r, 250));
-            } catch {
-              // Fall back to maxEpsPerSeason for all seasons
+            } catch (err) {
+              console.warn(`[TMDB Sync] ${item.name || item.title} (ID:${item.id}): getTvDetails failed, using fallback`, err);
             }
           }
 

@@ -701,7 +701,6 @@ export function DetailView() {
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold text-foreground">Épisodes</h3>
                 {availableSeasons.length > 0 && (
-                  availableSeasons.length > 1 ? (
                     <Select
                       value={String(selectedSeason)}
                       onValueChange={(val) => handleSeasonChange(Number(val))}
@@ -717,11 +716,6 @@ export function DetailView() {
                         ))}
                       </SelectContent>
                     </Select>
-                  ) : (
-                    <span className="text-xs text-muted-foreground px-3 py-1.5 rounded-md bg-muted/50 border border-border/50">
-                      Saison {availableSeasons[0]}
-                    </span>
-                  )
                 )}
               </div>
             </div>
