@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { useAppStore, type WatchHistoryItem } from "@/store/app-store";
 import { Icon } from "@/lib/icons";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { HeroSection } from "./hero-section";
 import { ContentRow } from "./content-row";
 import { ContentCard } from "./content-card";
@@ -157,25 +157,7 @@ export function HomeView() {
     setSelectedContentId,
     setView,
   } = useAppStore();
-  const [surpriseLoading, setSurpriseLoading] = useState(false);
 
-  const handleSurpriseMe = async () => {
-    if (surpriseLoading) return;
-    setSurpriseLoading(true);
-    try {
-      const res = await fetch("/api/content/random");
-      if (!res.ok) return;
-      const json = await res.json();
-      if (json.data?.id) {
-        setSelectedContentId(json.data.id);
-        setView("detail");
-      }
-    } catch {
-      // silently fail
-    } finally {
-      setSurpriseLoading(false);
-    }
-  };
 
   return (
     <motion.div
@@ -203,53 +185,7 @@ export function HomeView() {
                 NEW
               </span>
             </div>
-            <motion.button
-              onClick={handleSurpriseMe}
-              disabled={surpriseLoading}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="
-                flex items-center gap-1.5
-                px-3 py-1.5 md:px-4 md:py-2
-                rounded-full text-xs md:text-sm font-semibold text-white
-                bg-gradient-to-r from-purple-600 to-fuchsia-600
-                hover:from-purple-500 hover:to-fuchsia-500
-                disabled:opacity-70 disabled:cursor-not-allowed
-                transition-shadow duration-200 hover:shadow-lg hover:shadow-purple-500/25
-                select-none
-              "
-              aria-label="Découverte Aléatoire"
-            >
-              <motion.span
-                animate={surpriseLoading ? { rotate: 360 } : { rotate: 0 }}
-                transition={surpriseLoading ? { duration: 0.6, repeat: Infinity, ease: "linear" } : { duration: 0 }}
-              >
-                <Icon name="sparkles" className="h-3.5 w-3.5 md:h-4 md:w-4" />
-              </motion.span>
-              <AnimatePresence mode="wait">
-                {surpriseLoading ? (
-                  <motion.span
-                    key="loading"
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    className="whitespace-nowrap"
-                  >
-                    Chargement...
-                  </motion.span>
-                ) : (
-                  <motion.span
-                    key="idle"
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    className="whitespace-nowrap"
-                  >
-                    Surprise Me
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </motion.button>
+
           </div>
           <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
             {latestContent.map((item) => (
