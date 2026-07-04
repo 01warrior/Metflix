@@ -10,6 +10,7 @@ import {
   tmdbToContentData,
   type TmdbMedia,
   validateTmdbApiKey,
+  getTvDetails,
 } from "@/lib/tmdb";
 import { generateAllEmbeds } from "@/lib/embed-providers";
 
@@ -273,13 +274,35 @@ async function handleSync(request: NextRequest) {
         const contentId = existingId || existingByTmdbId.get(item.id);
         if (contentId && !contentIdsWithEmbeds.has(contentId)) {
           const realSeasons = contentType === "series" ? (item.number_of_seasons || 1) : 1;
+
+          // For series: fetch TV details to get real episode count per season
+          let seasonEpisodeCounts: Record<number, number> | undefined;
+          if (contentType === "series") {
+            try {
+              const tvDetails = await getTvDetails(item.id);
+              if (tvDetails?.seasons) {
+                seasonEpisodeCounts = {};
+                for (const season of tvDetails.seasons) {
+                  if (season.season_number > 0 && season.episode_count > 0) {
+                    seasonEpisodeCounts[season.season_number] = season.episode_count;
+                  }
+                }
+              }
+              // Rate limit: 250ms between TMDB detail requests
+              await new Promise((r) => setTimeout(r, 250));
+            } catch {
+              // Fall back to maxEpsPerSeason for all seasons
+            }
+          }
+
           const embeds = generateAllEmbeds(
             item.id,
             contentType as "movie" | "series",
             realSeasons,
             seriesMaxSeasons,
             seriesMaxEpsPerSeason,
-            item.number_of_episodes
+            item.number_of_episodes,
+            seasonEpisodeCounts
           );
           if (embeds.length > 0) {
             for (let i = 0; i < embeds.length; i += 500) {

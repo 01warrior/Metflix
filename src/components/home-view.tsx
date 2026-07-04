@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 // ==================== WATCH HISTORY CARD ====================
 
-function WatchHistoryCard({ item, onClick }: { item: WatchHistoryItem; onClick: () => void }) {
+function WatchHistoryCard({ item, onClick, onRemove }: { item: WatchHistoryItem; onClick: () => void; onRemove: () => void }) {
   const [imgLoaded, setImgLoaded] = useState(false);
 
   return (
@@ -39,6 +39,17 @@ function WatchHistoryCard({ item, onClick }: { item: WatchHistoryItem; onClick: 
         <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded text-[10px] font-bold bg-white/20 backdrop-blur-sm text-white">
           {item.type === "movie" ? "Film" : item.type === "series" ? "Série" : item.type === "anime" ? "Anime" : "Manga"}
         </span>
+        {/* Remove button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+          className="absolute top-2 right-2 z-20 w-6 h-6 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-500/80 hover:scale-110"
+          aria-label="Supprimer de Continuer à regarder"
+        >
+          <Icon name="x" className="h-3 w-3 text-white" />
+        </button>
         {/* Reprendre button overlay */}
         <div className="absolute inset-0 flex flex-col items-center justify-end pb-8 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg bg-white/90 mb-2 group-hover:scale-110 transition-transform">
@@ -71,7 +82,7 @@ function WatchHistoryCard({ item, onClick }: { item: WatchHistoryItem; onClick: 
 
 function WatchHistoryRow({ items }: { items: WatchHistoryItem[] }) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { setSelectedContentId, setView } = useAppStore();
+  const { setSelectedContentId, setView, removeFromWatchHistory } = useAppStore();
 
   const scroll = (dir: "left" | "right") => {
     if (!scrollRef.current) return;
@@ -115,6 +126,7 @@ function WatchHistoryRow({ items }: { items: WatchHistoryItem[] }) {
                   setSelectedContentId(item.contentId);
                   setView("detail");
                 }}
+                onRemove={() => removeFromWatchHistory(item.contentId)}
               />
             </div>
           ))}

@@ -177,6 +177,7 @@ interface AppState {
   initFavorites: () => void;
   initWatchHistory: () => void;
   addToWatchHistory: (item: { id: string; title: string; posterUrl: string; type: string }) => void;
+  removeFromWatchHistory: (contentId: string) => void;
   openMangaReader: (pages: string[], title: string, chapters: { id: string; chapter: string | null; title: string | null; volume: string | null; pages: number; publishAt: string | null; readableAt: string | null }[]) => void;
   closeMangaReader: () => void;
   setMangaReaderPage: (page: number) => void;
@@ -277,6 +278,12 @@ export const useAppStore = create<AppState>((set, get) => ({
     const limited = updated.slice(0, 20);
     set({ watchHistory: limited });
     saveWatchHistory(limited);
+  },
+  removeFromWatchHistory: (contentId) => {
+    const current = get().watchHistory;
+    const updated = current.filter((h) => h.contentId !== contentId);
+    set({ watchHistory: updated });
+    saveWatchHistory(updated);
   },
   toggleFavorite: (id) => {
     const current = get().favorites;

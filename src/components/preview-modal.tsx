@@ -22,7 +22,7 @@ export function PreviewModal() {
     useAppStore();
   const [trailerKey, setTrailerKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [muted, setMuted] = useState(true);
+  const [muted, setMuted] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const isFav = previewItem ? favorites.includes(previewItem.id) : false;
@@ -118,14 +118,17 @@ export function PreviewModal() {
 
             {/* Trailer iframe or backdrop image */}
             {hasTrailer ? (
-              <iframe
-                ref={iframeRef}
-                src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=${muted ? 1 : 0}&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${trailerKey}&iv_load_policy=3&disablekb=1&fs=0&playsinline=1`}
-                className="absolute inset-0 w-full h-full"
-                allow="autoplay; encrypted-media"
-                allowFullScreen
-                title="Bande-annonce"
-              />
+              <div className="absolute inset-0 overflow-hidden">
+                <iframe
+                  ref={iframeRef}
+                  src={`https://www.youtube-nocookie.com/embed/${trailerKey}?autoplay=1&mute=${muted ? 1 : 0}&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${trailerKey}&iv_load_policy=3&disablekb=1&fs=0&playsinline=1`}
+                  className="absolute w-[calc(100%+120px)] h-[calc(100%+100px)] -left-[60px] -top-[50px]"
+                  style={{ pointerEvents: 'none' }}
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                  title="Bande-annonce"
+                />
+              </div>
             ) : (
               <>
                 <img
@@ -147,7 +150,7 @@ export function PreviewModal() {
             {hasTrailer && (
               <button
                 onClick={(e) => { e.stopPropagation(); setMuted(!muted); }}
-                className="absolute bottom-3 right-3 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-black/60 backdrop-blur-sm text-white hover:bg-black/80 transition-colors"
+                className="absolute bottom-3 left-3 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-black/60 backdrop-blur-sm text-white hover:bg-black/80 transition-colors"
                 aria-label={muted ? "Activer le son" : "Couper le son"}
               >
                 <Icon name={muted ? "volume-x" : "volume-2"} className="h-4 w-4" />

@@ -13,6 +13,7 @@ import { FavoritesView } from "@/components/favorites-view";
 import { Footer } from "@/components/footer";
 import { PreviewModal } from "@/components/preview-modal";
 import { MangaReader } from "@/components/manga-reader";
+import { RedirectBlocker } from "@/components/redirect-blocker";
 
 export default function Page() {
   const {
@@ -94,6 +95,7 @@ export default function Page() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
+      <RedirectBlocker />
       <Header />
 
       <main className="flex-1">

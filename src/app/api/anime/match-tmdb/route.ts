@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { findBestTmdbMatch, tmdbPosterUrl, tmdbBackdropUrl, validateTmdbApiKey } from "@/lib/tmdb";
+import { findBestTmdbMatch, tmdbPosterUrl, tmdbBackdropUrl, validateTmdbApiKey, getTvDetails } from "@/lib/tmdb";
 import { generateAllEmbeds } from "@/lib/embed-providers";
 
 /**
@@ -38,6 +38,8 @@ export async function POST(request: NextRequest) {
     const dryRun = searchParams.get("dryRun") === "true";
     const type = searchParams.get("type") || "anime";
     const updateImages = searchParams.get("updateImages") === "true";
+    const maxEpsParam = Number(searchParams.get("maxEpsPerSeason")) || 0;
+    const maxEpsPerSeason = maxEpsParam > 0 ? Math.min(maxEpsParam, 50) : 40;
 
     // Build where clause
     const where: Record<string, unknown> = {
@@ -98,12 +100,34 @@ export async function POST(request: NextRequest) {
 
             // Generate embeds
             const contentType = item.type as "movie" | "series" | "anime";
+            const mediaType = contentType === "movie" ? "movie" : "tv";
+
+            // For series/anime: fetch TV details to get real episode count per season
+            let seasonEpisodeCounts: Record<number, number> | undefined;
+            if (contentType !== "movie") {
+              try {
+                const tvDetails = await getTvDetails(match.tmdbId);
+                if (tvDetails?.seasons) {
+                  seasonEpisodeCounts = {};
+                  for (const season of tvDetails.seasons) {
+                    if (season.season_number > 0 && season.episode_count > 0) {
+                      seasonEpisodeCounts[season.season_number] = season.episode_count;
+                    }
+                  }
+                }
+              } catch {
+                // Fall back to maxEpsPerSeason
+              }
+            }
+
             const embeds = generateAllEmbeds(
               match.tmdbId,
               contentType,
               item.seasons || 1,
-              5,
-              3,
+              50,
+              maxEpsPerSeason,
+              undefined,
+              seasonEpisodeCounts,
             );
 
             if (embeds.length > 0) {

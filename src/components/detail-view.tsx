@@ -45,6 +45,8 @@ export function DetailView() {
   const [selectedEpisode, setSelectedEpisode] = useState<string | null>(null);
   const [selectedSeason, setSelectedSeason] = useState<number>(1);
   const [iframeKey, setIframeKey] = useState(0);
+  const playerContainerRef = useRef<HTMLDivElement>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   // MangaDex state
   const [mangadexId, setMangadexId] = useState<string | null>(null);
   const [mangadexChapters, setMangadexChapters] = useState<MangaDexChapter[]>([]);
@@ -56,9 +58,8 @@ export function DetailView() {
   const [cast, setCast] = useState<{ id: number; name: string; character: string; profileUrl: string; order: number }[]>([]);
   const [crew, setCrew] = useState<{ id: number; name: string; job: string; department: string; profileUrl: string }[]>([]);
   const [castLoading, setCastLoading] = useState(false);
-  // Trailer state
-  const [trailer, setTrailer] = useState<{ key: string; name: string; type: string; site: string; official?: boolean } | null>(null);
-  const [showTrailer, setShowTrailer] = useState(false);
+  // Server sidebar panel
+  const [serverPanelOpen, setServerPanelOpen] = useState(true);
 
   // Group episodes by season (before any early returns to satisfy rules-of-hooks)
   const seasonMap = useMemo(() => {
@@ -90,8 +91,6 @@ export function DetailView() {
     setSelectedEpisode(null);
     setSelectedSeason(1);
     setCurrentEmbed(null);
-    setTrailer(null);
-    setShowTrailer(false);
     setLoading(true);
     try {
       const res = await fetch(`/api/content/${id}`);
@@ -110,15 +109,6 @@ export function DetailView() {
           })
           .catch(() => { setCast([]); setCrew([]); })
           .finally(() => setCastLoading(false));
-        // Fetch trailer from TMDB videos API
-        fetch(`/api/tmdb/videos?tmdbId=${data.tmdbId}&type=${data.type}`)
-          .then((r) => r.json())
-          .then((videoData) => {
-            if (videoData.trailer) {
-              setTrailer(videoData.trailer);
-            }
-          })
-          .catch(() => { setTrailer(null); });
       } else {
         setCast([]);
         setCrew([]);
@@ -143,6 +133,23 @@ export function DetailView() {
       setLoading(false);
     }
   }, [setContentDetail, setCurrentEmbed, setSelectedEpisode, setSelectedSeason, toast]);
+
+  // Custom fullscreen toggle (avoids interacting with embed controls)
+  const toggleFullscreen = useCallback(() => {
+    if (!playerContainerRef.current) return;
+    if (!document.fullscreenElement) {
+      playerContainerRef.current.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {});
+    } else {
+      document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => {});
+    }
+  }, []);
+
+  // Listen for fullscreen changes (e.g. user presses Escape)
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", handler);
+    return () => document.removeEventListener("fullscreenchange", handler);
+  }, []);
 
   // Search MangaDex when manga detail loads
   const fetchMangaDexChapters = useCallback(async (mangaTitle: string) => {
@@ -440,196 +447,160 @@ export function DetailView() {
           </div>
         </div>
       ) : (
-        <div className="player-container mb-6">
-          {/* Trailer overlay */}
-          <AnimatePresence>
-            {showTrailer && trailer && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="absolute inset-0 z-30 bg-black flex flex-col"
-              >
-                {/* Trailer header with close button */}
-                <div className="flex items-center justify-between px-4 py-2.5 bg-gradient-to-b from-black/80 to-transparent">
-                  <div className="flex items-center gap-2">
-                    <Icon name="play-circle" className="h-5 w-5 text-red-500" />
-                    <span className="text-sm font-medium text-white truncate max-w-[300px]">
-                      {trailer.name}
-                    </span>
+      <div className="relative mb-6">
+        <div className="flex gap-0 aspect-video">
+          {/* Player area */}
+          <div className={`flex-1 min-w-0 relative overflow-hidden bg-black transition-[border-radius] duration-200 ${serverPanelOpen ? 'rounded-l-xl' : 'rounded-xl'}`} ref={playerContainerRef} data-player-container>
+            {currentEmbed ? (
+              <>
+                {playerLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/60">
+                    <Icon name="loader" className="h-8 w-8 animate-spin text-red-500" />
                   </div>
-                  <button
-                    onClick={() => setShowTrailer(false)}
-                    className="w-9 h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white"
-                    aria-label="Fermer la bande-annonce"
-                  >
-                    <Icon name="x" className="h-5 w-5" />
-                  </button>
-                </div>
-                {/* YouTube iframe */}
+                )}
+                {/* Custom fullscreen button - always visible with text */}
+                <button
+                  onClick={toggleFullscreen}
+                  className="absolute top-2 right-2 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-black/80 backdrop-blur-sm hover:bg-black/95 transition-all duration-200 hover:scale-105 border border-white/10 hover:border-white/25"
+                  aria-label={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
+                >
+                  <Icon name={isFullscreen ? "minimize" : "maximize"} className="h-3.5 w-3.5 text-white flex-shrink-0" />
+                  <span className="text-[11px] font-semibold text-white whitespace-nowrap">
+                    {isFullscreen ? "Réduire" : "Plein écran"}
+                  </span>
+                </button>
                 <iframe
-                  key={`trailer-${trailer.key}`}
-                  src={`https://www.youtube-nocookie.com/embed/${trailer.key}`}
-                  className="flex-1 w-full border-0"
-                  allowFullScreen
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  title={trailer.name}
+                  key={iframeKey}
+                  src={currentEmbed.url}
+                  className="absolute inset-0 w-full h-full border-0"
+                  sandbox="allow-scripts allow-same-origin allow-forms"
+                  referrerPolicy="no-referrer"
+                  allow="autoplay; encrypted-media"
+                  onLoad={() => setPlayerLoading(false)}
+                  title="Player"
                 />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {currentEmbed && !showTrailer ? (
-          <>
-            {playerLoading && (
-              <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/60">
-                <Icon name="loader" className="h-8 w-8 animate-spin text-red-500" />
+              </>
+            ) : contentDetail.embedGroups.length === 0 ? (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center px-4">
+                  <Icon name="server" className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
+                  <p className="text-muted-foreground font-medium mb-1">Aucun serveur disponible</p>
+                  <p className="text-muted-foreground/70 text-sm">
+                    {contentDetail.type === "anime"
+                      ? "Cet anime n'a pas encore été matché avec TMDB. Utilisez l'Administration → Auto-Match TMDB pour ajouter des liens."
+                      : "Ce contenu n'a pas de liens streaming disponibles."}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center">
+                  <Icon name="monitor" className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-muted-foreground">Sélectionnez un serveur</p>
+                  {!serverPanelOpen && (
+                    <button
+                      onClick={() => setServerPanelOpen(true)}
+                      className="mt-3 inline-flex items-center gap-1.5 text-xs text-red-400 hover:text-red-300 transition-colors"
+                    >
+                      Ouvrir le panneau
+                      <Icon name="chevron-left" className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
               </div>
             )}
-            <iframe
-              key={iframeKey}
-              src={currentEmbed.url}
-              className="absolute inset-0 w-full h-full border-0"
-              allowFullScreen
-              allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-              onLoad={() => setPlayerLoading(false)}
-              title="Player"
-            />
-          </>
-        ) : !showTrailer && contentDetail.embedGroups.length === 0 ? (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center px-4">
-              <Icon name="server" className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
-              <p className="text-muted-foreground font-medium mb-1">Aucun serveur disponible</p>
-              <p className="text-muted-foreground/70 text-sm">
-                {contentDetail.type === "anime"
-                  ? "Cet anime n'a pas encore été matché avec TMDB. Utilisez l'Administration → Auto-Match TMDB pour ajouter des liens."
-                  : "Ce contenu n'a pas de liens streaming disponibles."}
-              </p>
-            </div>
           </div>
-        ) : !showTrailer ? (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center">
-              <Icon name="monitor" className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-              <p className="text-muted-foreground">Sélectionnez un serveur ci-dessous</p>
-            </div>
-          </div>
-        ) : null}
+
+          {/* Server Sidebar (collapsible) */}
+          {contentDetail.embedGroups.length > 0 && (
+            <AnimatePresence initial={false}>
+              {serverPanelOpen && (
+                <motion.div
+                  key="server-sidebar"
+                  initial={{ width: 0, opacity: 0 }}
+                  animate={{ width: 200, opacity: 1 }}
+                  exit={{ width: 0, opacity: 0 }}
+                  transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+                  className="h-full flex-shrink-0 overflow-hidden"
+                >
+                  <div className="w-[200px] h-full rounded-r-xl border-l border-border/40 bg-card/95 backdrop-blur-sm flex flex-col">
+                    {/* Header */}
+                    <div className="flex items-center justify-between px-3 pt-3 pb-2">
+                      <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                        <Icon name="server" className="h-4 w-4 text-red-400" />
+                        Serveurs
+                      </h3>
+                      <button
+                        onClick={() => setServerPanelOpen(false)}
+                        className="w-6 h-6 flex items-center justify-center rounded hover:bg-muted transition-colors"
+                        aria-label="Fermer"
+                      >
+                        <Icon name="chevron-right" className="h-4 w-4 text-muted-foreground" />
+                      </button>
+                    </div>
+
+                    {/* Language filter */}
+                    <div className="flex gap-1 px-3 pb-2">
+                      <button onClick={() => setDetailLangFilter(null)} className={`px-2 py-0.5 rounded-full text-[10px] font-medium transition-colors ${!detailLangFilter ? "bg-red-600/20 text-red-400" : "bg-muted text-muted-foreground"}`}>
+                        Tous
+                      </button>
+                      <button onClick={() => setDetailLangFilter(detailLangFilter === "vostfr" ? null : "vostfr")} className={`px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider transition-colors ${detailLangFilter === "vostfr" ? "bg-amber-600/20 text-amber-400" : "bg-muted text-muted-foreground"}`}>
+                        VOSTFR
+                      </button>
+                      <button onClick={() => setDetailLangFilter(detailLangFilter === "vf" ? null : "vf")} className={`px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider transition-colors ${detailLangFilter === "vf" ? "bg-emerald-600/20 text-emerald-400" : "bg-muted text-muted-foreground"}`}>
+                        VF
+                      </button>
+                    </div>
+                    <div className="mx-3 h-px bg-border/40" />
+
+                    {/* Server list */}
+                    <div className="flex-1 overflow-y-auto p-2 space-y-1.5 custom-scrollbar">
+                      {/* Movies: all servers */}
+                      {!isSeriesOrAnime && contentDetail.embedGroups[0].embeds
+                        .filter((embed) => !detailLangFilter || (embed.hostConfig?.langs || ["vostfr"]).includes(detailLangFilter))
+                        .map((embed) => (
+                          <ServerButton key={embed.id} embed={embed} isActive={currentEmbed?.id === embed.id} onClick={() => handleEmbedClick(embed)} />
+                        ))
+                      }
+                      {/* Series/Anime: servers for selected episode */}
+                      {isSeriesOrAnime && selectedEpisode && contentDetail.embedGroups
+                        .find((g) => {
+                          const k = g.season != null && g.episode != null ? `S${g.season}E${g.episode}` : "all";
+                          return k === selectedEpisode;
+                        })
+                        ?.embeds
+                        .filter((embed) => !detailLangFilter || (embed.hostConfig?.langs || ["vostfr"]).includes(detailLangFilter))
+                        .map((embed) => (
+                          <ServerButton key={embed.id} embed={embed} isActive={currentEmbed?.id === embed.id} onClick={() => handleEmbedClick(embed, selectedEpisode)} />
+                        ))
+                      }
+                      {/* No episode selected */}
+                      {isSeriesOrAnime && !selectedEpisode && (
+                        <div className="flex flex-col items-center justify-center py-8 text-center">
+                          <Icon name="layers" className="h-8 w-8 text-muted-foreground/40 mb-2" />
+                          <p className="text-xs text-muted-foreground">Sélectionnez un épisode</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          )}
+        </div>
+
+        {/* Toggle tab - visible when sidebar is closed */}
+        {!serverPanelOpen && contentDetail.embedGroups.length > 0 && (
+          <button
+            onClick={() => setServerPanelOpen(true)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex items-center rounded-l-lg bg-card/90 backdrop-blur-sm border border-r-0 border-border/50 shadow-xl hover:bg-muted transition-all duration-200 py-5 pl-1.5 pr-1"
+            aria-label="Afficher les serveurs"
+          >
+            <Icon name="chevron-left" className="h-4 w-4 text-muted-foreground" />
+          </button>
+        )}
       </div>
       )}
-
-      {/* Action bar: Trailer + Ma Liste (non-manga only) */}
-      {!isManga && (
-        <div className="flex items-center gap-3 mb-4">
-          {trailer && (
-            <Button
-              onClick={() => setShowTrailer(true)}
-              className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white"
-            >
-              <Icon name="play-circle" className="h-4 w-4" />
-              Bande-annonce
-            </Button>
-          )}
-          <Button
-            variant="outline"
-            onClick={handleFav}
-            className="flex items-center gap-2 border-border bg-card hover:bg-muted text-foreground"
-          >
-            <Icon
-              name="heart"
-              className={`h-4 w-4 ${isFav ? "fill-red-500 text-red-500" : ""}`}
-            />
-            Ma Liste
-          </Button>
-        </div>
-      )}
-
-      {/* Trailer thumbnail teaser (non-manga, trailer available, not playing) */}
-      {!isManga && trailer && !showTrailer && (
-        <motion.button
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.3 }}
-          onClick={() => setShowTrailer(true)}
-          className="group relative w-full aspect-video rounded-lg overflow-hidden border border-border/60 bg-card mb-6 cursor-pointer"
-        >
-          <img
-            src={`https://img.youtube.com/vi/${trailer.key}/hqdefault.jpg`}
-            alt={trailer.name}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-          />
-          <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-            <div className="w-14 h-14 rounded-full bg-red-600/90 flex items-center justify-center shadow-lg shadow-red-600/30 group-hover:scale-110 transition-transform">
-              <Icon name="play" className="h-6 w-6 text-white ml-1" />
-            </div>
-          </div>
-          <div className="absolute bottom-0 left-0 right-0 px-4 py-3 bg-gradient-to-t from-black/80 to-transparent">
-            <p className="text-xs font-semibold text-white">Bande-annonce</p>
-            <p className="text-[10px] text-white/70 truncate">{trailer.name}</p>
-          </div>
-        </motion.button>
-      )}
-
-      {/* Server buttons + Episode selector (not for manga) */}
-      {!isManga && <div className="space-y-4 mb-8">
-        {/* Language filter for servers */}
-        <div className="flex items-center gap-2">
-          <Icon name="languages" className="h-4 w-4 text-muted-foreground" />
-          <div className="flex gap-1.5">
-            <button
-              onClick={() => setDetailLangFilter(null)}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                !detailLangFilter ? "bg-red-600/20 text-red-400" : "bg-muted text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Tous
-            </button>
-            <button
-              onClick={() => setDetailLangFilter(detailLangFilter === "vostfr" ? null : "vostfr")}
-              className={`px-3 py-1 rounded-full text-xs font-bold tracking-wider transition-colors ${
-                detailLangFilter === "vostfr" ? "bg-amber-600/20 text-amber-400" : "bg-muted text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              VOSTFR
-            </button>
-            <button
-              onClick={() => setDetailLangFilter(detailLangFilter === "vf" ? null : "vf")}
-              className={`px-3 py-1 rounded-full text-xs font-bold tracking-wider transition-colors ${
-                detailLangFilter === "vf" ? "bg-emerald-600/20 text-emerald-400" : "bg-muted text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              VF
-            </button>
-          </div>
-        </div>
-
-        {/* For movies: show server buttons directly */}
-        {!isSeriesOrAnime && contentDetail.embedGroups.length > 0 && (
-          <div>
-            <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-              <Icon name="server" className="h-4 w-4" />
-              Serveurs disponibles
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {contentDetail.embedGroups[0].embeds
-                .filter((embed) => !detailLangFilter || (embed.hostConfig?.langs || ["vostfr"]).includes(detailLangFilter))
-                .map((embed) => (
-                <ServerButton
-                  key={embed.id}
-                  embed={embed}
-                  isActive={currentEmbed?.id === embed.id}
-                  onClick={() => handleEmbedClick(embed)}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* For series/anime: Netflix-style layout (handled below with info) */}
-      </div>}
 
       {/* ========== SERIES/ANIME: Netflix-style two-column layout ========== */}
       {isSeriesOrAnime && (
@@ -721,33 +692,6 @@ export function DetailView() {
                 )}
               </div>
             </div>
-
-            {/* Server buttons for current episode */}
-            {selectedEpisode && (
-              <div>
-                <h4 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-                  <Icon name="server" className="h-4 w-4" />
-                  Serveurs — Épisode {currentSeasonEpisodes.find((g) => `S${g.season}E${g.episode}` === selectedEpisode)?.episode || ""}
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {contentDetail.embedGroups
-                    .find((g) => {
-                      const k = g.season != null && g.episode != null ? `S${g.season}E${g.episode}` : "all";
-                      return k === selectedEpisode;
-                    })
-                    ?.embeds
-                    .filter((embed) => !detailLangFilter || (embed.hostConfig?.langs || ["vostfr"]).includes(detailLangFilter))
-                    .map((embed) => (
-                      <ServerButton
-                        key={embed.id}
-                        embed={embed}
-                        isActive={currentEmbed?.id === embed.id}
-                        onClick={() => handleEmbedClick(embed, selectedEpisode)}
-                      />
-                    ))}
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Right column: Season dropdown + Episode list */}
@@ -756,22 +700,28 @@ export function DetailView() {
             <div className="p-4 border-b border-border/50">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold text-foreground">Épisodes</h3>
-                {availableSeasons.length > 1 && (
-                  <Select
-                    value={String(selectedSeason)}
-                    onValueChange={(val) => handleSeasonChange(Number(val))}
-                  >
-                    <SelectTrigger className="w-[140px] h-9 text-xs bg-muted/50 border-border/50">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableSeasons.map((s) => (
-                        <SelectItem key={s} value={String(s)} className="text-xs">
-                          Saison {s}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                {availableSeasons.length > 0 && (
+                  availableSeasons.length > 1 ? (
+                    <Select
+                      value={String(selectedSeason)}
+                      onValueChange={(val) => handleSeasonChange(Number(val))}
+                    >
+                      <SelectTrigger className="w-[140px] h-9 text-xs bg-muted/50 border-border/50">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableSeasons.map((s) => (
+                          <SelectItem key={s} value={String(s)} className="text-xs">
+                            Saison {s}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <span className="text-xs text-muted-foreground px-3 py-1.5 rounded-md bg-muted/50 border border-border/50">
+                      Saison {availableSeasons[0]}
+                    </span>
+                  )
                 )}
               </div>
             </div>
@@ -1055,7 +1005,7 @@ export function ServerButton({
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all border-2"
+      className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-[13px] font-bold transition-all border-2 w-full"
       style={{
         borderColor: isActive ? hostColor : "transparent",
         backgroundColor: isActive ? `${hostColor}15` : "oklch(0.18 0 0)",
@@ -1064,17 +1014,17 @@ export function ServerButton({
       }}
     >
       <span
-        className="w-2 h-2 rounded-full flex-shrink-0"
+        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
         style={{ backgroundColor: hostColor }}
       />
-      <span>{hostLabel}</span>
+      <span className="truncate min-w-0">{hostLabel}</span>
       {hasVF && (
-        <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-emerald-500/20 text-emerald-400">
+        <span className="px-1.5 py-0.5 rounded text-[7px] font-bold bg-emerald-500/20 text-emerald-400">
           VF
         </span>
       )}
       <span
-        className="px-1.5 py-0.5 rounded text-[9px] font-bold"
+        className="px-1.5 py-0.5 rounded text-[8px] font-bold"
         style={{
           backgroundColor: `${hostColor}25`,
           color: hostColor,

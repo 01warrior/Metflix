@@ -12,9 +12,12 @@ export function Header() {
   const { setView, setShowSearch, favorites, currentView, setSelectedType, selectedType } =
     useAppStore();
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -101,9 +104,13 @@ export function Header() {
           <button
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
-            aria-label={theme === "dark" ? "Thème clair" : "Thème sombre"}
+            aria-label={mounted ? (theme === "dark" ? "Thème clair" : "Thème sombre") : "Changer le thème"}
           >
-            <Icon name={theme === "dark" ? "sun" : "moon"} className="h-5 w-5 text-muted-foreground" />
+            {mounted ? (
+              <Icon name={theme === "dark" ? "sun" : "moon"} className="h-5 w-5 text-muted-foreground" />
+            ) : (
+              <span className="h-5 w-5 block" />
+            )}
           </button>
           <button
             onClick={() => setAdminOpen(true)}

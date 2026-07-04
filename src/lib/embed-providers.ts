@@ -273,6 +273,9 @@ export function getProviderById(id: string): EmbedProvider | undefined {
 
 /**
  * Generate all embed URLs for a content item
+ * 
+ * @param seasonEpisodeCounts Optional map of season number → real episode count.
+ *   If provided, uses real counts (capped at maxEpsPerSeason) instead of maxEpsPerSeason for all seasons.
  */
 export function generateAllEmbeds(
   tmdbId: number,
@@ -280,7 +283,8 @@ export function generateAllEmbeds(
   seasons: number = 1,
   maxSeasons: number = 5,
   maxEpsPerSeason: number = 3,
-  totalEpisodes?: number
+  totalEpisodes?: number,
+  seasonEpisodeCounts?: Record<number, number>
 ): {
   serverName: string;
   serverType: string;
@@ -309,12 +313,23 @@ export function generateAllEmbeds(
       });
     } else {
       // TV/Anime - generate for each episode
-      const epsInSeason1 = totalEpisodes
-        ? Math.min(totalEpisodes, maxEpsPerSeason)
-        : maxEpsPerSeason;
-
       for (let s = 1; s <= effectiveSeasons; s++) {
-        const eps = s === 1 ? epsInSeason1 : maxEpsPerSeason;
+        // Determine episode count for this season
+        let eps: number;
+        if (seasonEpisodeCounts && seasonEpisodeCounts[s]) {
+          // Use real TMDB episode count, capped at maxEpsPerSeason
+          eps = Math.min(seasonEpisodeCounts[s], maxEpsPerSeason);
+        } else if (s === 1 && totalEpisodes) {
+          // Legacy fallback: totalEpisodes (total across all seasons) for season 1
+          eps = Math.min(totalEpisodes, maxEpsPerSeason);
+        } else {
+          // No data — use maxEpsPerSeason as upper bound
+          eps = maxEpsPerSeason;
+        }
+
+        // Skip seasons with 0 episodes (specials, empty seasons)
+        if (eps <= 0) continue;
+
         for (let e = 1; e <= eps; e++) {
           embeds.push({
             serverName: provider.name,
