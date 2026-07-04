@@ -109,6 +109,13 @@ export function AdminPanel({
   const [seriesMaxEps, setSeriesMaxEps] = useState(10);
   const [regenerateEmbeds, setRegenerateEmbeds] = useState(false);
 
+  // Manga sync state
+  const [mangaSyncLoading, setMangaSyncLoading] = useState(false);
+  const [mangaSyncResult, setMangaSyncResult] = useState<any>(null);
+  const [mangaTrendingPages, setMangaTrendingPages] = useState(2);
+  const [mangaPopularPages, setMangaPopularPages] = useState(2);
+  const [mangaTopRatedPages, setMangaTopRatedPages] = useState(2);
+
   // Match state
   const [matchLoading, setMatchLoading] = useState(false);
   const [matchResult, setMatchResult] = useState<any>(null);
@@ -124,7 +131,7 @@ export function AdminPanel({
   const [imageFixStats, setImageFixStats] = useState<ImageFixStats | null>(null);
 
   // Admin tab
-  const [adminTab, setAdminTab] = useState<"overview" | "featured" | "anime" | "tmdb" | "images">("overview");
+  const [adminTab, setAdminTab] = useState<"overview" | "featured" | "anime" | "manga" | "tmdb" | "images">("overview");
 
   // Featured management state
   const [featuredItems, setFeaturedItems] = useState<any[]>([]);
@@ -256,6 +263,29 @@ export function AdminPanel({
     } catch { toast({ title: "Erreur réseau", variant: "destructive" }); }
   };
 
+  const handleMangaSync = async () => {
+    setMangaSyncLoading(true);
+    setMangaSyncResult(null);
+    try {
+      const params = new URLSearchParams({
+        trendingPages: String(mangaTrendingPages),
+        popularPages: String(mangaPopularPages),
+        topRatedPages: String(mangaTopRatedPages),
+        perPage: "25",
+      });
+      const res = await fetch(`/api/manga/sync?${params.toString()}`, { method: "POST" });
+      const data = await res.json();
+      if (data.success) {
+        setMangaSyncResult(data.stats);
+        toast({ title: "Manga synchronisés !", description: `${data.stats.created} créés, ${data.stats.updated} mis à jour` });
+        fetchStats();
+      } else {
+        toast({ title: "Erreur Manga", description: data.error || "Échec", variant: "destructive" });
+      }
+    } catch { toast({ title: "Erreur réseau", variant: "destructive" }); }
+    finally { setMangaSyncLoading(false); }
+  };
+
   const tmdbRate = stats && stats.anime.total > 0
     ? Math.round(((stats.anime.total - (matchStats?.anime.unmatched || 0)) / stats.anime.total) * 100) : 0;
 
@@ -263,6 +293,7 @@ export function AdminPanel({
     { id: "overview" as const, label: "Vue d'ensemble", icon: <Icon name="database" className="h-4 w-4" /> },
     { id: "featured" as const, label: "Mis en avant", icon: <Icon name="star" className="h-4 w-4" /> },
     { id: "anime" as const, label: "Anime", icon: <Icon name="sparkles" className="h-4 w-4" /> },
+    { id: "manga" as const, label: "Manga", icon: <Icon name="book-open" className="h-4 w-4" /> },
     { id: "tmdb" as const, label: "Films & Séries", icon: <Icon name="film" className="h-4 w-4" /> },
     { id: "images" as const, label: "Images", icon: <Icon name="monitor" className="h-4 w-4" /> },
   ];
@@ -641,6 +672,76 @@ export function AdminPanel({
                 className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 h-11 text-base">
                 <Icon name="delete" className="h-5 w-5 mr-2" /> Réinitialiser les Anime
               </Button>
+            </>
+          )}
+
+          {adminTab === "manga" && (
+            <>
+              <div className="rounded-xl border border-violet-500/30 bg-violet-500/5 p-4 mb-4">
+                <p className="text-sm text-violet-400 font-medium mb-1 flex items-center gap-1.5">
+                  <Icon name="info" className="h-4 w-4" /> Source : AniList (gratuit, aucune clé API)
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Importe les manga, manhwa et manhua les plus populaires. Les chapitres sont chargés via MangaDex à la lecture.
+                </p>
+              </div>
+
+              {stats && (
+                <div className="grid grid-cols-3 gap-3 mb-5">
+                  <StatCard label="Manga en base" value={stats.manga.total} color="text-violet-400" />
+                </div>
+              )}
+
+              <section className="space-y-3">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                  <Icon name="book-open" className="h-4 w-4" /> Import Manga
+                </h3>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-sm text-muted-foreground mb-1.5 block">Trending</label>
+                    <Input type="number" min={1} max={10} value={mangaTrendingPages}
+                      onChange={(e) => setMangaTrendingPages(Math.max(1, Math.min(10, Number(e.target.value) || 1)))} className="h-11 text-base" />
+                    <p className="text-[10px] text-muted-foreground mt-1">pages</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground mb-1.5 block">Populaires</label>
+                    <Input type="number" min={1} max={10} value={mangaPopularPages}
+                      onChange={(e) => setMangaPopularPages(Math.max(1, Math.min(10, Number(e.target.value) || 1)))} className="h-11 text-base" />
+                    <p className="text-[10px] text-muted-foreground mt-1">pages</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground mb-1.5 block">Top Notes</label>
+                    <Input type="number" min={1} max={10} value={mangaTopRatedPages}
+                      onChange={(e) => setMangaTopRatedPages(Math.max(1, Math.min(10, Number(e.target.value) || 1)))} className="h-11 text-base" />
+                    <p className="text-[10px] text-muted-foreground mt-1">pages</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                  <Icon name="info" className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <p className="text-xs text-muted-foreground">
+                    💡 25 manga/page. 2+2+2 pages = ~150 manga uniques après déduplication. Augmente les pages pour plus de contenu.
+                  </p>
+                </div>
+
+                <Button onClick={handleMangaSync} disabled={mangaSyncLoading}
+                  className="w-full bg-violet-600 hover:bg-violet-700 text-white font-semibold h-12 text-base">
+                  {mangaSyncLoading ? <Icon name="loader" className="h-5 w-5 mr-2 animate-spin" /> : <Icon name="book-open" className="h-5 w-5 mr-2" />}
+                  {mangaSyncLoading ? "Import..." : "Importer des Manga"}
+                </Button>
+              </section>
+
+              {mangaSyncResult && (
+                <div className="rounded-xl border border-violet-500/30 bg-violet-500/10 p-4 text-base space-y-1.5">
+                  <p className="font-medium text-violet-400 flex items-center gap-1.5"><Icon name="check" className="h-4 w-4" /> Manga terminé</p>
+                  <p className="text-muted-foreground">
+                    Créés: <span className="text-green-400">{mangaSyncResult.created}</span> ·
+                    MAJ: <span className="text-yellow-400">{mangaSyncResult.updated}</span> ·
+                    Total: <span className="text-violet-400">{mangaSyncResult.totalManga}</span>
+                  </p>
+                </div>
+              )}
             </>
           )}
 

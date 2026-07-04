@@ -28,6 +28,19 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ContentCard } from "./content-card";
 
+interface MangaDexChapter {
+  id: string;
+  chapter: string | null;
+  title: string | null;
+  volume: string | null;
+  pages: number;
+  publishAt: string | null;
+  readableAt: string | null;
+  lang?: string;
+  groupName?: string | null;
+  externalUrl?: string | null;
+}
+
 export function DetailView() {
   const {
     contentDetail,
@@ -49,17 +62,27 @@ export function DetailView() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   // MangaDex state
   const [mangadexId, setMangadexId] = useState<string | null>(null);
+  const [mangadexTitle, setMangadexTitle] = useState<string | null>(null);
   const [mangadexChapters, setMangadexChapters] = useState<MangaDexChapter[]>([]);
   const [mangadexLoading, setMangadexLoading] = useState(false);
   const [mangadexError, setMangadexError] = useState<string | null>(null);
+  const [mangadexChapterLang, setMangadexChapterLang] = useState<string | null>(null);
+  const [mangadexHasMore, setMangadexHasMore] = useState(false);
+  const [mangadexLoadingMore, setMangadexLoadingMore] = useState(false);
+  const [mangadexExternalOnly, setMangadexExternalOnly] = useState(false);
   // Language filter in detail view
   const [detailLangFilter, setDetailLangFilter] = useState<string | null>(null);
   // Cast state
   const [cast, setCast] = useState<{ id: number; name: string; character: string; profileUrl: string; order: number }[]>([]);
   const [crew, setCrew] = useState<{ id: number; name: string; job: string; department: string; profileUrl: string }[]>([]);
   const [castLoading, setCastLoading] = useState(false);
-  // Server sidebar panel
-  const [serverPanelOpen, setServerPanelOpen] = useState(true);
+  // Server sidebar panel — collapsed by default on mobile, open on desktop
+  const [serverPanelOpen, setServerPanelOpen] = useState(() => {
+    if (typeof window !== "undefined") {
+      return window.matchMedia("(min-width: 768px)").matches;
+    }
+    return true;
+  });
 
   // Group episodes by season (before any early returns to satisfy rules-of-hooks)
   const seasonMap = useMemo(() => {
@@ -151,47 +174,74 @@ export function DetailView() {
     return () => document.removeEventListener("fullscreenchange", handler);
   }, []);
 
-  // Search MangaDex when manga detail loads
-  const fetchMangaDexChapters = useCallback(async (mangaTitle: string) => {
-    setMangadexLoading(true);
-    setMangadexError(null);
-    setMangadexChapters([]);
-    setMangadexId(null);
+  // Search MangaDex when manga detail loads (uses smart resolve endpoint)
+  const fetchMangaDexChapters = useCallback(async (mangaTitle: string, append = false) => {
+    if (!append) {
+      setMangadexLoading(true);
+      setMangadexError(null);
+      setMangadexChapters([]);
+      setMangadexId(null);
+      setMangadexTitle(null);
+      setMangadexHasMore(false);
+      setMangadexChapterLang(null);
+      setMangadexExternalOnly(false);
+    } else {
+      setMangadexLoadingMore(true);
+    }
     try {
-      // Search for the manga on MangaDex
-      const searchRes = await fetch(`/api/manga/search?q=${encodeURIComponent(mangaTitle)}`);
-      const searchData = await searchRes.json();
+      const currentCount = append ? mangadexChapters.length : 0;
+      const resolveUrl = `/api/manga/resolve?title=${encodeURIComponent(mangaTitle)}&limit=200&offset=${currentCount}`;
+      const res = await fetch(resolveUrl);
+      const data = await res.json();
 
-      if (!searchData.data || searchData.data.length === 0) {
-        setMangadexError("Non disponible sur MangaDex");
+      if (!data.success) {
+        if (!append) setMangadexError(data.error || "Aucun chapitre disponible");
         return;
       }
 
-      const mdId = searchData.data[0].id;
-      setMangadexId(mdId);
+      setMangadexId(data.mangadexId);
+      setMangadexTitle(data.mangadexTitle);
+      setMangadexChapterLang(data.chapters?.[0]?.lang || null);
+      setMangadexExternalOnly(!!data.externalOnly);
 
-      // Fetch chapters in French
-      const chaptersRes = await fetch(`/api/manga/chapters?mangadexId=${mdId}&lang=fr`);
-      const chaptersData = await chaptersRes.json();
-
-      if (!chaptersData.data || chaptersData.data.length === 0) {
-        // Try English as fallback
-        const chaptersResEn = await fetch(`/api/manga/chapters?mangadexId=${mdId}&lang=en`);
-        const chaptersDataEn = await chaptersResEn.json();
-        if (!chaptersDataEn.data || chaptersDataEn.data.length === 0) {
-          setMangadexError("Aucun chapitre disponible");
-          return;
-        }
-        setMangadexChapters(chaptersDataEn.data);
+      const newChapters = (data.chapters || []) as MangaDexChapter[];
+      if (append) {
+        setMangadexChapters((prev) => [...prev, ...newChapters]);
       } else {
-        setMangadexChapters(chaptersData.data);
+        setMangadexChapters(newChapters);
       }
+
+      // If we got the max, there might be more
+      setMangadexHasMore(newChapters.length >= 200);
     } catch {
-      setMangadexError("Erreur de connexion a MangaDex");
+      if (!append) setMangadexError("Erreur de connexion a MangaDex");
     } finally {
       setMangadexLoading(false);
+      setMangadexLoadingMore(false);
     }
-  }, []);
+  }, [mangadexChapters.length]);
+
+  // Load more chapters
+  const handleLoadMoreChapters = useCallback(() => {
+    if (contentDetail?.title && mangadexId) {
+      // For pagination, we need to fetch more from the same mangadexId
+      const lang = mangadexChapterLang || "fr";
+      setMangadexLoadingMore(true);
+      fetch(`/api/manga/chapters?mangadexId=${mangadexId}&lang=${lang}&limit=200&offset=${mangadexChapters.length}`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.data && data.data.length > 0) {
+            const newChapters = data.data.map((ch: Record<string, unknown>) => ({
+              ...ch,
+              lang,
+            })) as MangaDexChapter[];
+            setMangadexChapters((prev) => [...prev, ...newChapters]);
+          }
+        })
+        .catch(() => {})
+        .finally(() => setMangadexLoadingMore(false));
+    }
+  }, [contentDetail?.title, mangadexId, mangadexChapterLang, mangadexChapters.length]);
 
   // Trigger MangaDex search when manga content loads
   useEffect(() => {
@@ -202,6 +252,12 @@ export function DetailView() {
 
   // Handle opening a chapter in the reader
   const handleOpenChapter = useCallback(async (chapter: MangaDexChapter) => {
+    // External chapter — open in new tab
+    if (chapter.externalUrl) {
+      window.open(chapter.externalUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
+
     if (!chapter.id) return;
     const label = `Ch. ${chapter.chapter || "?"}${chapter.title ? ` - ${chapter.title}` : ""}`;
     const { openMangaReader } = useAppStore.getState();
@@ -406,40 +462,91 @@ export function DetailView() {
                 {/* Chapter list from MangaDex */}
                 {!mangadexLoading && !mangadexError && mangadexChapters.length > 0 && (
                   <div>
-                    <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+                    <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2 flex-wrap">
                       <Icon name="book-open" className="h-4 w-4 text-purple-400" />
                       Chapitres disponibles
                       <span className="text-xs font-normal text-muted-foreground/70">
                         ({mangadexChapters.length} chapitres)
                       </span>
+                      {mangadexChapterLang && (
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${mangadexChapterLang === "fr" ? "bg-blue-500/20 text-blue-400" : "bg-amber-500/20 text-amber-400"}`}>
+                          {mangadexChapterLang === "fr" ? "VF" : "VO"}
+                        </span>
+                      )}
+                      {mangadexExternalOnly && (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase bg-orange-500/20 text-orange-400 flex items-center gap-1">
+                          <Icon name="link" className="h-2.5 w-2.5" />
+                          Lecture externe
+                        </span>
+                      )}
+                      {mangadexTitle && mangadexTitle !== contentDetail.title && (
+                        <span className="text-[10px] text-muted-foreground/40">
+                          via {mangadexTitle}
+                        </span>
+                      )}
                     </h3>
+                    {mangadexExternalOnly && (
+                      <p className="text-[11px] text-orange-400/80 mb-2.5 flex items-center gap-1.5">
+                        <Icon name="info" className="h-3 w-3 flex-shrink-0" />
+                        Ce manga est officiellement licencié. Les chapitres s'ouvrent sur la source officielle.
+                      </p>
+                    )}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-96 overflow-y-auto pr-1">
                       {mangadexChapters.map((ch) => (
                         <button
                           key={ch.id}
                           onClick={() => handleOpenChapter(ch)}
                           disabled={mangadexLoading}
-                          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-left bg-muted/50 hover:bg-purple-600/10 hover:text-purple-400 transition-colors group disabled:opacity-50"
+                          className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-colors group disabled:opacity-50 ${
+                            ch.externalUrl
+                              ? "bg-orange-500/5 hover:bg-orange-500/15 hover:text-orange-400"
+                              : "bg-muted/50 hover:bg-purple-600/10 hover:text-purple-400"
+                          }`}
                         >
-                          <span className="text-xs font-bold text-purple-400 group-hover:text-purple-300 min-w-[3rem]">
+                          <span className={`text-xs font-bold min-w-[3rem] ${ch.externalUrl ? "text-orange-400 group-hover:text-orange-300" : "text-purple-400 group-hover:text-purple-300"}`}>
                             Ch. {ch.chapter || "?"}
                           </span>
                           <div className="flex-1 min-w-0">
                             {ch.title && (
-                              <p className="text-xs font-medium text-foreground truncate group-hover:text-purple-300">
+                              <p className={`text-xs font-medium truncate ${ch.externalUrl ? "group-hover:text-orange-300" : "group-hover:text-purple-300"}`}>
                                 {ch.title}
                               </p>
                             )}
+                            {ch.groupName && (
+                              <p className="text-[10px] text-muted-foreground/40 truncate">
+                                {ch.groupName}
+                              </p>
+                            )}
                           </div>
-                          {ch.pages > 0 && (
+                          {ch.externalUrl ? (
+                            <div className="flex items-center gap-1 text-orange-400/60 flex-shrink-0">
+                              <Icon name="link" className="h-3 w-3" />
+                              <span className="text-[10px]">Externe</span>
+                            </div>
+                          ) : ch.pages > 0 ? (
                             <div className="flex items-center gap-1 text-muted-foreground flex-shrink-0">
                               <Icon name="book-open" className="h-3 w-3" />
                               <span className="text-[10px]">{ch.pages}p</span>
                             </div>
-                          )}
+                          ) : null}
                         </button>
                       ))}
                     </div>
+                    {/* Load more button */}
+                    {mangadexHasMore && !mangadexExternalOnly && (
+                      <button
+                        onClick={handleLoadMoreChapters}
+                        disabled={mangadexLoadingMore}
+                        className="w-full mt-2 py-2.5 rounded-lg text-sm font-medium text-purple-400 hover:bg-purple-600/10 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                      >
+                        {mangadexLoadingMore ? (
+                          <Icon name="loader" className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Icon name="chevron-down" className="h-4 w-4" />
+                        )}
+                        {mangadexLoadingMore ? "Chargement..." : `Charger plus de chapitres`}
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

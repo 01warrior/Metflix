@@ -103,10 +103,10 @@ export function PreviewModal() {
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
           onClick={(e) => e.stopPropagation()}
-          className="relative w-full sm:max-w-[640px] md:max-w-[750px] bg-zinc-900 rounded-t-2xl sm:rounded-2xl overflow-hidden shadow-2xl max-h-[92vh] flex flex-col z-10"
+          className="relative w-full sm:max-w-[640px] md:max-w-[750px] bg-zinc-900 rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-[92vh] flex flex-col z-10"
         >
           {/* Video / Backdrop area */}
-          <div className="relative w-full aspect-video bg-black">
+          <div className="relative w-full aspect-video bg-black flex-shrink-0">
             {/* Close button */}
             <button
               onClick={closePreview}
@@ -166,7 +166,7 @@ export function PreviewModal() {
           </div>
 
           {/* Info section */}
-          <div className="p-5 flex flex-col gap-4">
+          <div className="p-5 flex flex-col gap-4 overflow-y-auto flex-1 min-h-0">
             {/* Title */}
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">

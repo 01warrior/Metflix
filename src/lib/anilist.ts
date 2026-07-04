@@ -394,32 +394,212 @@ export async function fetchMultiplePages(
   return results;
 }
 
-/**
- * Bulk fetch: get a diverse set of anime for initial sync
- * Returns trending + popular + top-rated, deduplicated
- */
-export async function fetchAnimeForSync(): Promise<SyncedAnime[]> {
-  console.log("[AniList] Starting bulk anime fetch...");
+// ==================== MANGA TYPES & FUNCTIONS ====================
 
-  const [trending, popular, topRated, currentSeason] = await Promise.all([
-    fetchMultiplePages((p) => fetchTrendingAnime(p, 25), 2, 25),
-    fetchMultiplePages((p) => fetchPopularAnime(p, 25), 2, 25),
-    fetchMultiplePages((p) => fetchTopRatedAnime(p, 25), 2, 25),
-    fetchMultiplePages((p) => fetchCurrentSeasonAnime(p, 25), 2, 25),
-  ]);
-
-  // Deduplicate by anilistId
-  const seen = new Map<number, SyncedAnime>();
-
-  // Priority order: trending > current > popular > topRated
-  for (const anime of [...trending, ...currentSeason, ...popular, ...topRated]) {
-    if (!seen.has(anime.anilistId)) {
-      seen.set(anime.anilistId, anime);
-    }
-  }
-
-  const all = Array.from(seen.values());
-  console.log(`[AniList] Fetched ${all.length} unique anime (trending: ${trending.length}, popular: ${popular.length}, top: ${topRated.length}, current: ${currentSeason.length})`);
-
-  return all;
+interface AniListManga {
+  id: number;
+  idMal: number | null;
+  title: {
+    romaji: string | null;
+    english: string | null;
+    native: string | null;
+  };
+  description: string | null;
+  coverImage: {
+    extraLarge: string | null;
+    large: string | null;
+    medium: string | null;
+    color: string | null;
+  };
+  bannerImage: string | null;
+  startDate: { year: number | null; month: number | null; day: number | null } | null;
+  endDate: { year: number | null; month: number | null; day: number | null } | null;
+  chapters: number | null;
+  volumes: number | null;
+  genres: string[];
+  averageScore: number | null;
+  popularity: number | null;
+  status: string | null; // FINISHED, RELEASING, NOT_YET_RELEASED, CANCELLED, HIATUS
+  format: string | null; // MANGA, MANHWA, MANHUA, NOVEL, ONE_SHOT
+  countryOfOrigin: string | null;
+  externalLinks: { url: string; site: string; icon: string | null }[];
 }
+
+export interface SyncedManga {
+  anilistId: number;
+  malId: number | null;
+  title: string;
+  overview: string;
+  posterUrl: string;
+  bannerUrl: string | null;
+  rating: number;
+  year: number | null;
+  genres: string;
+  chapters: number | null;
+  volumes: number | null;
+  status: string;
+  format: string | null;
+  popularity: number | null;
+  countryOfOrigin: string | null;
+}
+
+const MANGA_FRAGMENT = `
+  fragment MangaFields on Media {
+    id
+    idMal
+    title { romaji english native }
+    description(asHtml: false)
+    coverImage { extraLarge large medium color }
+    bannerImage
+    startDate { year month day }
+    endDate { year month day }
+    chapters
+    volumes
+    genres
+    averageScore
+    popularity
+    status
+    format
+    countryOfOrigin
+    externalLinks { url site icon }
+  }
+`;
+
+function toSyncedManga(media: AniListManga): SyncedManga {
+  return {
+    anilistId: media.id,
+    malId: media.idMal,
+    title: getTitle(media as unknown as AniListMedia),
+    overview: cleanDescription(media.description),
+    posterUrl: media.coverImage.extraLarge || media.coverImage.large || media.coverImage.medium || "",
+    bannerUrl: media.bannerImage,
+    rating: media.averageScore ? media.averageScore / 10 : 0,
+    year: media.startDate?.year || null,
+    genres: mapGenres(media.genres),
+    chapters: media.chapters,
+    volumes: media.volumes,
+    status: mapStatus(media.status),
+    format: media.format,
+    popularity: media.popularity,
+    countryOfOrigin: media.countryOfOrigin,
+  };
+}
+
+async function fetchAniListManga<T>(query: string, variables: Record<string, unknown> = {}): Promise<T> {
+  const response = await fetch(ANILIST_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({ query, variables }),
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!response.ok) throw new Error(`AniList API error: ${response.status}`);
+  const json = (await response.json()) as AniListResponse<T>;
+  return json.data;
+}
+
+/**
+ * Fetch trending manga
+ */
+export async function fetchTrendingManga(page = 1, perPage = 25): Promise<SyncedManga[]> {
+  const query = `
+    query ($page: Int, $perPage: Int) {
+      Page(page: $page, perPage: $perPage) {
+        pageInfo { total hasNextPage }
+        media(type: MANGA sort: TRENDING_DESC isAdult: false) {
+          ...MangaFields
+        }
+      }
+    }
+    ${MANGA_FRAGMENT}
+  `;
+  const data = await fetchAniListManga<{ Page: { media: AniListManga[] } }>(query, { page, perPage });
+  return data.Page.media.map(toSyncedManga);
+}
+
+/**
+ * Fetch popular manga (all time)
+ */
+export async function fetchPopularManga(page = 1, perPage = 25): Promise<SyncedManga[]> {
+  const query = `
+    query ($page: Int, $perPage: Int) {
+      Page(page: $page, perPage: $perPage) {
+        pageInfo { total hasNextPage }
+        media(type: MANGA sort: POPULARITY_DESC isAdult: false) {
+          ...MangaFields
+        }
+      }
+    }
+    ${MANGA_FRAGMENT}
+  `;
+  const data = await fetchAniListManga<{ Page: { media: AniListManga[] } }>(query, { page, perPage });
+  return data.Page.media.map(toSyncedManga);
+}
+
+/**
+ * Fetch top-rated manga
+ */
+export async function fetchTopRatedManga(page = 1, perPage = 25): Promise<SyncedManga[]> {
+  const query = `
+    query ($page: Int, $perPage: Int) {
+      Page(page: $page, perPage: $perPage) {
+        pageInfo { total hasNextPage }
+        media(type: MANGA sort: SCORE_DESC isAdult: false) {
+          ...MangaFields
+        }
+      }
+    }
+    ${MANGA_FRAGMENT}
+  `;
+  const data = await fetchAniListManga<{ Page: { media: AniListManga[] } }>(query, { page, perPage });
+  return data.Page.media.map(toSyncedManga);
+}
+
+/**
+ * Fetch manga by genre
+ */
+export async function fetchMangaByGenre(genre: string, page = 1, perPage = 25): Promise<SyncedManga[]> {
+  const query = `
+    query ($genre: String, $page: Int, $perPage: Int) {
+      Page(page: $page, perPage: $perPage) {
+        pageInfo { total hasNextPage }
+        media(type: MANGA genre: $genre sort: POPULARITY_DESC isAdult: false) {
+          ...MangaFields
+        }
+      }
+    }
+    ${MANGA_FRAGMENT}
+  `;
+  const data = await fetchAniListManga<{ Page: { media: AniListManga[] } }>(query, { genre, page, perPage });
+  return data.Page.media.map(toSyncedManga);
+}
+
+/**
+ * Fetch recently updated manga
+ */
+export async function fetchRecentlyUpdatedManga(page = 1, perPage = 25): Promise<SyncedManga[]> {
+  const query = `
+    query ($page: Int, $perPage: Int) {
+      Page(page: $page, perPage: $perPage) {
+        pageInfo { total hasNextPage }
+        media(type: MANGA sort: UPDATED_AT_DESC isAdult: false) {
+          ...MangaFields
+        }
+      }
+    }
+    ${MANGA_FRAGMENT}
+  `;
+  const data = await fetchAniListManga<{ Page: { media: AniListManga[] } }>(query, { page, perPage });
+  return data.Page.media.map(toSyncedManga);
+}
+
+// ==================== MANGA GENRE LIST ====================
+
+export const MANGA_GENRES = [
+  "Action", "Adventure", "Comedy", "Drama", "Fantasy", "Horror",
+  "Mystery", "Romance", "Sci-Fi", "Slice of Life", "Sports",
+  "Supernatural", "Thriller", "Psychological", "Mecha", "Music",
+  "Martial Arts", "School", "Shounen", "Seinen", "Shoujo",
+];
