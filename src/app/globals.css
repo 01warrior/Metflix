@@ -569,3 +569,12 @@ html {
   background: linear-gradient(135deg, oklch(0.96 0.003 0), oklch(0.97 0 0));
   border-color: oklch(0.9 0 0);
 }
+
+@keyframes heroProgress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}

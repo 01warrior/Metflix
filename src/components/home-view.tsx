@@ -45,23 +45,23 @@ function WatchHistoryCard({ item, onClick, onRemove }: { item: WatchHistoryItem;
             e.stopPropagation();
             onRemove();
           }}
-          className="absolute top-2 right-2 z-20 w-6 h-6 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-500/80 hover:scale-110"
+          className="absolute top-2 right-2 z-20 w-6 h-6 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-500/80 hover:scale-110"
           aria-label="Supprimer de Continuer à regarder"
         >
           <Icon name="x" className="h-3 w-3 text-white" />
         </button>
         {/* Reprendre button overlay */}
-        <div className="absolute inset-0 flex flex-col items-center justify-end pb-8 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg bg-white/90 mb-2 group-hover:scale-110 transition-transform">
-            <Icon name="play" className="h-4 w-4 text-black ml-0.5" fill="black" />
+        <div className="absolute inset-0 flex flex-col items-center justify-end pb-12 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <div className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg bg-white/90 mb-3 group-hover:scale-110 transition-transform">
+            <Icon name="play" className="h-6 w-6 text-black ml-0.5" fill="black" />
           </div>
-          <span className="text-xs font-semibold text-white drop-shadow-lg">Reprendre</span>
+          <span className="text-sm font-semibold text-white drop-shadow-lg">Reprendre</span>
         </div>
         {/* Always visible Reprendre badge at bottom */}
         <div className="absolute bottom-2 left-2 right-2 z-10">
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-white/20 backdrop-blur-sm">
-            <Icon name="play" className="h-3 w-3 text-white flex-shrink-0" fill="white" />
-            <span className="text-[10px] font-semibold text-white truncate">Reprendre</span>
+          <div className="flex items-center gap-1.5 px-3 py-2 rounded bg-white/20 backdrop-blur-sm">
+            <Icon name="play" className="h-4 w-4 text-white flex-shrink-0" fill="white" />
+            <span className="text-xs font-semibold text-white truncate">Reprendre</span>
           </div>
         </div>
       </div>
@@ -172,6 +172,18 @@ export function HomeView() {
       {/* Continue Watching */}
       <WatchHistoryRow items={watchHistory} />
 
+      {/* Films Tendances */}
+      {trendingMovies.length > 0 && (
+        <div className="max-w-7xl mx-auto mb-8">
+          <ContentRow
+            title="Films Tendances"
+            items={trendingMovies}
+            seeAllType="movie"
+            showRanking
+          />
+        </div>
+      )}
+
       {/* Derniers Ajouts + Surprise Me */}
       {latestContent.length > 0 && (
         <section className="mb-8 px-4 md:px-0">
@@ -209,14 +221,8 @@ export function HomeView() {
         </div>
       </div>
 
-      {/* Trending rows */}
+      {/* More trending rows */}
       <div className="max-w-7xl mx-auto">
-        <ContentRow
-          title="Films Tendances"
-          items={trendingMovies}
-          seeAllType="movie"
-          showRanking
-        />
         <ContentRow
           title="Séries Populaires"
           items={trendingSeries}

@@ -43,6 +43,11 @@ export default function Page() {
     initWatchHistory();
   }, [initFavorites, initWatchHistory]);
 
+  // Scroll to top on view change (like Netflix/YouTube)
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [currentView, selectedContentId]);
+
   // Fetch home data
   useEffect(() => {
     const fetchHome = async () => {

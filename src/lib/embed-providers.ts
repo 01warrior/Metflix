@@ -113,6 +113,17 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     tvUrl: "https://vidcore.org/embed/tv/{tmdbId}/{season}/{episode}",
     note: "Working 2025-07-09. HLS playback, subtitle support. 308→www. VF via player.",
   },
+  {
+    id: "primesrc",
+    name: "Lancaster",
+    color: "#f97316",
+    quality: "1080p",
+    active: false,
+    langs: ["vostfr", "vf"],
+    movieUrl: "https://primesrc.me/embed/movie?tmdb={tmdbId}",
+    tvUrl: "https://primesrc.me/embed/tv?tmdb={tmdbId}&season={season}&episode={episode}",
+    note: "Working 2025-07-05. 75k+ movies, 240k+ episodes. Multi-host backend (PrimeVid,Voe,Dood).",
+  },
 
   // === TIER 3: Currently Down (keep as reference, re-enable when back) ===
   {

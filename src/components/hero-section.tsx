@@ -6,26 +6,48 @@ import { Icon } from "@/lib/icons";
 import { AnimatePresence, motion } from "framer-motion";
 import { getDisplayTitle, handleImgError, getTypeBadge, TYPE_CONFIG } from "@/lib/content-helpers";
 
+const SLIDE_DURATION = 6000;
+const PROGRESS_INTERVAL = 50;
+
 export function HeroSection() {
   const { featured, setView, setSelectedContentId, toggleFavorite, favorites } = useAppStore();
   const [activeIdx, setActiveIdx] = useState(0);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const items = featured.slice(0, 8);
   const current = items[activeIdx];
 
-  const startTimer = () => {
+  const clearTimers = () => {
     if (timerRef.current) clearInterval(timerRef.current);
+  };
+
+  const startTimer = () => {
+    clearTimers();
     timerRef.current = setInterval(() => {
       setActiveIdx((prev) => (prev + 1) % items.length);
-    }, 6000);
+    }, SLIDE_DURATION);
+  };
+
+  const goTo = (idx: number) => {
+    setActiveIdx(idx);
+    startTimer();
+  };
+
+  const goPrev = () => {
+    setActiveIdx((prev) => (prev - 1 + items.length) % items.length);
+    startTimer();
+  };
+
+  const goNext = () => {
+    setActiveIdx((prev) => (prev + 1) % items.length);
+    startTimer();
   };
 
   useEffect(() => {
-    if (items.length > 1) startTimer();
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
+    if (items.length > 1) {
+      startTimer();
+    }
+    return clearTimers;
   }, [items.length]);
 
   if (!current) {
@@ -35,7 +57,9 @@ export function HeroSection() {
   }
 
   return (
-    <div className="relative w-full h-[60vh] md:h-[85vh] overflow-hidden -mt-16">
+    <div
+      className="relative w-full h-[60vh] md:h-[85vh] overflow-hidden -mt-16 group/hero"
+    >
       {/* Backdrop image */}
       <AnimatePresence mode="wait">
         <motion.div
@@ -59,6 +83,28 @@ export function HeroSection() {
       <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
       <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
       <div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-black/60 via-black/30 to-transparent pointer-events-none" />
+
+      {/* Left arrow - Glass */}
+      {items.length > 1 && (
+        <button
+          onClick={goPrev}
+          className="hidden md:flex absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-20 w-14 h-14 md:w-16 md:h-16 items-center justify-center rounded-full bg-white/[0.08] backdrop-blur-xl border border-white/[0.15] text-white/50 hover:text-white hover:bg-white/[0.18] hover:border-white/[0.3] transition-all duration-300 opacity-40 group-hover/hero:opacity-100 hover:scale-110 active:scale-95 shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
+          aria-label="Précédent"
+        >
+          <Icon name="chevron-left" className="h-7 w-7 md:h-8 md:w-8" />
+        </button>
+      )}
+
+      {/* Right arrow - Glass */}
+      {items.length > 1 && (
+        <button
+          onClick={goNext}
+          className="hidden md:flex absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-20 w-14 h-14 md:w-16 md:h-16 items-center justify-center rounded-full bg-white/[0.08] backdrop-blur-xl border border-white/[0.15] text-white/50 hover:text-white hover:bg-white/[0.18] hover:border-white/[0.3] transition-all duration-300 opacity-40 group-hover/hero:opacity-100 hover:scale-110 active:scale-95 shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
+          aria-label="Suivant"
+        >
+          <Icon name="chevron-right" className="h-7 w-7 md:h-8 md:w-8" />
+        </button>
+      )}
 
       {/* Content */}
       <div className="relative z-10 flex flex-col justify-end h-full max-w-7xl mx-auto px-4 md:px-8 pb-12 md:pb-16">
@@ -129,24 +175,44 @@ export function HeroSection() {
         </AnimatePresence>
       </div>
 
-      {/* Indicators */}
+      {/* Bottom controls: glass indicator bar */}
       {items.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5">
-          {items.map((item, idx) => (
-            <button
-              key={item.id}
-              onClick={() => {
-                setActiveIdx(idx);
-                startTimer();
-              }}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                idx === activeIdx
-                  ? "w-8 bg-red-500"
-                  : "w-1.5 bg-white/30 hover:bg-white/50"
-              }`}
-              aria-label={`Slide ${idx + 1}`}
+        <div className="absolute top-20 md:top-auto md:bottom-6 left-1/2 -translate-x-1/2 z-10">
+          <div className="flex items-center gap-2.5 px-4 py-3 rounded-full bg-white/[0.06] backdrop-blur-xl border border-white/[0.1] shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+            {/* Dots */}
+            <div className="flex items-center gap-2">
+              {items.map((item, idx) => (
+                <button
+                  key={item.id}
+                  onClick={() => goTo(idx)}
+                  className={`rounded-full transition-all duration-300 ${
+                    idx === activeIdx
+                      ? "w-7 h-2.5 bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"
+                      : "w-2.5 h-2.5 bg-white/25 hover:bg-white/50 hover:scale-125"
+                  }`}
+                  aria-label={`Slide ${idx + 1}`}
+                />
+              ))}
+            </div>
+            {/* Divider */}
+            <div className="w-px h-3 bg-white/10" />
+            {/* Slide counter */}
+            <span className="text-sm font-medium text-white/40 tabular-nums min-w-[2.5rem] text-center">
+              {activeIdx + 1}/{items.length}
+            </span>
+          </div>
+          {/* Progress bar */}
+          <div className="mt-2 w-full h-[2px] bg-white/[0.06] rounded-full overflow-hidden">
+            <div
+              key={activeIdx}
+              className="h-full bg-gradient-to-r from-red-500 to-red-400 rounded-full"
+                style={{
+                  width: '100%',
+                  animation: `heroProgress ${SLIDE_DURATION}ms linear`,
+                  transformOrigin: 'left',
+                }}
             />
-          ))}
+          </div>
         </div>
       )}
     </div>

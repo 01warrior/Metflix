@@ -681,11 +681,11 @@ export function DetailView() {
                 </AnimatePresence>
                 <button
                   onClick={toggleFullscreen}
-                  className="absolute top-2 right-2 z-20 hidden md:flex items-center gap-1.5 px-3 py-2.5 rounded-md bg-black/80 backdrop-blur-sm hover:bg-black/95 transition-all duration-200 hover:scale-105 border border-white/10 hover:border-white/25"
+                  className="absolute top-2 right-2 z-20 flex items-center gap-1.5 rounded-md bg-black/80 backdrop-blur-sm hover:bg-black/95 transition-all duration-200 hover:scale-105 border border-white/10 hover:border-white/25 p-2 md:px-3 md:py-2.5"
                   aria-label={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
                 >
-                  <Icon name={isFullscreen ? "minimize" : "maximize"} className="h-4 w-4 text-white flex-shrink-0" />
-                  <span className="text-[11px] font-semibold text-white whitespace-nowrap">
+                  <Icon name={isFullscreen ? "minimize" : "maximize"} className="h-5 w-5 md:h-4 md:w-4 text-white flex-shrink-0" />
+                  <span className="hidden md:inline text-[11px] font-semibold text-white whitespace-nowrap">
                     {isFullscreen ? "Réduire" : "Plein écran"}
                   </span>
                 </button>

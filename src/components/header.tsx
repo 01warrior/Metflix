@@ -170,7 +170,7 @@ export function Header() {
             disabled={surpriseLoading}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-sm shadow-red-600/20 hover:shadow-md hover:shadow-red-600/30 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed select-none"
+            className="hidden md:flex items-center gap-1.5 px-3 py-2.5 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-sm shadow-red-600/20 hover:shadow-md hover:shadow-red-600/30 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed select-none"
             aria-label="Surprise Me"
           >
             <motion.span
