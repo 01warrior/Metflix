@@ -197,7 +197,7 @@ export async function GET(request: NextRequest) {
   try {
     const sp = request.nextUrl.searchParams;
     const tmdbIdStr = sp.get("tmdbId");
-    const type = sp.get("type");
+    let type = sp.get("type");
 
     if (!tmdbIdStr || !type) {
       return NextResponse.json(
