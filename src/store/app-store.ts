@@ -21,6 +21,7 @@ export interface ContentItem {
   runtime: number | null;
   seasons: number | null;
   featured: boolean;
+  source?: string;
 }
 
 export interface HostConfig {
@@ -57,6 +58,7 @@ export interface ContentDetail extends ContentItem {
   hostProviders: HostConfig[];
   categories: { name: string; slug: string }[];
   related: ContentItem[];
+  source?: string;
 }
 
 // Watch history item type
@@ -119,6 +121,7 @@ interface AppState {
   selectedLang: string | null; // "vostfr", "vf", or null (all)
   searchQuery: string;
   selectedContentId: string | null;
+  selectedTmdbType: "movie" | "tv" | null;
   showSearch: boolean;
   featured: ContentItem[];
   trendingMovies: ContentItem[];
@@ -155,7 +158,7 @@ interface AppState {
   setSelectedYearTo: (year: number | null) => void;
   setSelectedLang: (lang: string | null) => void;
   setSearchQuery: (query: string) => void;
-  setSelectedContentId: (id: string | null) => void;
+  setSelectedContentId: (id: string | null, tmdbType?: "movie" | "tv" | null) => void;
   setShowSearch: (show: boolean) => void;
   setFeatured: (items: ContentItem[]) => void;
   setTrendingMovies: (items: ContentItem[]) => void;
@@ -196,6 +199,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   selectedLang: null,
   searchQuery: "",
   selectedContentId: null,
+  selectedTmdbType: null,
   showSearch: false,
   featured: [],
   trendingMovies: [],
@@ -231,7 +235,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   setSelectedYearTo: (year) => set({ selectedYearTo: year, browsePage: 1, browseContent: [] }),
   setSelectedLang: (lang) => set({ selectedLang: lang, browsePage: 1, browseContent: [] }),
   setSearchQuery: (query) => set({ searchQuery: query }),
-  setSelectedContentId: (id) => set({ selectedContentId: id }),
+  setSelectedContentId: (id, tmdbType) => set({ selectedContentId: id, contentDetail: null, selectedTmdbType: tmdbType || null }),
   setShowSearch: (show) => set({ showSearch: show }),
   setFeatured: (items) => set({ featured: items }),
   setTrendingMovies: (items) => set({ trendingMovies: items }),

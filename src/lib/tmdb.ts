@@ -161,7 +161,7 @@ async function tmdbFetch<T>(url: string): Promise<T | null> {
   try {
     const res = await fetch(url, {
       headers: getHeaders(),
-      next: { revalidate: 3600 }, // Cache 1 hour
+      cache: "no-store",
     });
     if (!res.ok) {
       console.error(`[TMDB] ${res.status} ${url}`);
@@ -383,20 +383,20 @@ export async function getTvGenres(): Promise<TmdbGenre[]> {
 
 // ==================== IMAGE URLS ====================
 
-export function tmdbPosterUrl(path: string | null, size = "w500"): string {
-  if (!path) return "";
+export function tmdbPosterUrl(path: string | null, size = "w500"): string | null {
+  if (!path) return null;
   if (path.startsWith("http")) return path;
   return `${TMDB_IMG_BASE}/${size}${path}`;
 }
 
-export function tmdbBackdropUrl(path: string | null, size = "w1280"): string {
-  if (!path) return "";
+export function tmdbBackdropUrl(path: string | null, size = "w1280"): string | null {
+  if (!path) return null;
   if (path.startsWith("http")) return path;
   return `${TMDB_IMG_BASE}/${size}${path}`;
 }
 
-export function tmdbProfileUrl(path: string | null, size = "w185"): string {
-  if (!path) return "";
+export function tmdbProfileUrl(path: string | null, size = "w185"): string | null {
+  if (!path) return null;
   return `${TMDB_IMG_BASE}/${size}${path}`;
 }
 
@@ -582,8 +582,8 @@ export function tmdbToContentData(
     title,
     titleFr: title,
     overview: item.overview || "",
-    posterPath: tmdbPosterUrl(item.poster_path),
-    backdropPath: tmdbBackdropUrl(item.backdrop_path),
+    posterPath: tmdbPosterUrl(item.poster_path) || "",
+    backdropPath: tmdbBackdropUrl(item.backdrop_path) || "",
     releaseDate: dateStr || null,
     rating: Math.round((item.vote_average || 0) * 10) / 10,
     voteCount: item.vote_count || 0,

@@ -46,6 +46,7 @@ export function DetailView() {
     contentDetail,
     setContentDetail,
     selectedContentId,
+    selectedTmdbType,
     setView,
     currentEmbed,
     setCurrentEmbed,
@@ -76,6 +77,9 @@ export function DetailView() {
   const [cast, setCast] = useState<{ id: number; name: string; character: string; profileUrl: string; order: number }[]>([]);
   const [crew, setCrew] = useState<{ id: number; name: string; job: string; department: string; profileUrl: string }[]>([]);
   const [castLoading, setCastLoading] = useState(false);
+  // Server hint overlay state
+  const [showServerHint, setShowServerHint] = useState(false);
+
   // Server sidebar panel — collapsed by default on mobile, open on desktop
   const [serverPanelOpen, setServerPanelOpen] = useState(() => {
     if (typeof window !== "undefined") {
@@ -114,17 +118,46 @@ export function DetailView() {
     setSelectedEpisode(null);
     setSelectedSeason(1);
     setCurrentEmbed(null);
+    setContentDetail(null); // Clear stale content immediately
     setLoading(true);
     try {
-      const res = await fetch(`/api/content/${id}`);
-      const data = await res.json();
+      let data: any;
+
+      if (id.startsWith("tmdb-")) {
+        // TMDB live source: extract tmdbId, call TMDB detail endpoint
+        const tmdbIdStr = id.replace("tmdb-", "");
+        const tmdbIdNum = parseInt(tmdbIdStr);
+        if (isNaN(tmdbIdNum)) throw new Error("Invalid TMDB ID");
+
+        // Try movie first — the /api/tmdb/detail endpoint has auto-detection
+        // (if not found as movie, it tries tv automatically)
+        const typeParam = selectedTmdbType || "movie";
+        const res = await fetch(`/api/tmdb/detail?tmdbId=${tmdbIdNum}&type=${typeParam}`);
+        if (!res.ok) throw new Error(`TMDB API error: ${res.status}`);
+        data = await res.json();
+        // API may return { error: "..." } with 200 status — treat as error
+        if (data.error) throw new Error(data.error);
+        // Verify the loaded content matches the requested ID
+        if (data.id !== id) {
+          throw new Error(`ID mismatch: expected ${id}, got ${data.id}`);
+        }
+      } else {
+        // Local DB source
+        const res = await fetch(`/api/content/${id}`);
+        if (!res.ok) throw new Error(`Content API error: ${res.status}`);
+        data = await res.json();
+        if (data.error) throw new Error(data.error);
+      }
+
       setContentDetail(data);
       // Reset language filter
       setDetailLangFilter(null);
-      // Fetch cast from TMDB
+      // Fetch cast from TMDB (skip for TMDB-sourced items since cast is already relevant,
+      // but the local /api/tmdb/cast endpoint works fine for both)
       if (data.tmdbId && data.type !== "manga") {
         setCastLoading(true);
-        fetch(`/api/tmdb/cast?tmdbId=${data.tmdbId}&type=${data.type}`)
+        const castType = data.type === "anime" ? "tv" : data.type;
+        fetch(`/api/tmdb/cast?tmdbId=${data.tmdbId}&type=${castType}`)
           .then((r) => r.json())
           .then((castData) => {
             setCast(castData.cast || []);
@@ -155,7 +188,7 @@ export function DetailView() {
     } finally {
       setLoading(false);
     }
-  }, [setContentDetail, setCurrentEmbed, setSelectedEpisode, setSelectedSeason, toast]);
+  }, [setContentDetail, setCurrentEmbed, setSelectedEpisode, setSelectedSeason, toast, selectedTmdbType]);
 
   // Custom fullscreen toggle (avoids interacting with embed controls)
   const toggleFullscreen = useCallback(() => {
@@ -280,12 +313,23 @@ export function DetailView() {
     }
   }, [toast, mangadexChapters]);
 
+  // Auto-show server hint overlay when iframe key changes (server switch), dismiss after 6s
+  useEffect(() => {
+    if (iframeKey > 0) {
+      setShowServerHint(true);
+      const timer = setTimeout(() => setShowServerHint(false), 6000);
+      return () => clearTimeout(timer);
+    }
+  }, [iframeKey]);
+
   useEffect(() => {
     if (!selectedContentId) return;
     fetchDetail(selectedContentId);
   }, [selectedContentId, fetchDetail]);
 
-  if (loading) {
+  // Show loading state if: actively loading, no content yet, or stale content from a different item
+  const isStaleContent = contentDetail && contentDetail.id !== selectedContentId;
+  if (loading || !contentDetail || isStaleContent) {
     return (
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
         <Skeleton className="w-full aspect-video rounded-lg mb-6" />
@@ -362,7 +406,7 @@ export function DetailView() {
             {/* Manga cover */}
             <div className="relative">
               <img
-                src={contentDetail.posterUrl}
+                src={contentDetail.posterUrl || PLACEHOLDER_POSTER}
                 alt={getDisplayTitle(contentDetail)}
                 className="w-full aspect-[2/3] md:aspect-auto md:h-full object-cover"
                 onError={(e) => handleImgError(e)}
@@ -554,6 +598,19 @@ export function DetailView() {
           </div>
         </div>
       ) : (
+      <>
+      {/* "Pas encore disponible" banner for future releases */}
+      {contentDetail.releaseDate && new Date(contentDetail.releaseDate) > new Date() && (
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 mb-6 flex items-start gap-3">
+          <Icon name="calendar" className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-amber-400 font-semibold text-sm">Pas encore disponible</p>
+            <p className="text-sm text-amber-400/70 mt-0.5">
+              Ce contenu sortira le {new Date(contentDetail.releaseDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}. Les serveurs peuvent ne pas fonctionner tant que le contenu n'est pas officiellement sorti.
+            </p>
+          </div>
+        </div>
+      )}
       <div className="relative mb-6">
         <div className="flex gap-0 aspect-video">
           {/* Player area */}
@@ -561,17 +618,73 @@ export function DetailView() {
             {currentEmbed ? (
               <>
                 {playerLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/60">
-                    <Icon name="loader" className="h-8 w-8 animate-spin text-red-500" />
+                  <div className="absolute inset-0 flex items-center justify-center z-10">
+                    {contentDetail.backdropUrl ? (
+                      <div className="absolute inset-0">
+                        <img
+                          src={contentDetail.backdropUrl}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" />
+                      </div>
+                    ) : (
+                      <div className="absolute inset-0 bg-black/60" />
+                    )}
+                    <div className="relative z-10 flex flex-col items-center gap-3">
+                      <Icon name="loader" className="h-8 w-8 animate-spin text-white/80" />
+                      <span className="text-xs text-white/50">Chargement du lecteur...</span>
+                    </div>
                   </div>
                 )}
-                {/* Custom fullscreen button - always visible with text */}
+                {/* Top bar: server hint (left) + fullscreen button (right) */}
+                <AnimatePresence>
+                  {showServerHint && currentEmbed && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.3 }}
+                      className="absolute top-2 left-2 z-20 flex items-center gap-2"
+                    >
+                      <span className="text-[11px] text-white/60 hidden sm:inline">Si le lecteur ne charge pas,</span>
+                      <button
+                        onClick={() => {
+                          setShowServerHint(false);
+                          const allEmbeds = isSeriesOrAnime && selectedEpisode
+                            ? contentDetail.embedGroups
+                                .find((g) => {
+                                  const k = g.season != null && g.episode != null ? `S${g.season}E${g.episode}` : "all";
+                                  return k === selectedEpisode;
+                                })?.embeds || []
+                            : contentDetail.embedGroups[0]?.embeds || [];
+                          const currentIdx = allEmbeds.findIndex((e) => e.id === currentEmbed.id);
+                          const nextIdx = (currentIdx + 1) % allEmbeds.length;
+                          const nextEmbed = allEmbeds[nextIdx];
+                          if (nextEmbed) {
+                            handleEmbedClick(nextEmbed, selectedEpisode || undefined);
+                          }
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/20 border border-white/20 text-white text-[11px] font-semibold transition-all"
+                      >
+                        Serveur suivant <Icon name="chevron-right" className="h-3 w-3" />
+                      </button>
+                      <button
+                        onClick={() => setShowServerHint(false)}
+                        className="w-6 h-6 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white/50 hover:text-white transition-colors"
+                        aria-label="Fermer"
+                      >
+                        <Icon name="x" className="h-3 w-3" />
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
                 <button
                   onClick={toggleFullscreen}
-                  className="absolute top-2 right-2 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-black/80 backdrop-blur-sm hover:bg-black/95 transition-all duration-200 hover:scale-105 border border-white/10 hover:border-white/25"
+                  className="absolute top-2 right-2 z-20 hidden md:flex items-center gap-1.5 px-3 py-2.5 rounded-md bg-black/80 backdrop-blur-sm hover:bg-black/95 transition-all duration-200 hover:scale-105 border border-white/10 hover:border-white/25"
                   aria-label={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
                 >
-                  <Icon name={isFullscreen ? "minimize" : "maximize"} className="h-3.5 w-3.5 text-white flex-shrink-0" />
+                  <Icon name={isFullscreen ? "minimize" : "maximize"} className="h-4 w-4 text-white flex-shrink-0" />
                   <span className="text-[11px] font-semibold text-white whitespace-nowrap">
                     {isFullscreen ? "Réduire" : "Plein écran"}
                   </span>
@@ -586,7 +699,7 @@ export function DetailView() {
                   onLoad={() => setPlayerLoading(false)}
                   title="Player"
                 />
-              </>
+                </>
             ) : contentDetail.embedGroups.length === 0 ? (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center px-4">
@@ -707,6 +820,7 @@ export function DetailView() {
           </button>
         )}
       </div>
+      </>
       )}
 
       {/* ========== SERIES/ANIME: Netflix-style two-column layout ========== */}
@@ -718,7 +832,7 @@ export function DetailView() {
               {/* Poster */}
               <div className="hidden md:block">
                 <img
-                  src={contentDetail.posterUrl}
+                  src={contentDetail.posterUrl || PLACEHOLDER_POSTER}
                   alt={getDisplayTitle(contentDetail)}
                   className="w-full aspect-[2/3] rounded-lg object-cover shadow-xl"
                   onError={(e) => handleImgError(e)}
@@ -894,7 +1008,7 @@ export function DetailView() {
         {/* Poster */}
         <div className="hidden md:block">
           <img
-            src={contentDetail.posterUrl}
+            src={contentDetail.posterUrl || PLACEHOLDER_POSTER}
             alt={getDisplayTitle(contentDetail)}
             className="w-full aspect-[2/3] rounded-lg object-cover shadow-xl"
             onError={(e) => handleImgError(e)}
@@ -1073,7 +1187,7 @@ export function DetailView() {
       {contentDetail.related && contentDetail.related.length > 0 && (
         <section>
           <h2 className="text-lg font-bold text-foreground mb-4">
-            Contenu similaire
+            Vous pourriez aussi aimer
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {contentDetail.related.map((item) => (

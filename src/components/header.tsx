@@ -8,6 +8,17 @@ import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { AdminPanel } from "./admin-panel";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export function Header() {
   const { setView, setShowSearch, favorites, currentView, setSelectedType, selectedType, setSelectedContentId } =
@@ -16,6 +27,9 @@ export function Header() {
   const [mounted, setMounted] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
+  const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const [adminPassword, setAdminPassword] = useState("");
+  const [authError, setAuthError] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const [surpriseLoading, setSurpriseLoading] = useState(false);
 
@@ -133,7 +147,11 @@ export function Header() {
             )}
           </button>
           <button
-            onClick={() => setAdminOpen(true)}
+            onClick={() => {
+              setAdminPassword("");
+              setAuthError("");
+              setAuthDialogOpen(true);
+            }}
             className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
             aria-label="Administration"
           >
@@ -264,6 +282,55 @@ export function Header() {
           </nav>
         </SheetContent>
       </Sheet>
+      {/* Admin password dialog */}
+      <AlertDialog open={authDialogOpen} onOpenChange={(open) => {
+        if (!open) {
+          setAuthDialogOpen(false);
+          setAdminPassword("");
+          setAuthError("");
+        }
+      }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>🔒 Accès Administration</AlertDialogTitle>
+            <AlertDialogDescription>
+              Entrez le mot de passe pour accéder au panneau d'administration.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (adminPassword === "Tu es trop curieux") {
+                setAuthDialogOpen(false);
+                setAdminPassword("");
+                setAuthError("");
+                setAdminOpen(true);
+              } else {
+                setAuthError("Mot de passe incorrect.");
+              }
+            }}
+            className="flex flex-col gap-3"
+          >
+            <Input
+              type="password"
+              placeholder="Mot de passe..."
+              value={adminPassword}
+              onChange={(e) => {
+                setAdminPassword(e.target.value);
+                if (authError) setAuthError("");
+              }}
+              autoFocus
+            />
+            {authError && (
+              <p className="text-sm text-red-500 font-medium">{authError}</p>
+            )}
+            <AlertDialogFooter>
+              <AlertDialogCancel type="button">Annuler</AlertDialogCancel>
+              <Button type="submit">Accéder</Button>
+            </AlertDialogFooter>
+          </form>
+        </AlertDialogContent>
+      </AlertDialog>
       <AdminPanel open={adminOpen} onOpenChange={setAdminOpen} />
     </header>
   );

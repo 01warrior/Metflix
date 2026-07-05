@@ -68,8 +68,11 @@ export function PreviewModal() {
 
   const handleWatch = () => {
     if (!previewItem) return;
+    const tmdbType = previewItem.id.startsWith("tmdb-")
+      ? (previewItem.type === "series" || previewItem.type === "anime" ? "tv" as const : "movie" as const)
+      : null;
     closePreview();
-    setSelectedContentId(previewItem.id);
+    setSelectedContentId(previewItem.id, tmdbType);
     setView("detail");
   };
 

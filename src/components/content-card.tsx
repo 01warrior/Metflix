@@ -5,7 +5,7 @@ import { useAppStore, type ContentItem } from "@/store/app-store";
 import { useToast } from "@/hooks/use-toast";
 import { Icon } from "@/lib/icons";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getDisplayTitle, handleImgError, getTypeBadge } from "@/lib/content-helpers";
+import { getDisplayTitle, handleImgError, getTypeBadge, PLACEHOLDER_POSTER } from "@/lib/content-helpers";
 
 // ==================== CONTENT CARD ====================
 
@@ -40,7 +40,7 @@ export function ContentCard({ item }: { item: ContentItem }) {
       <div className="relative aspect-[2/3]">
         {!imgLoaded && <Skeleton className="absolute inset-0 rounded-lg" />}
         <img
-          src={item.posterUrl}
+          src={item.posterUrl || PLACEHOLDER_POSTER}
           alt={getDisplayTitle(item)}
           className={`w-full h-full object-cover transition-opacity duration-300 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
           onLoad={() => setImgLoaded(true)}
@@ -51,6 +51,13 @@ export function ContentCard({ item }: { item: ContentItem }) {
         <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
         {/* Type badge */}
         {getTypeBadge(item.type)}
+        {/* "À venir" badge for future releases */}
+        {item.releaseDate && new Date(item.releaseDate) > new Date() && (
+          <span className="absolute top-8 left-2 z-10 flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/90 text-white backdrop-blur-sm">
+            <Icon name="calendar" className="h-2.5 w-2.5" />
+            À venir
+          </span>
+        )}
         {/* Favorite button */}
         <button
           onClick={handleFavClick}

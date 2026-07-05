@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+export const dynamic = "force-dynamic";
 import { getDetails, tmdbProfileUrl } from "@/lib/tmdb";
 
 export async function GET(request: Request) {
@@ -22,7 +23,7 @@ export async function GET(request: Request) {
       id: person.id,
       name: person.name,
       character: person.character,
-      profileUrl: tmdbProfileUrl(person.profile_path),
+      profileUrl: tmdbProfileUrl(person.profile_path) || "",
       order: person.order,
     }));
 
@@ -41,7 +42,7 @@ export async function GET(request: Request) {
       name: person.name,
       job: person.job,
       department: person.department,
-      profileUrl: tmdbProfileUrl(person.profile_path),
+      profileUrl: tmdbProfileUrl(person.profile_path) || "",
     }));
 
     return NextResponse.json({ cast, crew });

@@ -64,7 +64,7 @@ const TYPE_LABELS: Record<string, string> = {
 
 // ==================== SUGGESTION ITEM ====================
 
-function SuggestionItem({ item, onSelect }: { item: ContentItem; onSelect: (item: ContentItem) => void }) {
+function SuggestionItem({ item, onSelect, isTmdb }: { item: ContentItem; onSelect: (item: ContentItem) => void; isTmdb?: boolean }) {
   const [imgLoaded, setImgLoaded] = useState(false);
 
   return (
@@ -92,6 +92,11 @@ function SuggestionItem({ item, onSelect }: { item: ContentItem; onSelect: (item
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
           {getDisplayTitle(item)}
+          {isTmdb && (
+            <span className="ml-1.5 inline-flex items-center gap-0.5 text-[10px] text-muted-foreground font-normal" title="Résultat TMDB">
+              <Icon name="globe" className="h-3 w-3" />
+            </span>
+          )}
         </p>
         <div className="flex items-center gap-2 mt-0.5">
           {item.year && (
@@ -125,18 +130,52 @@ export function SearchOverlay() {
   const suggestionsDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // TMDB live search state
+  const [tmdbResults, setTmdbResults] = useState<ContentItem[]>([]);
+  const [tmdbLoading, setTmdbLoading] = useState(false);
+  const [tmdbDone, setTmdbDone] = useState(false);
+  const tmdbDebounceRef = useRef<NodeJS.Timeout | null>(null);
+
   // Load recent searches when overlay opens
   useEffect(() => {
     if (showSearch) {
       setQuery("");
       setSearchResults([]);
       setSuggestions([]);
+      setTmdbResults([]);
+      setTmdbLoading(false);
+      setTmdbDone(false);
       setRecentSearches(loadRecentSearches());
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [showSearch, setSearchResults]);
 
-  // Fetch suggestions (debounced 300ms)
+  // TMDB live search (debounced 500ms) — runs on every query change
+  const doTmdbSearch = useCallback(
+    async (q: string) => {
+      if (q.length < 2) {
+        setTmdbResults([]);
+        setTmdbDone(false);
+        return;
+      }
+      setTmdbLoading(true);
+      setTmdbDone(false);
+      try {
+        const res = await fetch(`/api/tmdb/search?query=${encodeURIComponent(q)}&type=all`);
+        const data = await res.json();
+        const items: ContentItem[] = data.data || [];
+        setTmdbResults(items);
+      } catch {
+        setTmdbResults([]);
+      } finally {
+        setTmdbLoading(false);
+        setTmdbDone(true);
+      }
+    },
+    []
+  );
+
+  // Fetch suggestions (debounced 300ms) — local DB
   const doSuggestions = useCallback(
     async (q: string) => {
       if (q.length < 2) {
@@ -185,9 +224,12 @@ export function SearchOverlay() {
   const handleChange = (value: string) => {
     setQuery(value);
     setSearchResults([]);
-    // Debounced suggestions
+    // Debounced local suggestions (300ms)
     if (suggestionsDebounceRef.current) clearTimeout(suggestionsDebounceRef.current);
     suggestionsDebounceRef.current = setTimeout(() => doSuggestions(value), 300);
+    // Debounced TMDB live search (500ms)
+    if (tmdbDebounceRef.current) clearTimeout(tmdbDebounceRef.current);
+    tmdbDebounceRef.current = setTimeout(() => doTmdbSearch(value), 500);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -195,6 +237,7 @@ export function SearchOverlay() {
       e.preventDefault();
       if (query.trim().length >= 2) {
         if (suggestionsDebounceRef.current) clearTimeout(suggestionsDebounceRef.current);
+        if (tmdbDebounceRef.current) clearTimeout(tmdbDebounceRef.current);
         doSearch(query.trim());
       }
     }
@@ -226,13 +269,23 @@ export function SearchOverlay() {
     setRecentSearches(updated);
   };
 
+  // Deduplicate TMDB results from local: remove TMDB items whose tmdbId matches a local item
+  const localTmdbIds = new Set(
+    [...suggestions, ...searchResults]
+      .filter((i) => i.tmdbId != null)
+      .map((i) => i.tmdbId!)
+  );
+  const filteredTmdb = tmdbResults.filter((i) => !localTmdbIds.has(i.tmdbId));
+
   // Determine which section to show
   const hasQuery = query.trim().length >= 2;
   const showRecent = !hasQuery && !loading && recentSearches.length > 0;
   const showSuggestions = hasQuery && suggestionsLoading;
   const showSuggestionsResults = hasQuery && !suggestionsLoading && suggestions.length > 0 && searchResults.length === 0 && !loading;
-  const showNoResults = hasQuery && !loading && !suggestionsLoading && suggestions.length === 0 && searchResults.length === 0;
+  const showNoResults = hasQuery && !loading && !suggestionsLoading && suggestions.length === 0 && searchResults.length === 0 && !tmdbLoading && filteredTmdb.length === 0 && tmdbDone;
   const showFullResults = searchResults.length > 0;
+  const showTmdbResults = hasQuery && filteredTmdb.length > 0 && searchResults.length === 0;
+  const showTmdbInFullResults = searchResults.length > 0 && filteredTmdb.length > 0;
 
   if (!showSearch) return null;
 
@@ -382,6 +435,28 @@ export function SearchOverlay() {
                   ))}
                 </AnimatePresence>
               </div>
+              {/* TMDB results section below local suggestions */}
+              {filteredTmdb.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+                    <Icon name="globe" className="h-4 w-4 text-muted-foreground" />
+                    Résultats TMDB
+                    {tmdbLoading && <Icon name="loader" className="h-3 w-3 animate-spin" />}
+                  </h3>
+                  <div className="space-y-0.5 rounded-xl border border-border/40 overflow-hidden">
+                    <AnimatePresence initial={false}>
+                      {filteredTmdb.map((item) => (
+                        <SuggestionItem
+                          key={`tmdb-${item.tmdbId}`}
+                          item={item}
+                          onSelect={handleSelect}
+                          isTmdb
+                        />
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                </div>
+              )}
               {/* Keyboard hint */}
               <p className="mt-4 text-xs text-muted-foreground/60 text-center flex items-center justify-center gap-1.5">
                 <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border/50 text-[10px] font-mono">
@@ -441,7 +516,7 @@ export function SearchOverlay() {
               transition={{ duration: 0.2 }}
               className="p-4"
             >
-              {/* Separator */}
+              {/* Local results */}
               <div className="max-w-2xl mx-auto mb-4">
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <Icon name="search" className="h-4 w-4 text-muted-foreground" />
@@ -462,6 +537,88 @@ export function SearchOverlay() {
                   </div>
                 ))}
               </div>
+
+              {/* TMDB results section below local full results */}
+              {showTmdbInFullResults && (
+                <div className="mt-8">
+                  <div className="max-w-2xl mx-auto mb-4">
+                    <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      <Icon name="globe" className="h-4 w-4 text-muted-foreground" />
+                      Résultats TMDB
+                      <span className="text-xs font-normal text-muted-foreground">
+                        ({filteredTmdb.length})
+                      </span>
+                      {tmdbLoading && <Icon name="loader" className="h-3 w-3 animate-spin" />}
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    {filteredTmdb.map((item) => (
+                      <div
+                        key={`tmdb-${item.tmdbId}`}
+                        onClick={() => handleSelect(item)}
+                        className="cursor-pointer"
+                      >
+                        <TmdbContentCard item={item} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* === TMDB ONLY RESULTS (no local results) === */}
+          {showTmdbResults && !showSuggestionsResults && (
+            <motion.div
+              key="tmdb-only-results"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="p-4"
+            >
+              <div className="max-w-2xl mx-auto mb-4">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Icon name="globe" className="h-4 w-4 text-muted-foreground" />
+                  Résultats TMDB
+                  {tmdbLoading && <Icon name="loader" className="h-3 w-3 animate-spin" />}
+                  <span className="text-xs font-normal text-muted-foreground">
+                    ({filteredTmdb.length})
+                  </span>
+                </h3>
+                <p className="text-xs text-muted-foreground/60 mt-1">
+                  Contenu en direct depuis TMDB — cliquez pour regarder
+                </p>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {filteredTmdb.map((item) => (
+                  <div
+                    key={`tmdb-${item.tmdbId}`}
+                    onClick={() => handleSelect(item)}
+                    className="cursor-pointer"
+                  >
+                    <TmdbContentCard item={item} />
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* TMDB loading spinner (when only TMDB is loading, no local results) */}
+          {hasQuery && tmdbLoading && suggestions.length === 0 && searchResults.length === 0 && !suggestionsLoading && (
+            <motion.div
+              key="tmdb-loading-only"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col items-center justify-center py-12 px-4"
+            >
+              <div className="w-16 h-16 rounded-full bg-muted/80 flex items-center justify-center mb-4">
+                <Icon name="globe" className="h-7 w-7 text-muted-foreground/50 animate-pulse" />
+              </div>
+              <p className="text-muted-foreground/60 text-sm">
+                Recherche sur TMDB...
+              </p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -478,6 +635,10 @@ export function SearchOverlay() {
             </div>
             <p className="text-muted-foreground/70 text-sm text-center">
               Recherchez vos films, séries, anime et manga préférés
+            </p>
+            <p className="mt-2 text-xs text-muted-foreground/40 text-center">
+              <Icon name="globe" className="h-3 w-3 inline mr-1" />
+              Les résultats incluent le catalogue complet de TMDB
             </p>
             <p className="mt-4 text-xs text-muted-foreground/50 flex items-center justify-center gap-1.5">
               <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border/50 text-[10px] font-mono">
@@ -496,4 +657,84 @@ export function SearchOverlay() {
 
 function SuggestionItemCard({ item }: { item: ContentItem }) {
   return <ContentCard item={item} />;
+}
+
+// ==================== TMDB BADGE CARD ====================
+
+function TmdbContentCard({ item }: { item: ContentItem }) {
+  return (
+    <div
+      className="content-card group cursor-pointer relative rounded-lg overflow-hidden bg-card"
+    >
+      <div className="relative aspect-[2/3]">
+        <img
+          src={item.posterUrl}
+          alt={getDisplayTitle(item)}
+          className="w-full h-full object-cover"
+          loading="lazy"
+          onError={(e) => handleImgError(e)}
+        />
+        {/* Gradient overlay at bottom */}
+        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
+        {/* TMDB globe badge */}
+        <span className="absolute top-2 left-2 z-10 flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-teal-600/80 text-white backdrop-blur-sm">
+          <Icon name="globe" className="h-2.5 w-2.5" />
+          TMDB
+        </span>
+        {/* Type badge */}
+        {getTypeBadge(item.type)}
+        {/* Favorite button */}
+        <button
+          onClick={(e) => e.stopPropagation()}
+          className="absolute top-2 right-2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm transition-all hover:scale-110"
+          aria-label="Ajouter aux favoris"
+        >
+          <Icon name="heart" className="h-4 w-4 text-white/80" />
+        </button>
+        {/* Play icon overlay on hover */}
+        <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <div className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg bg-red-600/90">
+            <Icon name="play" className="h-5 w-5 text-white ml-0.5" fill="white" />
+          </div>
+        </div>
+        {/* Quality badge */}
+        <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-600/90 text-white backdrop-blur-sm">
+          1080p
+        </span>
+      </div>
+      {/* Info */}
+      <div className="p-2.5">
+        <h3 className="text-sm font-medium text-foreground truncate">
+          {getDisplayTitle(item)}
+        </h3>
+        <div className="flex items-center gap-2 mt-1">
+          <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
+            <Icon name="star" className="h-3 w-3 fill-amber-500 text-amber-500" />
+            <span>{item.rating?.toFixed(1) || "N/A"}</span>
+          </span>
+          {item.year && (
+            <span className="text-xs text-muted-foreground">{item.year}</span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==================== TYPE BADGE HELPER ====================
+
+function getTypeBadge(type: string) {
+  const config: Record<string, { label: string; color: string }> = {
+    movie: { label: "Film", color: "bg-red-600/90" },
+    series: { label: "Série", color: "bg-cyan-600/90" },
+    anime: { label: "Anime", color: "bg-pink-600/90" },
+    manga: { label: "Manga", color: "bg-purple-600/90" },
+  };
+  const c = config[type];
+  if (!c) return null;
+  return (
+    <span className={`absolute top-8 left-2 z-10 px-1.5 py-0.5 rounded text-[10px] font-bold ${c.color} text-white backdrop-blur-sm`}>
+      {c.label}
+    </span>
+  );
 }

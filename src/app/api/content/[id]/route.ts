@@ -2,7 +2,22 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { posterUrl, backdropUrl } from "@/lib/content-utils";
 
-import { EMBED_PROVIDERS, getProviderById } from "@/lib/embed-providers";
+import { EMBED_PROVIDERS, getActiveProviders, getProviderById } from "@/lib/embed-providers";
+
+// Only active providers — inactive ones are excluded from display
+const ACTIVE_PROVIDER_IDS = new Set(getActiveProviders().map((p) => p.id));
+
+// Provider order index for sorting embeds (most reliable first)
+const PROVIDER_ORDER: Record<string, number> = {};
+EMBED_PROVIDERS.forEach((p, i) => { PROVIDER_ORDER[p.id] = i; });
+
+function sortByProviderOrder(embeds: any[]): any[] {
+  return [...embeds].sort((a, b) => {
+    const orderA = PROVIDER_ORDER[a.hostProvider] ?? 999;
+    const orderB = PROVIDER_ORDER[b.hostProvider] ?? 999;
+    return orderA - orderB;
+  });
+}
 
 // Build HOST_CONFIG from the provider registry (single source of truth)
 const HOST_CONFIG: Record<string, { label: string; color: string; icon: string; langs: string[] }> = {
@@ -74,6 +89,9 @@ export async function GET(
       }));
     }
 
+    // Filter out embeds from inactive providers
+    const activeEmbeds = content.embeds.filter((e) => ACTIVE_PROVIDER_IDS.has(e.hostProvider));
+
     // Group embeds by episode/season
     const embedGroups: { label: string; season: number | null; episode: number | null; embeds: any[] }[] = [];
 
@@ -82,7 +100,7 @@ export async function GET(
         label: "Chapitres",
         season: null,
         episode: null,
-        embeds: content.embeds.map((e) => ({
+        embeds: sortByProviderOrder(activeEmbeds.map((e) => ({
           id: e.id,
           serverName: e.serverName,
           serverType: e.serverType,
@@ -91,14 +109,14 @@ export async function GET(
           lang: e.lang,
           quality: e.quality,
           hostConfig: HOST_CONFIG[e.hostProvider] || { label: e.serverName, color: "#666", icon: "🔗", langs: ["vostfr"] },
-        })),
+        }))),
       });
     } else if (content.type === "movie") {
       embedGroups.push({
         label: "Film Complet",
         season: null,
         episode: null,
-        embeds: content.embeds.map((e) => ({
+        embeds: sortByProviderOrder(activeEmbeds.map((e) => ({
           id: e.id,
           serverName: e.serverName,
           serverType: e.serverType,
@@ -107,12 +125,12 @@ export async function GET(
           lang: e.lang,
           quality: e.quality,
           hostConfig: HOST_CONFIG[e.hostProvider] || { label: e.serverName, color: "#666", icon: "🔗", langs: ["vostfr"] },
-        })),
+        }))),
       });
     } else {
       // Series/Anime - group by season + episode
       const episodeMap = new Map<string, any[]>();
-      for (const e of content.embeds) {
+      for (const e of activeEmbeds) {
         const key = `S${e.season || 1}E${e.episode || 1}`;
         if (!episodeMap.has(key)) episodeMap.set(key, []);
         episodeMap.get(key)!.push({
@@ -131,7 +149,7 @@ export async function GET(
 
       const sortedKeys = [...episodeMap.keys()].sort();
       for (const key of sortedKeys) {
-        const embeds = episodeMap.get(key)!;
+        const embeds = sortByProviderOrder(episodeMap.get(key)!);
         const ep = embeds[0].episode || 1;
         const s = embeds[0].season || 1;
         embedGroups.push({
@@ -163,9 +181,9 @@ export async function GET(
       seasons: content.seasons,
       featured: content.featured,
       categories: content.categories.map((cc) => cc.category),
-      embeds: content.embeds,
+      embeds: activeEmbeds,
       embedGroups,
-      hostProviders: [...new Set(content.embeds.map((e) => e.hostProvider))].map(
+      hostProviders: [...new Set(activeEmbeds.map((e) => e.hostProvider))].map(
         (p) => HOST_CONFIG[p] || { label: p, color: "#666", icon: "🔗", langs: ["vostfr"] }
       ),
       related,
