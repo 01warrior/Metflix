@@ -98,6 +98,19 @@ export default function Page() {
     }
   }, [selectedContentId, contentDetail, addToWatchHistory]);
 
+  // Browser back button support
+  useEffect(() => {
+    window.history.replaceState({ view: "home" }, "");
+    const handlePopState = (e: PopStateEvent) => {
+      const view = e.state?.view;
+      if (view) {
+        useAppStore.setState({ currentView: view, selectedContentId: e.state?.contentId || null, contentDetail: null });
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       <RedirectBlocker />

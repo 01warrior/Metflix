@@ -177,7 +177,7 @@ export function HeroSection() {
 
       {/* Bottom controls: glass indicator bar */}
       {items.length > 1 && (
-        <div className="absolute top-20 md:top-auto md:bottom-6 left-1/2 -translate-x-1/2 z-10">
+        <div className="hidden md:block absolute md:top-auto md:bottom-6 left-1/2 -translate-x-1/2 z-10">
           <div className="flex items-center gap-2.5 px-4 py-3 rounded-full bg-white/[0.06] backdrop-blur-xl border border-white/[0.1] shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
             {/* Dots */}
             <div className="flex items-center gap-2">

@@ -226,7 +226,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   previewItem: null,
   showPreview: false,
 
-  setView: (view) => set({ currentView: view }),
+  setView: (view) => {
+    const current = get().currentView;
+    if (typeof window !== "undefined" && current !== view) {
+      window.history.pushState({ view: current, contentId: get().selectedContentId }, "");
+    }
+    set({ currentView: view });
+  },
   setSelectedType: (type) => set({ selectedType: type, browsePage: 1, selectedCategory: null, browseContent: [] }),
   setSelectedCategory: (category) => set({ selectedCategory: category, browsePage: 1, browseContent: [] }),
   setSelectedSort: (sort) => set({ selectedSort: sort, browsePage: 1, browseContent: [] }),
