@@ -17,38 +17,44 @@ export function Footer() {
     <footer className="mt-auto border-t border-border/50 pb-20 md:pb-0">
       {/* Support section */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
-        <div className="rounded-xl bg-white/90 dark:bg-zinc-900/90 border border-zinc-200 dark:border-zinc-700/50 p-6 text-center">
-          <div className="flex items-center justify-center gap-2 mb-3">
-            <Icon name="heart" className="h-5 w-5 text-red-500" />
-            <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-              Vous êtes chez vous
-            </h3>
-          </div>
-          <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-2 max-w-lg mx-auto leading-relaxed">
-            Les interruptions finissent par gâcher les meilleurs moments.
-          </p>
-          <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-2 max-w-lg mx-auto leading-relaxed">
-            Une publicité qui apparaît au pire instant, une fenêtre à fermer, un compte à rebours qui casse le rythme…
-            <span className="text-zinc-900 dark:text-zinc-100 font-medium"> À force, l&apos;envie de continuer disparaît.</span>
-          </p>
-          <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-5 max-w-lg mx-auto leading-relaxed">
-            Ici, <span className="text-zinc-900 dark:text-zinc-100 font-medium">rien ne s&apos;interpose.</span> Vous choisissez, vous regardez, vous gardez le contrôle.
-          </p>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-5 max-w-md mx-auto">
-            Si un jour vous voulez nous soutenir, c&apos;est <span className="text-red-500 font-medium">vous</span> qui décidez quand et comment.
-          </p>
-          <div className="flex items-center justify-center gap-3 flex-wrap">
-            <Button className="bg-red-600 hover:bg-red-700 text-white font-semibold btn-glow h-12 px-6">
-              <Icon name="server" className="h-4 w-4 mr-2" /> Participer au maintien des serveurs
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setShowAd(true)}
-              className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 font-medium h-12 px-6"
-            >
-              <Icon name="heart" className="h-4 w-4 mr-2" /> Meilleur : offrir 30s de mon temps
-            </Button>
-          </div>
+        <div className="rounded-xl bg-white/90 dark:bg-zinc-900/90 border border-zinc-200 dark:border-zinc-700/50 p-6">
+          <div className="flex flex-col md:flex-row items-center gap-6">
+            {/* Left: Logo */}
+            <div className="w-full md:w-1/3 flex justify-center">
+              <div className="overflow-hidden rounded-lg">
+                <img src="/logo.png" alt="METFLIX" className="w-full h-auto object-contain" />
+              </div>
+            </div>
+            {/* Right: Text */}
+            <div className="w-full md:w-2/3 text-center md:text-left">
+              <div className="flex items-center justify-center md:justify-start gap-2 mb-3">
+                <Icon name="heart" className="h-5 w-5 text-red-500" />
+                <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                  Vous êtes chez vous
+                </h3>
+              </div>
+              <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-2 max-w-lg mx-auto md:mx-0 leading-relaxed">
+                Les interruptions finissent par gâcher les meilleurs moments.
+              </p>
+              
+              <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-5 max-w-lg mx-auto md:mx-0 leading-relaxed">
+                Ici, <span className="text-zinc-900 dark:text-zinc-100 font-medium">rien ne s&apos;interpose.</span> Vous choisissez, vous regardez, vous gardez le contrôle.
+              </p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-5 max-w-md mx-auto md:mx-0">
+                Si un jour vous voulez nous soutenir, c&apos;est <span className="text-red-500 font-medium">vous</span> qui décidez quand et comment.
+              </p>
+              <div className="flex items-center justify-center md:justify-start gap-3 flex-wrap">
+                <Button className="bg-red-600 hover:bg-red-700 text-white font-semibold btn-glow h-12 px-6">
+                  <Icon name="server" className="h-4 w-4 mr-2" /> Participer au maintien des serveurs
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowAd(true)}
+                  className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 font-medium h-12 px-6"
+                >
+                  <Icon name="heart" className="h-4 w-4 mr-2" /> Meilleur : offrir 30s de mon temps
+                </Button>
+              </div>
           {showAd && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
@@ -74,6 +80,8 @@ export function Footer() {
               )}
             </motion.div>
           )}
+            </div>
+          </div>
         </div>
       </div>
 

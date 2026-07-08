@@ -172,18 +172,6 @@ export function HomeView() {
       {/* Continue Watching */}
       <WatchHistoryRow items={watchHistory} />
 
-      {/* Films Tendances */}
-      {trendingMovies.length > 0 && (
-        <div className="max-w-7xl mx-auto mb-8">
-          <ContentRow
-            title="Films Tendances"
-            items={trendingMovies}
-            seeAllType="movie"
-            showRanking
-          />
-        </div>
-      )}
-
       {/* Derniers Ajouts + Surprise Me */}
       {latestContent.length > 0 && (
         <section className="mb-8 px-4 md:px-0">
@@ -227,6 +215,12 @@ export function HomeView() {
           title="Séries Populaires"
           items={trendingSeries}
           seeAllType="series"
+        />
+        <ContentRow
+          title="Top 10 - Les films à venir prochainement"
+          items={trendingMovies}
+          seeAllType="movie"
+          showRanking
         />
         <ContentRow
           title="Anime Populaires"
