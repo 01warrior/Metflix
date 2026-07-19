@@ -34,14 +34,7 @@ export function Footer() {
                 </h3>
               </div>
               <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-2 max-w-lg mx-auto md:mx-0 leading-relaxed">
-                Les interruptions finissent par gâcher les meilleurs moments.
-              </p>
-              
-              <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-5 max-w-lg mx-auto md:mx-0 leading-relaxed">
-                Ici, <span className="text-zinc-900 dark:text-zinc-100 font-medium">rien ne s&apos;interpose.</span> Vous choisissez, vous regardez, vous gardez le contrôle.
-              </p>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-5 max-w-md mx-auto md:mx-0">
-                Si un jour vous voulez nous soutenir, c&apos;est <span className="text-red-500 font-medium">vous</span> qui décidez quand et comment.
+                Nous réduisons les publicités au maximum pour votre confort, mais certaines ne dépendent malheureusement pas de nous.
               </p>
               <div className="flex items-center justify-center md:justify-start gap-3 flex-wrap">
                 <Button className="bg-red-600 hover:bg-red-700 text-white font-semibold btn-glow h-12 px-6">
@@ -49,10 +42,10 @@ export function Footer() {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => setShowAd(true)}
+                  onClick={() => window.open("https://ublockorigin.com/", "_blank", "noopener")}
                   className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 font-medium h-12 px-6"
                 >
-                  <Icon name="heart" className="h-4 w-4 mr-2" /> Meilleur : offrir 30s de mon temps
+                  <Icon name="shield" className="h-4 w-4 mr-2" /> Installer un bloqueur de pub
                 </Button>
               </div>
           {showAd && (

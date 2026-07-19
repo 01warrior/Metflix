@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useAppStore, type ContentType } from "@/store/app-store";
 import { useTheme } from "next-themes";
 import { Icon } from "@/lib/icons";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { AdminPanel } from "./admin-panel";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -31,25 +30,6 @@ export function Header() {
   const [adminPassword, setAdminPassword] = useState("");
   const [authError, setAuthError] = useState("");
   const [scrolled, setScrolled] = useState(false);
-  const [surpriseLoading, setSurpriseLoading] = useState(false);
-
-  const handleSurpriseMe = useCallback(async () => {
-    if (surpriseLoading) return;
-    setSurpriseLoading(true);
-    try {
-      const res = await fetch("/api/content/random");
-      if (!res.ok) return;
-      const json = await res.json();
-      if (json.data?.id) {
-        setView("detail");
-        setSelectedContentId(json.data.id);
-      }
-    } catch {
-      // silently fail
-    } finally {
-      setSurpriseLoading(false);
-    }
-  }, [surpriseLoading, setView, setSelectedContentId]);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -102,11 +82,11 @@ export function Header() {
             <button
               key={item.label}
               onClick={() => handleNav(item)}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                 (item.view && currentView === item.view) ||
                 (item.type && currentView === "browse" && selectedType === item.type)
-                  ? "text-red-500 bg-red-500/10"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  ? "text-red-500 bg-red-500/10 shadow-sm shadow-red-500/10"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/80 hover:shadow-sm"
               }`}
             >
               {item.label}
@@ -164,45 +144,17 @@ export function Header() {
           >
             <Icon name="search" className="h-5 w-5 text-muted-foreground" />
           </button>
-          {/* Surprise Me button */}
-          <motion.button
-            onClick={handleSurpriseMe}
-            disabled={surpriseLoading}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="hidden md:flex items-center gap-1.5 px-3 py-2.5 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-sm shadow-red-600/20 hover:shadow-md hover:shadow-red-600/30 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed select-none"
-            aria-label="Surprise Me"
+          {/* Ad blocker button */}
+          <button
+            onClick={() => {
+              window.open("https://ublockorigin.com/", "_blank", "noopener");
+            }}
+            className="hidden md:flex items-center gap-1.5 px-3 py-2.5 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-sm shadow-red-600/20 hover:shadow-md hover:shadow-red-600/30 transition-all duration-200"
+            aria-label="Installer un bloqueur de pub"
           >
-            <motion.span
-              animate={surpriseLoading ? { rotate: 360 } : { rotate: 0 }}
-              transition={surpriseLoading ? { duration: 0.6, repeat: Infinity, ease: "linear" } : { duration: 0 }}
-            >
-              <Icon name="sparkles" className="h-3.5 w-3.5" />
-            </motion.span>
-            <AnimatePresence mode="wait">
-              {surpriseLoading ? (
-                <motion.span
-                  key="loading"
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  className="whitespace-nowrap"
-                >
-                  Chargement...
-                </motion.span>
-              ) : (
-                <motion.span
-                  key="idle"
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  className="whitespace-nowrap"
-                >
-                  Surprise Me
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </motion.button>
+            <Icon name="shield" className="h-3.5 w-3.5" />
+            Bloqueur de pub
+          </button>
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileOpen(true)}
@@ -262,22 +214,6 @@ export function Header() {
                   {favorites.length}
                 </span>
               )}
-            </button>
-            <button
-              onClick={() => {
-                handleSurpriseMe();
-                setMobileOpen(false);
-              }}
-              disabled={surpriseLoading}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold text-red-500 bg-red-500/10 hover:bg-red-500/20 transition-colors disabled:opacity-70"
-            >
-              <motion.span
-                animate={surpriseLoading ? { rotate: 360 } : { rotate: 0 }}
-                transition={surpriseLoading ? { duration: 0.6, repeat: Infinity, ease: "linear" } : { duration: 0 }}
-              >
-                <Icon name="sparkles" className="h-4 w-4" />
-              </motion.span>
-              Surprise Me
             </button>
           </nav>
         </SheetContent>

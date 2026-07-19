@@ -46,6 +46,18 @@ export interface EmbedProvider {
 export const EMBED_PROVIDERS: EmbedProvider[] = [
   // === TIER 1: Verified Working (2025-07-02) ===
   {
+    id: "vidsrc_me",
+    name: "Mirage",
+    color: "#a855f7",
+    quality: "1080p",
+    active: true,
+    langs: ["vostfr"],
+    movieUrl: "https://vidsrcme.ru/embed/movie/{tmdbId}",
+    tvUrl: "https://vidsrcme.ru/embed/tv/{tmdbId}/{season}/{episode}",
+    note: "Working 2025-07-02. Redirects to vidsrcme.ru.",
+  },
+
+  {
     id: "vidsrc_pm",
     name: "Rafale",
     color: "#e50914",
@@ -57,17 +69,6 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     note: "Working 2025-07-02. Reliable VidSrc fork. VF via player.",
   },
 
-  {
-    id: "smashystream",
-    name: "Spitfire",
-    color: "#10b981",
-    quality: "1080p",
-    active: true,
-    langs: ["vostfr", "vf"],
-    movieUrl: "https://embed.smashystream.com/movie/{tmdbId}",
-    tvUrl: "https://embed.smashystream.com/tv/{tmdbId}/{season}/{episode}",
-    note: "Working 2025-07-03. Redirects to anyembed.xyz backend. Clean player. VF via player.",
-  },
   {
     id: "anyembed",
     name: "Mustang",
@@ -81,6 +82,18 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
   },
 
   {
+    id: "ezvidapi",
+    name: "Furtif",
+    color: "#06b6d4",
+    quality: "1080p",
+    active: true,
+    langs: ["vostfr", "vf"],
+    movieUrl: "https://ezvidapi.com/embed/movie/{tmdbId}",
+    tvUrl: "https://ezvidapi.com/embed/tv/{tmdbId}/{season}/{episode}",
+    note: "Ad-free, multi-provider failover. Sandbox-friendly. Added 2026-07-19.",
+  },
+
+  {
     id: "vidsrc_pro",
     name: "VidSrc Pro",
     color: "#f59e0b",
@@ -90,28 +103,6 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     movieUrl: "https://vidsrc.pro/embed/movie/{tmdbId}",
     tvUrl: "https://vidsrc.pro/embed/tv/{tmdbId}/{season}/{episode}",
     note: "DEAD 2025-07-04. 301 → embed.su (dead domain).",
-  },
-  {
-    id: "vidsrc_me",
-    name: "Mirage",
-    color: "#a855f7",
-    quality: "1080p",
-    active: true,
-    langs: ["vostfr"],
-    movieUrl: "https://vidsrcme.ru/embed/movie/{tmdbId}",
-    tvUrl: "https://vidsrcme.ru/embed/tv/{tmdbId}/{season}/{episode}",
-    note: "Working 2025-07-02. Redirects to vidsrcme.ru.",
-  },
-  {
-    id: "vidcore",
-    name: "Tomcat",
-    color: "#0ea5e9",
-    quality: "1080p",
-    active: true,
-    langs: ["vostfr", "vf"],
-    movieUrl: "https://vidcore.org/embed/movie/{tmdbId}",
-    tvUrl: "https://vidcore.org/embed/tv/{tmdbId}/{season}/{episode}",
-    note: "Working 2025-07-09. HLS playback, subtitle support. 308→www. VF via player.",
   },
   {
     id: "primesrc",

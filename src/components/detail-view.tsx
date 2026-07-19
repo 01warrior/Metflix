@@ -77,8 +77,7 @@ export function DetailView() {
   const [cast, setCast] = useState<{ id: number; name: string; character: string; profileUrl: string; order: number }[]>([]);
   const [crew, setCrew] = useState<{ id: number; name: string; job: string; department: string; profileUrl: string }[]>([]);
   const [castLoading, setCastLoading] = useState(false);
-  // Server hint overlay state
-  const [showServerHint, setShowServerHint] = useState(false);
+  const [showMirageHint, setShowMirageHint] = useState(true);
 
   // Server sidebar panel — collapsed by default on mobile, open on desktop
   const [serverPanelOpen, setServerPanelOpen] = useState(() => {
@@ -312,15 +311,6 @@ export function DetailView() {
       setMangadexLoading(false);
     }
   }, [toast, mangadexChapters]);
-
-  // Auto-show server hint overlay when iframe key changes (server switch), dismiss after 6s
-  useEffect(() => {
-    if (iframeKey > 0) {
-      setShowServerHint(true);
-      const timer = setTimeout(() => setShowServerHint(false), 6000);
-      return () => clearTimeout(timer);
-    }
-  }, [iframeKey]);
 
   useEffect(() => {
     if (!selectedContentId) return;
@@ -614,7 +604,7 @@ export function DetailView() {
       <div className="relative mb-6">
         <div className="flex gap-0 aspect-video">
           {/* Player area */}
-          <div className={`flex-1 min-w-0 relative overflow-hidden bg-black transition-[border-radius] duration-200 ${serverPanelOpen ? 'rounded-l-xl' : 'rounded-xl'}`} ref={playerContainerRef} data-player-container>
+          <div className={`flex-1 min-w-0 relative overflow-hidden bg-black transition-[border-radius] duration-200 ${serverPanelOpen ? 'rounded-l-xl' : 'rounded-xl'} ring-1 ring-white/10 shadow-lg shadow-black/50`} ref={playerContainerRef} data-player-container>
             {currentEmbed ? (
               <>
                 {playerLoading && (
@@ -637,65 +627,40 @@ export function DetailView() {
                     </div>
                   </div>
                 )}
-                {/* Top bar: server hint (left) + fullscreen button (right) */}
-                <AnimatePresence>
-                  {showServerHint && currentEmbed && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.3 }}
-                      className="absolute top-2 left-2 z-20 flex items-center gap-2"
+                {showMirageHint && currentEmbed?.hostProvider === "vidsrc_me" && (
+                  <div className="absolute top-2 left-1/2 -translate-x-1/2 z-30 max-w-[95%] px-4 py-2 rounded-md bg-black/80 backdrop-blur-sm border border-yellow-500/30 flex items-center gap-3">
+                    <p className="text-xs text-yellow-200/90 text-center leading-relaxed flex-1">
+                      Le serveur Mirage redirige vers des sites externes, cela ne dépend pas de nous. Nous n&apos;avons pas de pub sur ce site. Choisissez le serveur avec lequel vous êtes à l&apos;aise et installez un bloqueur de pub.
+                    </p>
+                    <button
+                      onClick={() => setShowMirageHint(false)}
+                      className="flex-shrink-0 w-5 h-5 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white/50 hover:text-white transition-colors"
+                      aria-label="Fermer"
                     >
-                      <span className="text-[11px] text-white/60 hidden sm:inline">Si le lecteur ne charge pas,</span>
-                      <button
-                        onClick={() => {
-                          setShowServerHint(false);
-                          const allEmbeds = isSeriesOrAnime && selectedEpisode
-                            ? contentDetail.embedGroups
-                                .find((g) => {
-                                  const k = g.season != null && g.episode != null ? `S${g.season}E${g.episode}` : "all";
-                                  return k === selectedEpisode;
-                                })?.embeds || []
-                            : contentDetail.embedGroups[0]?.embeds || [];
-                          const currentIdx = allEmbeds.findIndex((e) => e.id === currentEmbed.id);
-                          const nextIdx = (currentIdx + 1) % allEmbeds.length;
-                          const nextEmbed = allEmbeds[nextIdx];
-                          if (nextEmbed) {
-                            handleEmbedClick(nextEmbed, selectedEpisode || undefined);
-                          }
-                        }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/20 border border-white/20 text-white text-[11px] font-semibold transition-all"
-                      >
-                        Serveur suivant <Icon name="chevron-right" className="h-3 w-3" />
-                      </button>
-                      <button
-                        onClick={() => setShowServerHint(false)}
-                        className="w-6 h-6 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white/50 hover:text-white transition-colors"
-                        aria-label="Fermer"
-                      >
-                        <Icon name="x" className="h-3 w-3" />
-                      </button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-                <button
-                  onClick={toggleFullscreen}
-                  className="absolute top-2 right-2 z-20 flex items-center gap-1.5 rounded-md bg-black/80 backdrop-blur-sm hover:bg-black/95 transition-all duration-200 hover:scale-105 border border-white/10 hover:border-white/25 p-2 md:px-3 md:py-2.5"
-                  aria-label={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
-                >
-                  <Icon name={isFullscreen ? "minimize" : "maximize"} className="h-5 w-5 md:h-4 md:w-4 text-white flex-shrink-0" />
-                  <span className="hidden md:inline text-[11px] font-semibold text-white whitespace-nowrap">
-                    {isFullscreen ? "Réduire" : "Plein écran"}
-                  </span>
-                </button>
+                      <Icon name="x" className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+                {showMirageHint && currentEmbed?.hostProvider === "vidsrc_pm" && (
+                  <div className="absolute top-2 left-1/2 -translate-x-1/2 z-30 max-w-[95%] px-4 py-2 rounded-md bg-black/80 backdrop-blur-sm border border-white/10 flex items-center gap-3">
+                    <p className="text-xs text-white/70 text-center leading-relaxed flex-1">
+                      Le serveur Rafale redirige vers des sites externes, cela ne dépend pas de nous. Nous n&apos;avons pas de pub sur ce site. Choisissez le serveur avec lequel vous êtes à l&apos;aise et installez un bloqueur de pub.
+                    </p>
+                    <button
+                      onClick={() => setShowMirageHint(false)}
+                      className="flex-shrink-0 w-5 h-5 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white/50 hover:text-white transition-colors"
+                      aria-label="Fermer"
+                    >
+                      <Icon name="x" className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
                 <iframe
                   key={iframeKey}
                   src={currentEmbed.url}
                   className="absolute inset-0 w-full h-full border-0"
-                  sandbox="allow-scripts allow-same-origin allow-forms"
                   referrerPolicy="no-referrer"
-                  allow="autoplay; encrypted-media"
+                  allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
                   onLoad={() => setPlayerLoading(false)}
                   title="Player"
                 />

@@ -53,7 +53,12 @@ export function RedirectBlocker() {
     window.open = function (url?: string | URL, _target?: string, _features?: string): WindowProxy | null {
       const urlStr = url?.toString() || "";
 
-      // Block ALL popups — our app never needs window.open
+      // Allow our own ad blocker link
+      if (urlStr.includes("ublockorigin.com")) {
+        return nativeOpen.call(window, url, "_blank", "noopener");
+      }
+
+      // Block ALL other popups — our app never needs window.open
       if (isExternalUrl(urlStr) || urlStr.includes("about:blank") || urlStr.startsWith("http")) {
         console.warn("[RedirectBlocker] Blocked window.open:", urlStr);
         return null;
