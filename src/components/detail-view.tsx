@@ -458,9 +458,9 @@ export function DetailView() {
                 </div>
               </div>
               {/* Description */}
-              {contentDetail.overviewFr && (
+              {(contentDetail.overviewFr || contentDetail.overview) && (
                 <p className="text-sm text-muted-foreground leading-relaxed mb-4 line-clamp-4">
-                  {contentDetail.overviewFr}
+                  {contentDetail.overviewFr || contentDetail.overview}
                 </p>
               )}
               {/* MangaDex chapter section */}
@@ -628,8 +628,8 @@ export function DetailView() {
                   </div>
                 )}
                 {showMirageHint && currentEmbed?.hostProvider === "vidsrc_me" && (
-                  <div className="absolute top-2 left-1/2 -translate-x-1/2 z-30 max-w-[95%] px-4 py-2 rounded-md bg-black/80 backdrop-blur-sm border border-yellow-500/30 flex items-center gap-3">
-                    <p className="text-xs text-yellow-200/90 text-center leading-relaxed flex-1">
+                  <div className="absolute top-2 left-2 right-2 z-30 px-3 py-1.5 sm:px-4 sm:py-2 rounded-md bg-black/80 backdrop-blur-sm border border-yellow-500/30 flex items-center gap-2 sm:gap-3">
+                    <p className="text-[11px] sm:text-xs text-yellow-200/90 text-center leading-snug flex-1">
                       Le serveur Mirage redirige vers des sites externes, cela ne dépend pas de nous. Nous n&apos;avons pas de pub sur ce site. Choisissez le serveur avec lequel vous êtes à l&apos;aise et installez un bloqueur de pub.
                     </p>
                     <button
@@ -642,8 +642,8 @@ export function DetailView() {
                   </div>
                 )}
                 {showMirageHint && currentEmbed?.hostProvider === "vidsrc_pm" && (
-                  <div className="absolute top-2 left-1/2 -translate-x-1/2 z-30 max-w-[95%] px-4 py-2 rounded-md bg-black/80 backdrop-blur-sm border border-white/10 flex items-center gap-3">
-                    <p className="text-xs text-white/70 text-center leading-relaxed flex-1">
+                  <div className="absolute top-2 left-2 right-2 z-30 px-3 py-1.5 sm:px-4 sm:py-2 rounded-md bg-black/80 backdrop-blur-sm border border-white/10 flex items-center gap-2 sm:gap-3">
+                    <p className="text-[11px] sm:text-xs text-white/70 text-center leading-snug flex-1">
                       Le serveur Rafale redirige vers des sites externes, cela ne dépend pas de nous. Nous n&apos;avons pas de pub sur ce site. Choisissez le serveur avec lequel vous êtes à l&apos;aise et installez un bloqueur de pub.
                     </p>
                     <button
@@ -871,9 +871,9 @@ export function DetailView() {
                 )}
 
                 {/* Overview */}
-                {contentDetail.overviewFr && (
+                {(contentDetail.overviewFr || contentDetail.overview) && (
                   <p className="text-sm text-muted-foreground leading-relaxed line-clamp-4">
-                    {contentDetail.overviewFr}
+                    {contentDetail.overviewFr || contentDetail.overview}
                   </p>
                 )}
               </div>
@@ -1053,9 +1053,9 @@ export function DetailView() {
           )}
 
           {/* Overview */}
-          {contentDetail.overviewFr && (
+          {(contentDetail.overviewFr || contentDetail.overview) && (
             <p className="text-sm text-muted-foreground leading-relaxed">
-              {contentDetail.overviewFr}
+              {contentDetail.overviewFr || contentDetail.overview}
             </p>
           )}
         </div>
