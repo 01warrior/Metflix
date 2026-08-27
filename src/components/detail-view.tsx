@@ -1198,20 +1198,6 @@ export function ServerButton({
         style={{ backgroundColor: hostColor }}
       />
       <span className="truncate min-w-0">{hostLabel}</span>
-      {hasVF && (
-        <span className="px-1.5 py-0.5 rounded text-[7px] font-bold bg-emerald-500/20 text-emerald-400">
-          VF
-        </span>
-      )}
-      <span
-        className="px-1.5 py-0.5 rounded text-[8px] font-bold"
-        style={{
-          backgroundColor: `${hostColor}25`,
-          color: hostColor,
-        }}
-      >
-        {quality}
-      </span>
     </button>
   );
 }
