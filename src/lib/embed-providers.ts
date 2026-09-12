@@ -86,11 +86,11 @@ export const EMBED_PROVIDERS: EmbedProvider[] = [
     name: "Furtif",
     color: "#06b6d4",
     quality: "1080p",
-    active: true,
+    active: false,
     langs: ["vostfr", "vf"],
     movieUrl: "https://ezvidapi.com/embed/movie/{tmdbId}",
     tvUrl: "https://ezvidapi.com/embed/tv/{tmdbId}/{season}/{episode}",
-    note: "Ad-free, multi-provider failover. Sandbox-friendly. Added 2026-07-19.",
+    note: "DEAD 2026-09-12. X-Frame-Options: SAMEORIGIN → blank iframe.",
   },
 
   {
