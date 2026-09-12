@@ -16,9 +16,9 @@ export async function GET(request: Request) {
     const where: Prisma.ContentWhereInput = {
       status: "published",
       OR: [
-        { title: { contains: q } },
-        { titleFr: { contains: q } },
-        { genres: { contains: q } },
+        { title: { contains: q, mode: "insensitive" } },
+        { titleFr: { contains: q, mode: "insensitive" } },
+        { genres: { contains: q, mode: "insensitive" } },
       ],
     };
 
