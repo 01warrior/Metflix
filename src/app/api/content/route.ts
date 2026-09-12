@@ -1,7 +1,18 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { posterUrl, backdropUrl } from "@/lib/content-utils";
+import { EMBED_PROVIDERS } from "@/lib/embed-providers";
 import type { Prisma } from "@prisma/client";
+
+// Active providers capable of serving a given audio language (maps lang → provider ids)
+const ACTIVE_PROVIDERS = EMBED_PROVIDERS.filter((p) => p.active);
+const LANGUAGE_PROVIDERS: Record<string, string[]> = {};
+for (const p of ACTIVE_PROVIDERS) {
+  for (const l of p.langs) {
+    if (!LANGUAGE_PROVIDERS[l]) LANGUAGE_PROVIDERS[l] = [];
+    LANGUAGE_PROVIDERS[l].push(p.id);
+  }
+}
 
 interface ContentRow {
   id: string;
@@ -84,12 +95,17 @@ export async function GET(request: Request) {
     }
 
     if (lang) {
-      where.embeds = {
-        some: {
-          lang: lang.toLowerCase(),
-          isActive: true,
-        },
-      };
+      // VOSTFR = default for every embed provider → any active embed
+      // VF (dubbed FR) depends on the provider's capability, not the embed's lang field
+      const langProviderIds = LANGUAGE_PROVIDERS[lang.toLowerCase()];
+      where.embeds = langProviderIds?.length
+        ? {
+            some: {
+              hostProvider: { in: langProviderIds },
+              isActive: true,
+            },
+          }
+        : { some: { isActive: true } };
     }
 
     let orderBy: Prisma.ContentOrderByWithRelationInput;
