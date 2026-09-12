@@ -77,3 +77,16 @@ model ContentCategory {
   @@index([contentId])
   @@index([categoryId])
 }
+
+model Channel {
+  id        String   @id @default(cuid())
+  name      String
+  url       String   // live HLS (m3u8) stream URL
+  logo      String?  // channel logo URL
+  category  String   @default("Infos") // Infos, International, Culture, Sport, Kid, Autres
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([category])
+}

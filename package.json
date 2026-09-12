@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
+    "db:seed-channels": "npx tsx prisma/seed-channels.ts",
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
     "setup": "bash scripts/setup.sh"

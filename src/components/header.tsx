@@ -43,6 +43,7 @@ export function Header() {
     { label: "Accueil", view: "home" as const, icon: <Icon name="home" className="h-4 w-4" /> },
     { label: "Films", type: "movie" as ContentType, icon: <Icon name="film" className="h-4 w-4" /> },
     { label: "Séries", type: "series" as ContentType, icon: <Icon name="tv" className="h-4 w-4" /> },
+    { label: "TV", view: "tv" as const, icon: <Icon name="monitor" className="h-4 w-4" /> },
     { label: "Anime", type: "anime" as ContentType, icon: <Icon name="sparkles" className="h-4 w-4" /> },
     { label: "Manga", type: "manga" as ContentType, icon: <Icon name="book-open" className="h-4 w-4" /> },
   ];
