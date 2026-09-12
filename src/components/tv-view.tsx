@@ -20,14 +20,27 @@ function categoryColor(cat: string) {
   return CATEGORY_COLORS[cat] || CATEGORY_COLORS.Autres;
 }
 
+// Rewrite every HLS request through our same-origin /api/hls-proxy to bypass
+// CORS (the upstream CDNs don't send Access-Control-Allow-Origin).
+const PROXY_PREFIX = "/api/hls-proxy?url=";
+
+class ProxiedLoader extends Hls.DefaultConfig.loader {
+  load(context: any, config: any, callbacks: any) {
+    context.url = `${PROXY_PREFIX}${encodeURIComponent(context.url)}`;
+    super.load(context, config, callbacks);
+  }
+}
+
 function LivePlayer({ channel }: { channel: Channel }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [status, setStatus] = useState<"loading" | "playing" | "error">("loading");
+  const fatalRetries = useRef(0);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
     setStatus("loading");
+    fatalRetries.current = 0;
 
     let hls: Hls | null = null;
     let destroyed = false;
@@ -36,28 +49,39 @@ function LivePlayer({ channel }: { channel: Channel }) {
       if (!destroyed) setStatus("playing");
     };
 
-    const onError = () => {
-      if (!destroyed) setStatus((s) => (s === "playing" ? s : "error"));
+    const onFatal = () => {
+      if (destroyed) return;
+      fatalRetries.current += 1;
+      if (fatalRetries.current > 3) setStatus("error");
     };
 
     if (Hls.isSupported()) {
-      hls = new Hls({ liveDurationInfinity: true });
+      hls = new Hls({
+        ...Hls.DefaultConfig,
+        loader: ProxiedLoader as any,
+        pLoader: ProxiedLoader as any,
+      });
       hls.loadSource(channel.url);
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        if (!destroyed) video.play().catch(onError);
+        if (!destroyed) video.play().catch(onFatal);
       });
       hls.on(Hls.Events.ERROR, (_evt, data) => {
-        if (!data.fatal) return;
-        if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls?.startLoad();
-        else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls?.recoverMediaError();
-        else onError();
+        if (destroyed || !data.fatal) return;
+        if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+          if (fatalRetries.current < 3) hls?.startLoad();
+          else onFatal();
+        } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+          hls?.recoverMediaError();
+        } else {
+          onFatal();
+        }
       });
       video.addEventListener("playing", onPlaying);
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      // Safari native HLS
+      // Safari native HLS — no CORS restriction on <video>
       video.src = channel.url;
-      video.play().catch(onError);
+      video.play().catch(onFatal);
       video.addEventListener("playing", onPlaying);
     } else {
       setStatus("error");
