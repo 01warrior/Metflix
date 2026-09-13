@@ -10,7 +10,6 @@ import { HomeView } from "@/components/home-view";
 import { BrowseView } from "@/components/browse-view";
 import { DetailView } from "@/components/detail-view";
 import { FavoritesView } from "@/components/favorites-view";
-import { TvView } from "@/components/tv-view";
 import { Footer } from "@/components/footer";
 import { PreviewModal } from "@/components/preview-modal";
 import { MangaReader } from "@/components/manga-reader";
@@ -123,7 +122,6 @@ export default function Page() {
           {currentView === "browse" && <BrowseView key="browse" />}
           {currentView === "detail" && <DetailView key="detail" />}
           {currentView === "favorites" && <FavoritesView key="favorites" />}
-          {currentView === "tv" && <TvView key="tv" />}
         </AnimatePresence>
       </main>
 

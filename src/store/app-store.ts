@@ -70,15 +70,6 @@ export interface WatchHistoryItem {
   timestamp: number;
 }
 
-export interface Channel {
-  id: string;
-  name: string;
-  url: string;
-  logo: string | null;
-  category: string;
-  order: number;
-}
-
 // Load watch history from localStorage
 function loadWatchHistory(): WatchHistoryItem[] {
   if (typeof window === "undefined") return [];
@@ -120,7 +111,7 @@ function saveFavorites(favorites: string[]) {
 }
 
 interface AppState {
-  currentView: "home" | "browse" | "detail" | "favorites" | "tv";
+  currentView: "home" | "browse" | "detail" | "favorites";
   selectedType: ContentType;
   selectedCategory: string | null;
   selectedSort: string;
@@ -156,11 +147,9 @@ interface AppState {
   mangaReaderChapters: { id: string; chapter: string | null; title: string | null; volume: string | null; pages: number; publishAt: string | null; readableAt: string | null }[];
   previewItem: ContentItem | null;
   showPreview: boolean;
-  channels: Channel[];
-  activeChannel: Channel | null;
 
   // Actions
-  setView: (view: "home" | "browse" | "detail" | "favorites" | "tv") => void;
+  setView: (view: "home" | "browse" | "detail" | "favorites") => void;
   setSelectedType: (type: ContentType) => void;
   setSelectedCategory: (category: string | null) => void;
   setSelectedSort: (sort: string) => void;
@@ -236,8 +225,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   mangaReaderChapters: [],
   previewItem: null,
   showPreview: false,
-  channels: [],
-  activeChannel: null,
 
   setView: (view) => {
     const current = get().currentView;
@@ -320,6 +307,4 @@ export const useAppStore = create<AppState>((set, get) => ({
   setMangaReaderPage: (page) => set({ mangaReaderCurrentPage: page }),
   openPreview: (item) => set({ previewItem: item, showPreview: true }),
   closePreview: () => set({ previewItem: null, showPreview: false }),
-  setChannels: (channels) => set({ channels }),
-  setActiveChannel: (channel) => set({ activeChannel: channel }),
 }));

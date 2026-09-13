@@ -14,8 +14,8 @@ export function MobileBottomNav() {
     { label: "Accueil", view: "home" as const, icon: "home" as const },
     { label: "Films", type: "movie" as ContentType, icon: "film" as const },
     { label: "Séries", type: "series" as ContentType, icon: "tv" as const },
-    { label: "TV", view: "tv" as const, icon: "monitor" as const },
     { label: "Anime", type: "anime" as ContentType, icon: "sparkles" as const },
+    { label: "Manga", type: "manga" as ContentType, icon: "book-open" as const },
   ];
 
   return (
