@@ -9,6 +9,57 @@ import { getDisplayTitle, handleImgError, getTypeBadge, TYPE_CONFIG } from "@/li
 const SLIDE_DURATION = 6000;
 const PROGRESS_INTERVAL = 50;
 
+// Build responsive sources from the w1280 URL the API returns.
+// Non-TMDB URLs (AniList, placeholders) are used as-is.
+function backdropSources(url: string | null | undefined) {
+  const src = url || "";
+  if (!src.includes("/w1280/")) return { low: src, src: src, srcSet: undefined };
+  return {
+    low: src.replace("/w1280/", "/w300/"),
+    src,
+    srcSet: [
+      `${src.replace("/w1280/", "/w780/")} 780w`,
+      `${src} 1280w`,
+      `${src.replace("/w1280/", "/original/")} 3840w`,
+    ].join(", "),
+  };
+}
+
+// Netflix-style blur-up: a ~15KB w300 version paints instantly behind a blur,
+// the sharp image (browser-picked size via srcset) crossfades in on load.
+function HeroBackdrop({ url }: { url: string | null | undefined }) {
+  const [loaded, setLoaded] = useState(false);
+  const { low, src, srcSet } = backdropSources(url);
+
+  return (
+    <div className="absolute inset-0">
+      <img
+        src={low}
+        alt=""
+        aria-hidden
+        className="absolute inset-0 w-full h-full object-cover scale-110 blur-md"
+      />
+      <img
+        src={src}
+        srcSet={srcSet}
+        sizes="100vw"
+        alt=""
+        loading="eager"
+        fetchPriority="high"
+        decoding="async"
+        onLoad={() => setLoaded(true)}
+        onError={(e) => {
+          handleImgError(e, false);
+          setLoaded(true);
+        }}
+        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ease-out ${
+          loaded ? "opacity-100" : "opacity-0"
+        }`}
+      />
+    </div>
+  );
+}
+
 export function HeroSection() {
   const { featured, setView, setSelectedContentId, toggleFavorite, favorites } = useAppStore();
   const [activeIdx, setActiveIdx] = useState(0);
@@ -70,13 +121,7 @@ export function HeroSection() {
           transition={{ duration: 0.5, ease: "easeOut" }}
           className="absolute inset-0"
         >
-          <img
-            src={current.backdropUrl?.replace("/w1280/", "/original/")}
-            alt=""
-            className="w-full h-full object-cover"
-            loading="eager"
-            onError={(e) => handleImgError(e, false)}
-          />
+          <HeroBackdrop url={current.backdropUrl} />
         </motion.div>
       </AnimatePresence>
       {/* Gradients */}

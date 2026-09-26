@@ -48,13 +48,26 @@ export default function Page() {
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [currentView, selectedContentId]);
 
-  // Fetch home data
+  // Fetch hero data first — the hero must not wait for the rows
   useEffect(() => {
-    const fetchHome = async () => {
+    const fetchFeatured = async () => {
       try {
-        const [featuredRes, moviesRes, seriesRes, animeRes, mangaRes, latestRes] =
+        const res = await fetch("/api/featured");
+        const data = await res.json();
+        setFeatured(data.data || []);
+      } catch (err) {
+        console.error("Failed to fetch featured:", err);
+      }
+    };
+    fetchFeatured();
+  }, [setFeatured]);
+
+  // Fetch home rows (parallel, but independent of the hero)
+  useEffect(() => {
+    const fetchRows = async () => {
+      try {
+        const [moviesRes, seriesRes, animeRes, mangaRes, latestRes] =
           await Promise.all([
-            fetch("/api/featured"),
             fetch("/api/content?type=movie&sort=rating&limit=15"),
             fetch("/api/content?type=series&sort=rating&limit=15"),
             fetch("/api/content?type=anime&sort=rating&limit=15"),
@@ -62,9 +75,8 @@ export default function Page() {
             fetch("/api/content?sort=created&limit=10"),
           ]);
 
-        const [featuredData, moviesData, seriesData, animeData, mangaData, latestData] =
+        const [moviesData, seriesData, animeData, mangaData, latestData] =
           await Promise.all([
-            featuredRes.json(),
             moviesRes.json(),
             seriesRes.json(),
             animeRes.json(),
@@ -72,19 +84,18 @@ export default function Page() {
             latestRes.json(),
           ]);
 
-        setFeatured(featuredData.data || []);
         setTrendingMovies(moviesData.data || []);
         setTrendingSeries(seriesData.data || []);
         setTrendingAnime(animeData.data || []);
         setTrendingManga(mangaData.data || []);
         setLatestContent(latestData.data || []);
       } catch (err) {
-        console.error("Failed to fetch home data:", err);
+        console.error("Failed to fetch home rows:", err);
       }
     };
 
-    fetchHome();
-  }, [setFeatured, setTrendingMovies, setTrendingSeries, setTrendingAnime, setTrendingManga, setLatestContent]);
+    fetchRows();
+  }, [setTrendingMovies, setTrendingSeries, setTrendingAnime, setTrendingManga, setLatestContent]);
 
   // Track watch history when content detail is loaded
   useEffect(() => {
