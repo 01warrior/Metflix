@@ -133,6 +133,7 @@ export function BrowseView() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
       className="page-content max-w-7xl mx-auto px-4 md:px-8 py-6"
     >
       {/* Filter bar */}

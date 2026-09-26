@@ -61,13 +61,13 @@ export function HeroSection() {
       className="relative w-full h-[60vh] md:h-[85vh] overflow-hidden -mt-16 group/hero"
     >
       {/* Backdrop image */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence>
         <motion.div
           key={current.id}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
           className="absolute inset-0"
         >
           <img
@@ -88,7 +88,7 @@ export function HeroSection() {
       {items.length > 1 && (
         <button
           onClick={goPrev}
-          className="hidden md:flex absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-20 w-14 h-14 md:w-16 md:h-16 items-center justify-center rounded-full bg-white/[0.08] backdrop-blur-xl border border-white/[0.15] text-white/50 hover:text-white hover:bg-white/[0.18] hover:border-white/[0.3] transition-all duration-300 opacity-40 group-hover/hero:opacity-100 hover:scale-110 active:scale-95 shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
+          className="hidden md:flex absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-20 w-14 h-14 md:w-16 md:h-16 items-center justify-center rounded-full bg-white/[0.08] backdrop-blur-xl border border-white/[0.15] text-white/50 hover:text-white hover:bg-white/[0.18] hover:border-white/[0.3] transition-[color,background-color,border-color,transform,opacity] duration-200 opacity-40 group-hover/hero:opacity-100 hover:scale-110 active:scale-95 shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
           aria-label="Précédent"
         >
           <Icon name="chevron-left" className="h-7 w-7 md:h-8 md:w-8" />
@@ -99,7 +99,7 @@ export function HeroSection() {
       {items.length > 1 && (
         <button
           onClick={goNext}
-          className="hidden md:flex absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-20 w-14 h-14 md:w-16 md:h-16 items-center justify-center rounded-full bg-white/[0.08] backdrop-blur-xl border border-white/[0.15] text-white/50 hover:text-white hover:bg-white/[0.18] hover:border-white/[0.3] transition-all duration-300 opacity-40 group-hover/hero:opacity-100 hover:scale-110 active:scale-95 shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
+          className="hidden md:flex absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-20 w-14 h-14 md:w-16 md:h-16 items-center justify-center rounded-full bg-white/[0.08] backdrop-blur-xl border border-white/[0.15] text-white/50 hover:text-white hover:bg-white/[0.18] hover:border-white/[0.3] transition-[color,background-color,border-color,transform,opacity] duration-200 opacity-40 group-hover/hero:opacity-100 hover:scale-110 active:scale-95 shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
           aria-label="Suivant"
         >
           <Icon name="chevron-right" className="h-7 w-7 md:h-8 md:w-8" />
@@ -114,7 +114,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.4 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
           >
             {getTypeBadge(current.type) && (
               <div className="mb-3">
@@ -185,7 +185,7 @@ export function HeroSection() {
                 <button
                   key={item.id}
                   onClick={() => goTo(idx)}
-                  className={`rounded-full transition-all duration-300 ${
+                  className={`rounded-full transition-[color,background-color,border-color,transform,opacity] duration-200 ${
                     idx === activeIdx
                       ? "w-7 h-2.5 bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"
                       : "w-2.5 h-2.5 bg-white/25 hover:bg-white/50 hover:scale-125"

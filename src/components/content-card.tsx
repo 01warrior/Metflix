@@ -61,7 +61,7 @@ export function ContentCard({ item }: { item: ContentItem }) {
         {/* Favorite button */}
         <button
           onClick={handleFavClick}
-          className="absolute top-2 right-2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm transition-all hover:scale-110"
+          className="absolute top-2 right-2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm transition-transform hover:scale-110"
           aria-label={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
         >
           <Icon

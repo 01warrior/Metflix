@@ -3,6 +3,21 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Only apply hover: variants on devices with a real pointer — touch fires false hovers on tap */
+@custom-variant hover {
+  @media (hover: hover) {
+    &:hover {
+      @slot;
+    }
+  }
+}
+
+/* Motion tokens (Emil Kowalski's curves) */
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-swap: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -146,13 +161,15 @@
   scrollbar-width: none;
 }
 
-/* Content card hover effect */
+/* Content card hover effect — gated to real pointers (touch fires false hovers on tap) */
 .content-card {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.content-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.5);
+@media (hover: hover) and (pointer: fine) {
+  .content-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.5);
+  }
 }
 
 /* Hero gradient overlay */
@@ -210,21 +227,7 @@
   border-radius: 0.5rem;
 }
 
-/* Smooth page transitions */
-.page-content {
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+/* Page enter/exit is animated by framer-motion in each view (AnimatePresence in page.tsx) */
 
 /* Better shimmer loading effect */
 .shimmer {
@@ -237,7 +240,7 @@
     oklch(0.16 0 0) 100%
   );
   background-size: 400% 100%;
-  animation: shimmer 2s ease-in-out infinite;
+  animation: shimmer 2s linear infinite;
 }
 
 @keyframes shimmer {
@@ -268,8 +271,8 @@
 }
 
 @keyframes glowPulse {
-  0%, 100% { opacity: 0.4; filter: blur(6px); }
-  50% { opacity: 0.7; filter: blur(10px); }
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
 }
 
 /* Mobile bottom nav with blur backdrop */
@@ -281,7 +284,7 @@
 }
 
 .mobile-bottom-nav .nav-item {
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
 }
 .mobile-bottom-nav .nav-item.active {
   color: #ef4444;
@@ -297,7 +300,7 @@
   100% { opacity: 1; transform: translateY(0); }
 }
 .rating-animate {
-  animation: ratingCount 0.4s ease-out;
+  animation: ratingCount 0.25s ease-out;
 }
 
 /* New badge shimmer effect */
@@ -360,8 +363,10 @@
   z-index: -1;
   transition: opacity 0.3s ease;
 }
-.content-card:hover::after {
-  opacity: 1;
+@media (hover: hover) and (pointer: fine) {
+  .content-card:hover::after {
+    opacity: 1;
+  }
 }
 
 /* Text shadow for hero title */
@@ -373,7 +378,7 @@
 .genre-pill {
   position: relative;
   overflow: hidden;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .genre-pill::before {
   content: '';
@@ -442,7 +447,8 @@
 
 /* Server button hover scale effect */
 .server-btn {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.2s var(--ease-out), background-color 0.2s var(--ease-out),
+    border-color 0.2s var(--ease-out), color 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out);
 }
 .server-btn:hover {
   transform: translateY(-1px);
@@ -556,8 +562,10 @@ html {
 :root:not(.dark) .content-card {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
-:root:not(.dark) .content-card:hover {
-  box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.15);
+@media (hover: hover) and (pointer: fine) {
+  :root:not(.dark) .content-card:hover {
+    box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.15);
+  }
 }
 
 :root:not(.dark) .donate-box {
@@ -572,9 +580,31 @@ html {
 
 @keyframes heroProgress {
   from {
-    width: 100%;
+    transform: scaleX(1);
   }
   to {
-    width: 0%;
+    transform: scaleX(0);
+  }
+}
+
+/* ==================== REDUCED MOTION ==================== */
+/* Fewer and gentler, not zero: keep opacity fades that aid comprehension, drop movement + decorative loops */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .shimmer,
+  .new-badge-shimmer,
+  .btn-glow::before,
+  .empty-state-icon,
+  .rating-animate {
+    animation: none;
+  }
+  .btn-glow::before {
+    opacity: 0.4;
+  }
+  .content-card:hover,
+  .server-btn:hover {
+    transform: none;
   }
 }
